@@ -316,12 +316,11 @@ void SPIClass::read(uint8 *buf, uint32 len)
 {
 	spi_reg_map * regs = _currentSetting->spi_d->regs;
 	uint8 b = (regs->DR); // clear the RX buffer in case a byte is waiting on it.
-    uint32 rxed = 0;
 	// start sequence
-    while ( rxed < len) {
+    while ( (len--)>0) {
 		regs->DR = 0x00FF; // " write the data item to be transmitted into the SPI_DR register (this clears the TXE flag)."
         while ( (regs->SR & SPI_SR_RXNE)==0 ) ; // wait till data is available in the Rx register
-        *buf++ = (regs->DR); // read and store the received byte
+        *buf++ = (uint8)(regs->DR); // read and store the received byte
     }
 }
 
@@ -333,6 +332,7 @@ void SPIClass::write(uint16 data)
 	 * This almost doubles the speed of this function.
 	 */
 	spi_tx_reg(_currentSetting->spi_d, data); // write the data to be transmitted into the SPI_DR register (this clears the TXE flag)
+	while (spi_is_tx_empty(_currentSetting->spi_d) == 0); // "5. Wait until TXE=1 ..."
 	while (spi_is_busy(_currentSetting->spi_d) != 0); // "... and then wait until BSY=0 before disabling the SPI." 
 }
 
