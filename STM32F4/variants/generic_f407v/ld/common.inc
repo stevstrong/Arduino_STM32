@@ -140,7 +140,7 @@ SECTIONS
         . = ALIGN(4);
         _lm_rom_img_cfgp = .;
         LONG(LOADADDR(.data));
-	LONG(LOADADDR(.ccmdata));
+        LONG(LOADADDR(.ccmdata));
         /*
          * Heap: Linker scripts may choose a custom heap by overriding
          * _lm_heap_start and _lm_heap_end. Otherwise, the heap is in
@@ -200,7 +200,7 @@ SECTIONS
         _end = __bss_end__;
       } > REGION_BSS
 
-     /*
+    /*
      * Debugging sections
      */
     .stab 0 (NOLOAD) : { *(.stab) }

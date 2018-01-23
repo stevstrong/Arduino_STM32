@@ -43,15 +43,6 @@ extern "C"{
 
 #include <wirish_types.h>
 
-extern timer_dev timer1;
-extern timer_dev timer2;
-extern timer_dev timer3;
-extern timer_dev timer4;
-extern timer_dev timer5;
-extern timer_dev timer6;
-extern timer_dev timer7;
-extern timer_dev timer8;
-
 /*
 typedef struct stm32_pin_info {
     gpio_dev *gpio_device;      // Maple pin's GPIO device

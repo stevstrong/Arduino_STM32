@@ -41,9 +41,6 @@ void usbEnableBlockingTx(void);
 void usbDisableBlockingTx(void);
 
 
-
-void __irq_OTG_FS_IRQHandler(void);
-
 #ifdef __cplusplus
 } // extern "C"
 #endif
