@@ -520,7 +520,7 @@ static void enable_nonmuxed_irq(timer_dev *dev) {
         nvic_irq_enable(NVIC_TIMER5);
         break;
     case RCC_TIMER6:
-        nvic_irq_enable(NVIC_TIMER6);
+        nvic_irq_enable(NVIC_TIMER6_DAC);
         break;
     case RCC_TIMER7:
         nvic_irq_enable(NVIC_TIMER7);

@@ -91,12 +91,12 @@ void HardwareSerial::begin(uint32 baud) {
     }
 
     if (usart_device == UART4 || usart_device == UART5) {
-        gpio_set_af_mode(tx_pin, GPIO_AFMODE_UASRT4_6);
-        gpio_set_af_mode(rx_pin, GPIO_AFMODE_UASRT4_6);
+        gpio_set_af_mode(tx_pin, GPIO_AFMODE_USART4_6);
+        gpio_set_af_mode(rx_pin, GPIO_AFMODE_USART4_6);
     }
     else {
-        gpio_set_af_mode(tx_pin, GPIO_AFMODE_UASRT1_3);
-        gpio_set_af_mode(rx_pin, GPIO_AFMODE_UASRT1_3);
+        gpio_set_af_mode(tx_pin, GPIO_AFMODE_USART1_3);
+        gpio_set_af_mode(rx_pin, GPIO_AFMODE_USART1_3);
     }
     gpio_set_mode(tx_pin, (gpio_pin_mode)(GPIO_AF_OUTPUT_PP_PU | 0x700));
     gpio_set_mode(rx_pin, (gpio_pin_mode)(GPIO_AF_INPUT_PU | 0x700));
