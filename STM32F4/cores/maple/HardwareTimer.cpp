@@ -33,26 +33,27 @@
 
 #define MAX_RELOAD ((1 << 16) - 1)
 
+static timer_dev * const devs[] = {
+	TIMER1,
+	TIMER2,
+	TIMER3,
+	TIMER4,
+	TIMER5,
+	TIMER6,
+	TIMER7,
+	TIMER8,
+	TIMER9,
+	TIMER10,
+	TIMER11,
+	TIMER12,
+	TIMER13,
+	TIMER14,
+};
+
 HardwareTimer::HardwareTimer(uint8 timerNum) {
     if (timerNum > NR_TIMERS) {
         ASSERT(0);
     }
-    timer_dev *devs[] = {
-        TIMER1,
-        TIMER2,
-        TIMER3,
-        TIMER4,
-        TIMER5,
-        TIMER6,
-        TIMER7,
-        TIMER8,
-        TIMER9,
-        TIMER10,
-        TIMER11,
-        TIMER12,
-        TIMER13,
-        TIMER14,
-    };
     this->dev = devs[timerNum - 1];
 }
 
@@ -133,14 +134,3 @@ void HardwareTimer::detachInterrupt(int channel) {
 void HardwareTimer::refresh(void) {
     timer_generate_update(this->dev);
 }
-
-/* -- Deprecated predefined instances -------------------------------------- */
-
-HardwareTimer Timer1(1);
-HardwareTimer Timer2(2);
-HardwareTimer Timer3(3);
-HardwareTimer Timer4(4);
-HardwareTimer Timer5(5);
-HardwareTimer Timer6(6);
-HardwareTimer Timer7(7);
-HardwareTimer Timer8(8);

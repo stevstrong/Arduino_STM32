@@ -84,42 +84,42 @@ __default_handler:
 	.weak	__irq_exti4
 	.globl	__irq_exti4
 	.set	__irq_exti4, __default_handler
-	.weak	__irq_dma1_channel1
-	.globl	__irq_dma1_channel1
-	.set	__irq_dma1_channel1, __default_handler
-	.weak	__irq_dma1_channel2
-	.globl	__irq_dma1_channel2
-	.set	__irq_dma1_channel2, __default_handler
-	.weak	__irq_dma1_channel3
-	.globl	__irq_dma1_channel3
-	.set	__irq_dma1_channel3, __default_handler
-	.weak	__irq_dma1_channel4
-	.globl	__irq_dma1_channel4
-	.set	__irq_dma1_channel4, __default_handler
-	.weak	__irq_dma1_channel5
-	.globl	__irq_dma1_channel5
-	.set	__irq_dma1_channel5, __default_handler
-	.weak	__irq_dma1_channel6
-	.globl	__irq_dma1_channel6
-	.set	__irq_dma1_channel6, __default_handler
-	.weak	__irq_dma1_channel7
-	.globl	__irq_dma1_channel7
-	.set	__irq_dma1_channel7, __default_handler
+	.weak	__irq_dma1_stream0
+	.globl	__irq_dma1_stream0
+	.set	__irq_dma1_stream0, __default_handler
+	.weak	__irq_dma1_stream1
+	.globl	__irq_dma1_stream1
+	.set	__irq_dma1_stream1, __default_handler
+	.weak	__irq_dma1_stream2
+	.globl	__irq_dma1_stream2
+	.set	__irq_dma1_stream2, __default_handler
+	.weak	__irq_dma1_stream3
+	.globl	__irq_dma1_stream3
+	.set	__irq_dma1_stream3, __default_handler
+	.weak	__irq_dma1_stream4
+	.globl	__irq_dma1_stream4
+	.set	__irq_dma1_stream4, __default_handler
+	.weak	__irq_dma1_stream5
+	.globl	__irq_dma1_stream5
+	.set	__irq_dma1_stream5, __default_handler
+	.weak	__irq_dma1_stream6
+	.globl	__irq_dma1_stream6
+	.set	__irq_dma1_stream6, __default_handler
 	.weak	__irq_adc
 	.globl	__irq_adc
 	.set	__irq_adc, __default_handler
-	.weak	__irq_usb_hp_can_tx
-	.globl	__irq_usb_hp_can_tx
-	.set	__irq_usb_hp_can_tx, __default_handler
-	.weak	__irq_usb_lp_can_rx0
-	.globl	__irq_usb_lp_can_rx0
-	.set	__irq_usb_lp_can_rx0, __default_handler
-	.weak	__irq_can_rx1
-	.globl	__irq_can_rx1
-	.set	__irq_can_rx1, __default_handler
-	.weak	__irq_can_sce
-	.globl	__irq_can_sce
-	.set	__irq_can_sce, __default_handler
+	.weak	__irq_can1_tx
+	.globl	__irq_can1_tx
+	.set	__irq_can1_tx, __default_handler
+	.weak	__irq_can1_rx0
+	.globl	__irq_can1_rx0
+	.set	__irq_can1_rx0, __default_handler
+	.weak	__irq_can1_rx1
+	.globl	__irq_can1_rx1
+	.set	__irq_can1_rx1, __default_handler
+	.weak	__irq_can1_sce
+	.globl	__irq_can1_sce
+	.set	__irq_can1_sce, __default_handler
 	.weak	__irq_exti9_5
 	.globl	__irq_exti9_5
 	.set	__irq_exti9_5, __default_handler
@@ -192,9 +192,9 @@ __default_handler:
 	.weak	__irq_tim8_cc
 	.globl	__irq_tim8_cc
 	.set	__irq_tim8_cc, __default_handler
-	.weak	__irq_adc3
-	.globl	__irq_adc3
-	.set	__irq_adc3, __default_handler
+	.weak	__irq_dma1_stream7
+	.globl	__irq_dma1_stream7
+	.set	__irq_dma1_stream7, __default_handler
 	.weak	__irq_fsmc
 	.globl	__irq_fsmc
 	.set	__irq_fsmc, __default_handler
@@ -213,109 +213,87 @@ __default_handler:
 	.weak	__irq_uart5
 	.globl	__irq_uart5
 	.set	__irq_uart5, __default_handler
-	.weak	__irq_tim6
-	.globl	__irq_tim6
-	.set	__irq_tim6, __default_handler
+	.weak	__irq_tim6_dac
+	.globl	__irq_tim6_dac
+	.set	__irq_tim6_dac, __default_handler
 	.weak	__irq_tim7
 	.globl	__irq_tim7
 	.set	__irq_tim7, __default_handler
-	.weak	__irq_dma2_channel1
-	.globl	__irq_dma2_channel1
-	.set	__irq_dma2_channel1, __default_handler
-	.weak	__irq_dma2_channel2
-	.globl	__irq_dma2_channel2
-	.set	__irq_dma2_channel2, __default_handler
-	.weak	__irq_dma2_channel3
-	.globl	__irq_dma2_channel3
-	.set	__irq_dma2_channel3, __default_handler
-	.weak	__irq_dma2_channel4_5
-	.globl	__irq_dma2_channel4_5
-	.set	__irq_dma2_channel4_5, __default_handler
-
-	.weak	__irq_DMA2_Stream4_IRQHandler              
-	.globl	__irq_DMA2_Stream4_IRQHandler              
-	.set	__irq_DMA2_Stream4_IRQHandler, __default_handler
-
-  .weak	__irq_ETH_IRQHandler                       
-  .globl	__irq_ETH_IRQHandler                       
-  .set	__irq_ETH_IRQHandler, __default_handler
-
-  .weak	__irq_ETH_WKUP_IRQHandler                         
-  .globl	__irq_ETH_WKUP_IRQHandler                         
-  .set	__irq_ETH_WKUP_IRQHandler, __default_handler  
-
-  .weak	__irq_CAN2_TX_IRQHandler                          
-  .globl	__irq_CAN2_TX_IRQHandler                          
-  .set	__irq_CAN2_TX_IRQHandler, __default_handler    
-
-  .weak	__irq_CAN2_RX0_IRQHandler                         
-  .globl	__irq_CAN2_RX0_IRQHandler                         
-  .set	__irq_CAN2_RX0_IRQHandler, __default_handler      
-
-  .weak	__irq_CAN2_RX1_IRQHandler                         
-  .globl	__irq_CAN2_RX1_IRQHandler                         
-  .set	__irq_CAN2_RX1_IRQHandler, __default_handler        
-
-  .weak	__irq_CAN2_SCE_IRQHandler                         
-  .globl	__irq_CAN2_SCE_IRQHandler                         
-  .set	__irq_CAN2_SCE_IRQHandler, __default_handler          
-
-  .weak	__irq_OTG_FS_IRQHandler                    
-  .globl	__irq_OTG_FS_IRQHandler                    
-  .set	__irq_OTG_FS_IRQHandler, __default_handler            
-
-  .weak	__irq_DMA2_Stream5_IRQHandler              
-  .globl	__irq_DMA2_Stream5_IRQHandler              
-  .set	__irq_DMA2_Stream5_IRQHandler, __default_handler              
-
-  .weak	__irq_DMA2_Stream6_IRQHandler              
-  .globl	__irq_DMA2_Stream6_IRQHandler              
-  .set	__irq_DMA2_Stream6_IRQHandler, __default_handler                
-
-  .weak	__irq_DMA2_Stream7_IRQHandler              
-  .globl	__irq_DMA2_Stream7_IRQHandler              
-  .set	__irq_DMA2_Stream7_IRQHandler, __default_handler                  
-
-  .weak	__irq_USART6_IRQHandler                     
-  .globl	__irq_USART6_IRQHandler                     
-  .set	__irq_USART6_IRQHandler, __default_handler                    
-
-  .weak	__irq_I2C3_EV_IRQHandler                          
-  .globl	__irq_I2C3_EV_IRQHandler                          
-  .set	__irq_I2C3_EV_IRQHandler, __default_handler                      
-
-  .weak	__irq_I2C3_ER_IRQHandler                          
-  .globl	__irq_I2C3_ER_IRQHandler                          
-  .set	__irq_I2C3_ER_IRQHandler, __default_handler                        
-
-  .weak	__irq_OTG_HS_EP1_OUT_IRQHandler              
-  .globl	__irq_OTG_HS_EP1_OUT_IRQHandler              
-  .set	__irq_OTG_HS_EP1_OUT_IRQHandler, __default_handler                          
-
-  .weak	__irq_OTG_HS_EP1_IN_IRQHandler              
-  .globl	__irq_OTG_HS_EP1_IN_IRQHandler              
-  .set	__irq_OTG_HS_EP1_IN_IRQHandler, __default_handler                            
-
-  .weak	__irq_OTG_HS_WKUP_IRQHandler                       
-  .globl	__irq_OTG_HS_WKUP_IRQHandler                       
-  .set	__irq_OTG_HS_WKUP_IRQHandler, __default_handler                              
-
-  .weak	__irq_OTG_HS_IRQHandler                    
-  .globl	__irq_OTG_HS_IRQHandler                    
-  .set	__irq_OTG_HS_IRQHandler, __default_handler                                
-
-  .weak	__irq_DCMI_IRQHandler                      
-  .globl	__irq_DCMI_IRQHandler                      
-  .set	__irq_DCMI_IRQHandler, __default_handler                                  
-
-  .weak	__irq_CRYP_IRQHandler                      
-  .globl	__irq_CRYP_IRQHandler                      
-  .set	__irq_CRYP_IRQHandler, __default_handler                                    
-
-  .weak	__irq_HASH_RNG_IRQHandler    
-  .globl	__irq_HASH_RNG_IRQHandler    
-  .set	__irq_HASH_RNG_IRQHandler, __default_handler                                      
-
-  .weak	__irq_FPU_IRQHandler         
-  .globl	__irq_FPU_IRQHandler         
-  .set	__irq_FPU_IRQHandler, __default_handler                                        
+	.weak	__irq_dma2_stream0
+	.globl	__irq_dma2_stream0
+	.set	__irq_dma2_stream0, __default_handler
+	.weak	__irq_dma2_stream1
+	.globl	__irq_dma2_stream1
+	.set	__irq_dma2_stream1, __default_handler
+	.weak	__irq_dma2_stream2
+	.globl	__irq_dma2_stream2
+	.set	__irq_dma2_stream2, __default_handler
+	.weak	__irq_dma2_stream3
+	.globl	__irq_dma2_stream3
+	.set	__irq_dma2_stream3, __default_handler
+	.weak	__irq_dma2_stream4
+	.globl	__irq_dma2_stream4
+	.set	__irq_dma2_stream4, __default_handler
+    .weak	__irq_eth
+    .globl	__irq_eth
+    .set	__irq_eth, __default_handler
+    .weak	__irq_eth_wkup
+    .globl	__irq_eth_wkup
+    .set	__irq_eth_wkup, __default_handler
+    .weak	__irq_can2_tx
+    .globl	__irq_can2_tx
+    .set	__irq_can2_tx, __default_handler
+    .weak	__irq_can2_rx0
+    .globl	__irq_can2_rx0
+    .set	__irq_can2_rx0, __default_handler
+    .weak	__irq_can2_rx1
+    .globl	__irq_can2_rx1
+    .set	__irq_can2_rx1, __default_handler
+    .weak	__irq_can2_sce
+    .globl	__irq_can2_sce
+    .set	__irq_can2_sce, __default_handler
+    .weak	__irq_usb_fs
+    .globl	__irq_usb_fs
+    .set	__irq_usb_fs, __default_handler
+    .weak	__irq_dma2_stream5
+    .globl	__irq_dma2_stream5
+    .set	__irq_dma2_stream5, __default_handler              
+    .weak	__irq_dma2_stream6
+    .globl	__irq_dma2_stream6
+    .set	__irq_dma2_stream6, __default_handler
+    .weak	__irq_dma2_stream7
+    .globl	__irq_dma2_stream7
+    .set	__irq_dma2_stream7, __default_handler
+    .weak	__irq_usart6
+    .globl	__irq_usart6
+    .set	__irq_usart6, __default_handler                    
+    .weak	__irq_i2c3_ev
+    .globl	__irq_i2c3_ev
+    .set	__irq_i2c3_ev, __default_handler
+    .weak	__irq_i2c3_er
+    .globl	__irq_i2c3_er
+    .set	__irq_i2c3_er, __default_handler
+    .weak	__irq_usb_hs_ep1_out
+    .globl	__irq_usb_hs_ep1_out
+    .set	__irq_usb_hs_ep1_out, __default_handler
+    .weak	__irq_usb_hs_ep1_in
+    .globl	__irq_usb_hs_ep1_in
+    .set	__irq_usb_hs_ep1_in, __default_handler
+    .weak	__irq_usb_hs_wkup
+    .globl	__irq_usb_hs_wkup
+    .set	__irq_usb_hs_wkup, __default_handler
+    .weak	__irq_usb_hs
+    .globl	__irq_usb_hs
+    .set	__irq_usb_hs, __default_handler
+    .weak	__irq_dcmi
+    .globl	__irq_dcmi
+    .set	__irq_dcmi, __default_handler
+    .weak	__irq_cryp
+    .globl	__irq_cryp
+    .set	__irq_cryp, __default_handler
+    .weak	__irq_hash_rng
+    .globl	__irq_hash_rng
+    .set	__irq_hash_rng, __default_handler
+    .weak	__irq_fpu
+    .globl	__irq_fpu
+    .set	__irq_fpu, __default_handler

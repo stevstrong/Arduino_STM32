@@ -241,24 +241,30 @@ typedef struct usart_reg_map {
 /** USART device type */
 typedef struct usart_dev {
     usart_reg_map *regs;             /**< Register map */
+    uint32 max_baud;                 /**< Maximum baud */
+    rcc_clk_id clk_id;               /**< RCC clock information */
+    nvic_irq_num irq_num;            /**< USART NVIC interrupt */
     ring_buffer rbRX;                 /**< RX ring buffer */
     ring_buffer rbTX;                 /**< RX ring buffer */
-    uint32 max_baud;                 /**< Maximum baud */
     uint8 rx_buf[USART_RX_BUF_SIZE]; /**< @brief Deprecated.
                                       * Actual RX buffer used by rb.
                                       * This field will be removed in
                                       * a future release. */
     uint8 tx_buf[USART_TX_BUF_SIZE];
-    rcc_clk_id clk_id;               /**< RCC clock information */
-    nvic_irq_num irq_num;            /**< USART NVIC interrupt */
 } usart_dev;
 
-extern usart_dev *USART1;
-extern usart_dev *USART2;
-extern usart_dev *USART3;
-extern usart_dev *UART4;
-extern usart_dev *UART5;
-extern usart_dev *USART6;
+extern usart_dev usart1;
+extern usart_dev usart2;
+extern usart_dev usart3;
+extern usart_dev uart4;
+extern usart_dev uart5;
+extern usart_dev usart6;
+#define USART1 (&usart1)
+#define USART2 (&usart2)
+#define USART3 (&usart3)
+#define UART4  (&uart4)
+#define UART5  (&uart5)
+#define USART6 (&usart6)
 
 void usart_init(usart_dev *dev);
 void usart_set_baud_rate(usart_dev *dev, uint32 baud);

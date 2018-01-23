@@ -339,7 +339,7 @@ void __irq_tim5(void) {
     dispatch_general(TIMER5);
 }
 
-void __irq_tim6(void) {
+void __irq_tim6_dac(void) {
     dispatch_basic(TIMER6);
 }
 

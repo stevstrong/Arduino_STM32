@@ -37,51 +37,53 @@
 /*
  * Devices
  */
-
-static usart_dev usart1 = {
+/** USART1 device */
+usart_dev usart1 = {
     .regs     = USART1_BASE,
-    .max_baud = 4500000UL,
+    .max_baud = 5250000UL,
     .clk_id   = RCC_USART1,
     .irq_num  = NVIC_USART1
 };
-/** USART1 device */
-usart_dev *USART1 = &usart1;
 
-static usart_dev usart2 = {
+/** USART2 device */
+usart_dev usart2 = {
     .regs     = USART2_BASE,
-    .max_baud = 2250000UL,
+    .max_baud = 2620000UL,
     .clk_id   = RCC_USART2,
     .irq_num  = NVIC_USART2
 };
-/** USART2 device */
-usart_dev *USART2 = &usart2;
 
-static usart_dev usart3 = {
+/** USART3 device */
+usart_dev usart3 = {
     .regs     = USART3_BASE,
-    .max_baud = 2250000UL,
+    .max_baud = 2620000UL,
     .clk_id   = RCC_USART3,
     .irq_num  = NVIC_USART3
 };
-/** USART3 device */
-usart_dev *USART3 = &usart3;
 
-static usart_dev uart4 = {
+/** UART4 device */
+usart_dev uart4 = {
     .regs     = UART4_BASE,
-    .max_baud = 2250000UL,
+    .max_baud = 2620000UL,
     .clk_id   = RCC_UART4,
     .irq_num  = NVIC_UART4
 };
-/** UART4 device */
-usart_dev *UART4 = &uart4;
 
-static usart_dev uart5 = {
+/** UART5 device */
+usart_dev uart5 = {
     .regs     = UART5_BASE,
-    .max_baud = 2250000UL,
+    .max_baud = 2620000UL,
     .clk_id   = RCC_UART5,
     .irq_num  = NVIC_UART5
 };
-/** UART5 device */
-usart_dev *UART5 = &uart5;
+
+/** USART6 device */
+usart_dev usart6 = {
+    .regs     = USART6_BASE,
+    .max_baud = 5250000UL,
+    .clk_id   = RCC_USART6,
+    .irq_num  = NVIC_USART6
+};
 
 /**
  * @brief Initialize a serial port.
@@ -186,6 +188,7 @@ void usart_foreach(void (*fn)(usart_dev*)) {
     fn(USART3);
     fn(UART4);
     fn(UART5);
+    fn(USART6);
 }
 
 /**
@@ -285,3 +288,8 @@ void __irq_uart4(void) {
 void __irq_uart5(void) {
     usart_irq(UART5);
 }
+
+void __irq_usart6(void) {
+    usart_irq(USART6);
+}
+

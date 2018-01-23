@@ -101,7 +101,7 @@ RESULT usbPowerOff(void) {
 void usbDsbISR(void) {};
 
 #include <STM32_USB_OTG_Driver/inc/usb_dcd_int.h>
-void __irq_OTG_FS_IRQHandler(void)
+void __irq_usb_fs(void)
 {
   USBD_OTG_ISR_Handler (&USB_OTG_dev);
 }
