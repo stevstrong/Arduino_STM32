@@ -180,7 +180,6 @@ __default_handler:
 	.weak	__irq_usbwakeup
 	.globl	__irq_usbwakeup
 	.set	__irq_usbwakeup, __default_handler
-#if defined (STM32_HIGH_DENSITY)
 	.weak	__irq_tim8_brk
 	.globl	__irq_tim8_brk
 	.set	__irq_tim8_brk, __default_handler
@@ -232,7 +231,6 @@ __default_handler:
 	.weak	__irq_dma2_channel4_5
 	.globl	__irq_dma2_channel4_5
 	.set	__irq_dma2_channel4_5, __default_handler
-#endif /* STM32_HIGH_DENSITY */
 
 	.weak	__irq_DMA2_Stream4_IRQHandler              
 	.globl	__irq_DMA2_Stream4_IRQHandler              

@@ -90,9 +90,6 @@
 
 #endif
 
-#define STM32_NR_INTERRUPTS 60
-
-#define NR_INTERRUPTS STM32_NR_INTERRUPTS
 
 /*
  * MCU-specific configuration.

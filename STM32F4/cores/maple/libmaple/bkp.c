@@ -52,8 +52,8 @@ void bkp_init(void) {
     /* Don't call pwr_init(), or you'll reset the device.  We just
      * need the clock. */
     rcc_clk_enable(RCC_PWR);
-    rcc_clk_enable(RCC_BKP);
-    rcc_reset_dev(RCC_BKP);
+    //rcc_clk_enable(RCC_BKP);
+    //rcc_reset_dev(RCC_BKP);
 }
 
 /**
