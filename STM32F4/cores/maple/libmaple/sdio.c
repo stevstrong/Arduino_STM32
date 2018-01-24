@@ -19,7 +19,7 @@
 #include "gpio.h"
 #include "wirish_time.h"
 
-#if defined(BOARD_generic_f407v)
+#if defined(VARIANT_generic_f407v)
 
 sdio_dev * SDIO = SDIO_BASE;
 
