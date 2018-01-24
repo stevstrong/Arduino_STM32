@@ -44,6 +44,7 @@ extern "C"{
 
 #define digitalPinToPort(P)        ( PIN_MAP[P].gpio_device )
 #define digitalPinToBit(P)         ( (P&0x0F) )
+#define digitalPinToBitMask(P)     ( BIT(P&0x0F) )
 #define portOutputRegister(port)   ( &(port->regs->ODR) )
 #define portInputRegister(port)    ( &(port->regs->IDR) )
 
