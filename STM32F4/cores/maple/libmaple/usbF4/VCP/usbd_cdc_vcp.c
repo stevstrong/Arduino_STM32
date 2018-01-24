@@ -295,7 +295,6 @@ static uint16_t VCP_DataRx (uint8_t* Buf, uint32_t Len)
 			}
 		}
 	}
-	VCP_DTRHIGH = 0;
 	while(Len-- > 0) {
 		UsbRecBuffer[UsbRecWrite] = *Buf++;
 		if(UsbRecWrite == UsbRecBufferSize) {
