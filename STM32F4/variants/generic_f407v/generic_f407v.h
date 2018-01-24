@@ -35,7 +35,6 @@
 #ifndef _BOARD_GENERIC_F407V_H_
 #define _BOARD_GENERIC_F407V_H_
 
-#define Port2Pin(port, bit) ((port-'A')*16+bit)
 
 #define CYCLES_PER_MICROSECOND  168
 
@@ -52,59 +51,59 @@
 #define BOARD_USB_DM_PIN		PA11
 #define BOARD_USB_DP_PIN		PA12
 
-#define BOARD_LED_PIN           PA6 //Port2Pin('A', 6)
-#define BOARD_LED2_PIN          PA7 //Port2Pin('A', 7)
-#define BOARD_BUTTON1_PIN       PA0 //Port2Pin('A', 0)
-#define BOARD_BUTTON2_PIN       PE4 //Port2Pin('E', 4)
-#define BOARD_BUTTON3_PIN       PE3 //Port2Pin('E', 3)
+#define BOARD_LED_PIN           PA6
+#define BOARD_LED2_PIN          PA7
+#define BOARD_BUTTON1_PIN       PA0
+#define BOARD_BUTTON2_PIN       PE4
+#define BOARD_BUTTON3_PIN       PE3
 
 #define BOARD_NR_USARTS         5
-#define BOARD_USART1_TX_PIN     PA9  //Port2Pin('A', 9)
-#define BOARD_USART1_RX_PIN     PA10 //Port2Pin('A',10)
-#define BOARD_USART2_TX_PIN     PA2  //Port2Pin('A', 2)
-#define BOARD_USART2_RX_PIN     PA3  //Port2Pin('A', 3)
-#define BOARD_USART3_TX_PIN     PB10 //Port2Pin('B',10)
-#define BOARD_USART3_RX_PIN     PB11 //Port2Pin('B',11)
-#define BOARD_UART4_TX_PIN      PA0  //Port2Pin('A', 0)
-#define BOARD_UART4_RX_PIN      PA1  //Port2Pin('A', 1)
-#define BOARD_UART5_TX_PIN      PC12 //Port2Pin('C',12)
-#define BOARD_UART5_RX_PIN      PD2  //Port2Pin('D', 2)
+#define BOARD_USART1_TX_PIN     PA9
+#define BOARD_USART1_RX_PIN     PA10
+#define BOARD_USART2_TX_PIN     PA2
+#define BOARD_USART2_RX_PIN     PA3
+#define BOARD_USART3_TX_PIN     PB10
+#define BOARD_USART3_RX_PIN     PB11
+#define BOARD_UART4_TX_PIN      PA0
+#define BOARD_UART4_RX_PIN      PA1
+#define BOARD_UART5_TX_PIN      PC12
+#define BOARD_UART5_RX_PIN      PD2
 
 #define BOARD_NR_SPI            3
-#define BOARD_SPI1_NSS_PIN      PA4  //Port2Pin('A', 4)
-#define BOARD_SPI1_SCK_PIN      PA5  //Port2Pin('A', 5)
-#define BOARD_SPI1_MISO_PIN     PA6  //Port2Pin('A', 6)
-#define BOARD_SPI1_MOSI_PIN     PA7  //Port2Pin('A', 7)
-#define BOARD_SPI1A_NSS_PIN     PA15 //Port2Pin('A',15)
-#define BOARD_SPI1A_SCK_PIN     PB3  //Port2Pin('B', 3)
-#define BOARD_SPI1A_MISO_PIN    PB4  //Port2Pin('B', 4)
-#define BOARD_SPI1A_MOSI_PIN    PB5  //Port2Pin('B', 5)
+#define BOARD_SPI1_NSS_PIN      PA4
+#define BOARD_SPI1_SCK_PIN      PA5
+#define BOARD_SPI1_MISO_PIN     PA6
+#define BOARD_SPI1_MOSI_PIN     PA7
+#define BOARD_SPI1A_NSS_PIN     PA15
+#define BOARD_SPI1A_SCK_PIN     PB3
+#define BOARD_SPI1A_MISO_PIN    PB4
+#define BOARD_SPI1A_MOSI_PIN    PB5
 
-#define BOARD_SPI2_NSS_PIN      PB12 //Port2Pin('B',12)
-#define BOARD_SPI2_SCK_PIN      PB13 //Port2Pin('B',13)
-#define BOARD_SPI2_MISO_PIN     PB14 //Port2Pin('B',14)
-#define BOARD_SPI2_MOSI_PIN     PB15 //Port2Pin('B',15)
-#define BOARD_SPI2A_NSS_PIN     PB9  //Port2Pin('B', 9)
-#define BOARD_SPI2A_SCK_PIN     PB10 //Port2Pin('B',10)
-#define BOARD_SPI2A_MISO_PIN    PC2  //Port2Pin('C', 2)
-#define BOARD_SPI2A_MOSI_PIN    PC3  //Port2Pin('C', 3)
+#define BOARD_SPI2_NSS_PIN      PB12
+#define BOARD_SPI2_SCK_PIN      PB13
+#define BOARD_SPI2_MISO_PIN     PB14
+#define BOARD_SPI2_MOSI_PIN     PB15
+#define BOARD_SPI2A_NSS_PIN     PB9
+#define BOARD_SPI2A_SCK_PIN     PB10
+#define BOARD_SPI2A_MISO_PIN    PC2
+#define BOARD_SPI2A_MOSI_PIN    PC3
 
-#define BOARD_SPI3_NSS_PIN      PA15 //Port2Pin('A',15)
-#define BOARD_SPI3_SCK_PIN      PB3  //Port2Pin('B', 3)
-#define BOARD_SPI3_MISO_PIN     PB4  //Port2Pin('B', 4)
-#define BOARD_SPI3_MOSI_PIN     PB5  //Port2Pin('B', 5)
+#define BOARD_SPI3_NSS_PIN      PA15
+#define BOARD_SPI3_SCK_PIN      PB3
+#define BOARD_SPI3_MISO_PIN     PB4
+#define BOARD_SPI3_MOSI_PIN     PB5
 /* overlap with the SDIO interface for SD card
-#define BOARD_SPI3A_NSS_PIN     PA4  //Port2Pin('A', 4)
-#define BOARD_SPI3A_SCK_PIN     PC10 //Port2Pin('C',10)
-#define BOARD_SPI3A_MISO_PIN    PC11 //Port2Pin('C',11)
-#define BOARD_SPI3A_MOSI_PIN    PC12 //Port2Pin('C',12)
+#define BOARD_SPI3A_NSS_PIN     PA4
+#define BOARD_SPI3A_SCK_PIN     PC10
+#define BOARD_SPI3A_MISO_PIN    PC11
+#define BOARD_SPI3A_MOSI_PIN    PC12
 */
-#define BOARD_SDIO_D0           PC8  //Port2Pin('C', 8)
-#define BOARD_SDIO_D1           PC9  //Port2Pin('C', 9)
-#define BOARD_SDIO_D2           PC10 //Port2Pin('C',10)
-#define BOARD_SDIO_D3           PC11 //Port2Pin('C',11)
-#define BOARD_SDIO_CLK          PC12 //Port2Pin('C',12)
-#define BOARD_SDIO_CMD          PD2  //Port2Pin('D', 2)
+#define BOARD_SDIO_D0           PC8
+#define BOARD_SDIO_D1           PC9
+#define BOARD_SDIO_D2           PC10
+#define BOARD_SDIO_D3           PC11
+#define BOARD_SDIO_CLK          PC12
+#define BOARD_SDIO_CMD          PD2
 
 #define FSMC_NOE			PD4
 #define FSMC_NWE			PD5
