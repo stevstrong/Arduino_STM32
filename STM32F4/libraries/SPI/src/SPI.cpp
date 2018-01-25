@@ -65,24 +65,18 @@ static spi_baud_rate determine_baud_rate(spi_dev *dev, uint32_t freq);
 #endif
 
 static const spi_pins board_spi_pins[] __FLASH__ = {
-#if BOARD_NR_SPI >= 1
     {BOARD_SPI1_NSS_PIN,
      BOARD_SPI1_SCK_PIN,
      BOARD_SPI1_MISO_PIN,
      BOARD_SPI1_MOSI_PIN},
-#endif
-#if BOARD_NR_SPI >= 2
     {BOARD_SPI2_NSS_PIN,
      BOARD_SPI2_SCK_PIN,
      BOARD_SPI2_MISO_PIN,
      BOARD_SPI2_MOSI_PIN},
-#endif
-#if BOARD_NR_SPI >= 3
     {BOARD_SPI3_NSS_PIN,
      BOARD_SPI3_SCK_PIN,
      BOARD_SPI3_MISO_PIN,
      BOARD_SPI3_MOSI_PIN},
-#endif
 };
 
 
@@ -95,23 +89,17 @@ SPIClass::SPIClass(uint32 spi_num)
     _currentSetting=&_settings[spi_num-1];// SPI channels are called 1 2 and 3 but the array is zero indexed
 
     switch (spi_num) {
-#if BOARD_NR_SPI >= 1
-    case 1:
-        _currentSetting->spi_d = SPI1;
-        break;
-#endif
-#if BOARD_NR_SPI >= 2
-    case 2:
-        _currentSetting->spi_d = SPI2;
-        break;
-#endif
-#if BOARD_NR_SPI >= 3
-    case 3:
-        _currentSetting->spi_d = SPI3;
-        break;
-#endif
-    default:
-        ASSERT(0);
+        case 1:
+            _currentSetting->spi_d = SPI1;
+            break;
+        case 2:
+            _currentSetting->spi_d = SPI2;
+            break;
+        case 3:
+            _currentSetting->spi_d = SPI3;
+            break;
+        default:
+            ASSERT(0);
     }
 
     // Init things specific to each SPI device
@@ -135,15 +123,12 @@ SPIClass::SPIClass(uint32 spi_num)
     _settings[1].spiDmaChannel = DMA_CH0;
     _settings[1].spiRxDmaStream  = DMA_STREAM3; // alternative: -
     _settings[1].spiTxDmaStream  = DMA_STREAM4; // alternative: -
-#if BOARD_NR_SPI >= 3
     _settings[2].spi_d = SPI3;
     _settings[2].clockDivider = determine_baud_rate(_settings[2].spi_d, _settings[2].clock);
     _settings[2].spiDmaDev = DMA1;
     _settings[2].spiDmaChannel = DMA_CH0;
     _settings[2].spiRxDmaStream  = DMA_STREAM0; // alternative: DMA_STREAM2
     _settings[2].spiTxDmaStream  = DMA_STREAM5; // alternative: DMA_STREAM7
-#endif
-
 }
 
 /*
@@ -545,16 +530,10 @@ uint8 SPIClass::recv(void) {
 
 static const spi_pins* dev_to_spi_pins(spi_dev *dev) {
     switch (dev->clk_id) {
-#if BOARD_NR_SPI >= 1
-    case RCC_SPI1: return board_spi_pins;
-#endif
-#if BOARD_NR_SPI >= 2
-    case RCC_SPI2: return board_spi_pins + 1;
-#endif
-#if BOARD_NR_SPI >= 3
-    case RCC_SPI3: return board_spi_pins + 2;
-#endif
-    default:       return NULL;
+        case RCC_SPI1: return board_spi_pins;
+        case RCC_SPI2: return board_spi_pins + 1;
+        case RCC_SPI3: return board_spi_pins + 2;
+        default:       return NULL;
     }
 }
 
