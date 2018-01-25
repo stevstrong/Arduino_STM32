@@ -64,7 +64,7 @@ static spi_baud_rate determine_baud_rate(spi_dev *dev, uint32_t freq);
 #error "The SPI library is misconfigured: 3 SPI ports only available on foundation line STM32F4 devices"
 #endif
 
-static const spi_pins board_spi_pins[] __FLASH__ = {
+static const spi_pins board_spi_pins[BOARD_NR_SPI] __FLASH__ = {
     {BOARD_SPI1_NSS_PIN,
      BOARD_SPI1_SCK_PIN,
      BOARD_SPI1_MISO_PIN,
