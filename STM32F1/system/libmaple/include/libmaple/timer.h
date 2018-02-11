@@ -370,6 +370,12 @@ extern timer_dev timer14;
 #define TIMER_EGR_CC1G                  (1U << TIMER_EGR_CC1G_BIT)
 #define TIMER_EGR_UG                    (1U << TIMER_EGR_UG_BIT)
 
+/* Capture/compare mode registers, common values */
+
+#define TIMER_CCMR_CCS_INPUT_TI1        0x1
+#define TIMER_CCMR_CCS_INPUT_TI2        0x2
+#define TIMER_CCMR_CCS_INPUT_TRC        0x3
+
 /* Capture/compare mode register 1 (CCMR1) */
 
 #define TIMER_CCMR1_OC2CE_BIT           15
@@ -380,7 +386,7 @@ extern timer_dev timer14;
 #define TIMER_CCMR1_OC1FE_BIT           2
 
 #define TIMER_CCMR1_OC2CE               (1U << TIMER_CCMR1_OC2CE_BIT)
-#define TIMER_CCMR1_OC2M                (0x3 << 12)
+#define TIMER_CCMR1_OC2M                (0x7 << 12)
 #define TIMER_CCMR1_IC2F                (0xF << 12)
 #define TIMER_CCMR1_OC2PE               (1U << TIMER_CCMR1_OC2PE_BIT)
 #define TIMER_CCMR1_OC2FE               (1U << TIMER_CCMR1_OC2FE_BIT)
@@ -391,7 +397,7 @@ extern timer_dev timer14;
 #define TIMER_CCMR1_CC2S_INPUT_TI1      (0x2 << 8)
 #define TIMER_CCMR1_CC2S_INPUT_TRC      (0x3 << 8)
 #define TIMER_CCMR1_OC1CE               (1U << TIMER_CCMR1_OC1CE_BIT)
-#define TIMER_CCMR1_OC1M                (0x3 << 4)
+#define TIMER_CCMR1_OC1M                (0x7 << 4)
 #define TIMER_CCMR1_IC1F                (0xF << 4)
 #define TIMER_CCMR1_OC1PE               (1U << TIMER_CCMR1_OC1PE_BIT)
 #define TIMER_CCMR1_OC1FE               (1U << TIMER_CCMR1_OC1FE_BIT)
@@ -656,6 +662,19 @@ static inline void timer_pause(timer_dev *dev) {
  */
 static inline void timer_resume(timer_dev *dev) {
     *bb_perip(&(dev->regs).bas->CR1, TIMER_CR1_CEN_BIT) = 1;
+}
+
+/**
+ * @brief Get the status register.
+ * @param dev Timer device
+ * @return Status register value (16bits).
+ */
+static inline uint16 timer_get_status(timer_dev *dev) {
+	return (dev->regs).gen->SR;
+}
+
+static inline void timer_reset_status_bit(timer_dev *dev, uint8 bit) {
+	*bb_perip(&(dev->regs).gen->SR, bit) = 0;
 }
 
 /**
@@ -1069,6 +1088,17 @@ static inline void timer_oc_set_mode(timer_dev *dev,
     tmp |= (mode | flags) << shift;
     *ccmr = tmp;
 }
+
+/**
+ * Timer output compare modes.
+ */
+typedef enum timer_ic_input_select {
+    TIMER_IC_INPUT_DEFAULT = TIMER_CCMR_CCS_INPUT_TI1,
+    TIMER_IC_INPUT_SWITCH  = TIMER_CCMR_CCS_INPUT_TI2,
+    TIMER_IC_INPUT_TRC     = TIMER_CCMR_CCS_INPUT_TRC,
+} timer_ic_input_select;
+
+extern void input_capture_mode(timer_dev *dev, uint8 channel, timer_ic_input_select input);
 
 
 #ifdef __cplusplus

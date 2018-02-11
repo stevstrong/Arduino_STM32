@@ -39,8 +39,6 @@ static void disable_channel(timer_dev *dev, uint8 channel);
 static void pwm_mode(timer_dev *dev, uint8 channel);
 static void output_compare_mode(timer_dev *dev, uint8 channel);
 static void encoder_mode(timer_dev *dev, uint8 channel) ;//CARLOS
-static void input_capture_mode(timer_dev *dev, uint8 channel);//@Cesco
-
 
 static inline void enable_irq(timer_dev *dev, timer_interrupt_id iid);
 
@@ -238,7 +236,7 @@ void timer_set_mode(timer_dev *dev, uint8 channel, timer_mode mode) {
         encoder_mode(dev, channel); //find a way to pass all the needed stuff on the 8bit var
         break;
     case TIMER_INPUT_CAPTURE:// code from @Cesco
-        input_capture_mode(dev, channel);
+        input_capture_mode(dev, channel, TIMER_IC_INPUT_DEFAULT);
         break;		
     }
 }
@@ -353,9 +351,8 @@ static void encoder_mode(timer_dev *dev, uint8 channel __attribute__((unused))) 
     timer_resume(dev);
 }
 
-// Code supplied by @Cesco (on the forum) 
-static void input_capture_mode(timer_dev *dev, uint8 channel) {
-    timer_oc_set_mode(dev, channel, 0, TIMER_CCMR_CCS_INPUT_TI1);
+void input_capture_mode(timer_dev *dev, uint8 channel, timer_ic_input_select input) {
+    timer_oc_set_mode(dev, channel, 0, input);
     timer_cc_enable(dev, channel);
 }
 
