@@ -134,3 +134,20 @@ void HardwareTimer::detachInterrupt(int channel) {
 void HardwareTimer::refresh(void) {
     timer_generate_update(this->dev);
 }
+
+// Predefined instances
+
+HardwareTimer Timer1(1);
+HardwareTimer Timer2(2);
+HardwareTimer Timer3(3);
+HardwareTimer Timer4(4);
+HardwareTimer Timer5(5);
+HardwareTimer Timer6(6);
+HardwareTimer Timer7(7);
+HardwareTimer Timer8(8);
+HardwareTimer Timer9(9);
+HardwareTimer Timer10(10);
+HardwareTimer Timer11(11);
+HardwareTimer Timer12(12);
+HardwareTimer Timer13(13);
+HardwareTimer Timer14(14);
