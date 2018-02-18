@@ -325,6 +325,8 @@ extern HardwareTimer Timer4;
  * Pre-instantiated timer.
  */
 extern HardwareTimer Timer5;
+extern HardwareTimer Timer6;
+extern HardwareTimer Timer7;
 /**
  * @brief Deprecated.
  *

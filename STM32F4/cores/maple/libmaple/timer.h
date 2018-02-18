@@ -275,6 +275,11 @@ extern timer_dev timer14;
 #define TIMER_CR2_CCUS                  BIT(TIMER_CR2_CCUS_BIT)
 #define TIMER_CR2_CCPC                  BIT(TIMER_CR2_CCPC_BIT)
 
+typedef enum {
+	TIMER_MASTER_MODE_RESET = TIMER_CR2_MMS_RESET,
+	TIMER_MASTER_MODE_ENABLE = TIMER_CR2_MMS_ENABLE,
+	TIMER_MASTER_MODE_UPDATE = TIMER_CR2_MMS_UPDATE,
+} timer_mms_t;
 /* Slave mode control register (SMCR) */
 
 #define TIMER_SMCR_ETP_BIT              15
@@ -734,6 +739,12 @@ static inline void timer_set_compare(timer_dev *dev,
                                      uint16 value) {
     __io uint32 *ccr = &(dev->regs).gen->CCR1 + (channel - 1);
     *ccr = value;
+}
+
+static inline void timer_set_master_mode(timer_dev *dev, timer_mms_t value)
+{
+    uint32 cr2 = (dev->regs).bas->CR2 & (~TIMER_CR2_MMS);
+    (dev->regs).bas->CR2 = cr2 | value;
 }
 
 /**
