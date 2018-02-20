@@ -181,9 +181,12 @@ extern void dac_set_mask_amplitude(dac_channel_t channel, uint16 val);
 extern void dac_set_wave(dac_channel_t channel, dac_wave_t val);
 extern void dac_set_trigger(dac_channel_t channel, dac_trigger_t val);
 extern void dac_sw_trigger(dac_channel_t channel);
+extern void dac_enable_buffer(dac_channel_t channel);
+extern void dac_disable_buffer(dac_channel_t channel);
+extern void dac_enable_dma(dac_channel_t channel);
+extern void dac_disable_dma(dac_channel_t channel);
 extern void dac_enable(dac_channel_t channel);
 extern void dac_disable(dac_channel_t channel);
-extern void dac_enable_buffer(dac_channel_t channel, uint8 status);
 
 #ifdef __cplusplus
 } // extern "C"

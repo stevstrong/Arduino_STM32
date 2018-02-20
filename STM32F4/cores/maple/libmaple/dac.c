@@ -53,34 +53,6 @@ void dac_init()
 }
 
 /**
- * @brief Initialize the output buffer of the digital to analog converter
- * @param channel Flags:
- *      DAC_CH1: Select channel 1
- *      DAC_CH2: Select channel 2
- * @param status Status:
- *      1:  enable buffer
- *      0: disable buffer
- */
-void dac_enable_buffer(uint8 channel, uint8 status)
-{
-    if (channel & DAC_CH1) {
-		if(status) {
-			DAC->regs->CR &= ~DAC_CR_BOFF1;
-		} else {
-			DAC->regs->CR |= DAC_CR_BOFF1;
-		}        
-    }
-
-    if (channel & DAC_CH2) {
-		if(status) {
-			DAC->regs->CR &= ~DAC_CR_BOFF2;
-		} else {
-			DAC->regs->CR |= DAC_CR_BOFF2;
-		}        
-    }
-}
-
-/**
  * @brief Write a 12-bit value to the DAC to output
  * @param channel channel to select (1 or 2)
  * @param val value to write
@@ -133,7 +105,43 @@ void dac_set_trigger(dac_channel_t channel, dac_trigger_t val)
 void dac_sw_trigger(dac_channel_t channel)
 {
 	// trigger the channels simultanously
-	DAC->regs->SWTRIGR = channel & (DAC_SWTRIGR_SWTRIG2 | DAC_SWTRIGR_SWTRIG1);
+	DAC->regs->SWTRIGR = channel & (DAC_CH1 | DAC_CH2);
+}
+
+/**
+ * @brief Enable/disable the output buffer of the digital to analog converter
+ * @param channel Flags:
+ *      DAC_CH1: Select channel 1
+ *      DAC_CH2: Select channel 2
+ */
+void dac_enable_buffer(uint8 channel)
+{
+	uint32 flags = (channel&DAC_CH1)<<1 | (channel&DAC_CH2)<<16;
+	DAC->regs->CR |= flags; // enable the buffers simultanously
+}
+
+void dac_disable_buffer(uint8 channel)
+{
+	uint32 flags = (channel&DAC_CH1)<<1 | (channel&DAC_CH2)<<16;
+	DAC->regs->CR &= ~flags; // disable the buffers simultanously
+}
+
+/**
+ * @brief Enable/disable DMA request on trigger occurance
+ * @param channel Flags:
+ *      DAC_CH1: Select channel 1
+ *      DAC_CH2: Select channel 2
+ */
+void dac_enable_dma(dac_channel_t channel)
+{
+	uint32 flags = (channel&DAC_CH1)<<12 | (channel&DAC_CH2)<<27;
+	DAC->regs->CR |= flags; // enable the channels simultanously
+}
+
+void dac_disable_dma(dac_channel_t channel)
+{
+	uint32 flags = (channel&DAC_CH1)<<12 | (channel&DAC_CH2)<<27;
+	DAC->regs->CR &= ~flags; // disable the channels simultanously
 }
 
 /**
@@ -162,5 +170,5 @@ void dac_enable(dac_channel_t channel)
 void dac_disable(dac_channel_t channel)
 {
 	uint32 flags = (channel&DAC_CH1) | (channel&DAC_CH2)<<15;
-	DAC->regs->CR &= (~flags); // disable the channels simultanously
+	DAC->regs->CR &= ~flags; // disable the channels simultanously
 }

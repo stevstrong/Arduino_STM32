@@ -256,8 +256,8 @@ static inline void dma_setup_transfer(dma_dev       *dev,
                                       dma_channel   channel,
                                       dma_xfer_size trx_size,
                                       __io void     *peripheral_address,
-                                      __io void     *memory_address0,
-                                      __io void     *memory_address1,
+                                      const void    *memory_address0,
+                                      const void    *memory_address1,
                                       uint32        flags)
 {
     dev->regs->STREAM[stream].CR &= ~DMA_CR_EN; // disable
