@@ -63,7 +63,7 @@
 */
     float STM32ADC::readTemp(){
         uint16_t result = adc_read(_dev, 16);
-		float Vsense = (3300*result)/4096;
+        float Vsense = (3300.0*result)/4096;
         float temperature = ((_V25-Vsense)/_AverageSlope) + 25.0; 
         return temperature;
     }
