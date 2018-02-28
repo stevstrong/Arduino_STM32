@@ -52,11 +52,8 @@
     Polling is being used.
 */
     float STM32ADC::readVcc(){
-        unsigned int result = 0;
-        float vcc = 0.0;
-        result = adc_read(_dev, 17);
-
-        vcc = (float)result * 1.1; //to be done later...
+        uint16_t result = adc_read(_dev, 17);
+        float vcc = (float)result * 1.1; //to be done later...
         return vcc;
     }
 
@@ -65,10 +62,9 @@
     Polling is being used.
 */
     float STM32ADC::readTemp(){
-        unsigned int result = 0;
-        float temperature = 0.0;
-        result = adc_read(_dev, 16);
-        temperature = (float)((_V25-result)/_AverageSlope)+ 25.0; 
+        uint16_t result = adc_read(_dev, 16);
+		float Vsense = (3300*result)/4096;
+        float temperature = ((_V25-Vsense)/_AverageSlope) + 25.0; 
         return temperature;
     }
 
@@ -80,9 +76,8 @@
         //convert pins to channels.
         uint8 channels[length];
         unsigned int records[3] = {0,0,0};
-        unsigned char i = 0, j = 0;
         
-        for (unsigned char i = 0; i < length; i++) { //convert the channels from pins to ch.
+        for (uint8_t i = 0; i < length; i++) { //convert the channels from pins to ch.
             channels[i] = PIN_MAP[pins[i]].adc_channel;
         }
 
@@ -93,7 +88,7 @@
         records[2] |= (length - 1) << 20;
 
         //i goes through records, j goes through variables.
-        for (i = 0, j = 0; i < length; i++) {//go through the channel list.
+        for (uint8_t i = 0, j = 0; i < length; i++) {//go through the channel list.
             if (i!=0 && i%6 == 0) j++;//next variable, please!!
             records[j] |= (channels[i] << ((i%6)*5));
         }
