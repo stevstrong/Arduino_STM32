@@ -36,6 +36,8 @@
 #include "libmaple.h"
 #include "bitband.h"
 #include "rcc.h"
+#include "dma.h"
+#include <stdbool.h>
 
 #ifdef __cplusplus
 extern "C"{
@@ -65,15 +67,41 @@ typedef struct adc_reg_map {
     __io uint32 DR;             ///< Regular data register
 } adc_reg_map;
 
+//Added by bubulindo - Interrupt ID's for ADC
+typedef enum {
+    ADC_EOC,     /**< Enod Of Converiosn interrupt. */
+    ADC_AWD ,    /**Analog WatchDog interrupt */
+    ADC_JEOC,    /**< Injected End Of Conversion interrupt. */
+    //ADC_JSTRT,
+    //ADC_STRT,
+	ADC_LAST_IRQ_ID
+} adc_irq_id;
+
+extern voidFuncPtr adc_irq_handlers[ADC_LAST_IRQ_ID]; /* EOC, JEOC, AWD Interrupts*/
+
 /** ADC device type. */
-typedef struct adc_dev {
+typedef struct adc_dev
+{
     adc_reg_map *regs; /**< Register map */
     rcc_clk_id clk_id; /**< RCC clock information */
+	dma_stream stream;
+	dma_channel channel;
 } adc_dev;
 
-extern const adc_dev ADC1;
-extern const adc_dev ADC2;
-extern const adc_dev ADC3;
+extern const adc_dev adc1;
+extern const adc_dev adc2;
+extern const adc_dev adc3;
+#define ADC1 (&adc1)
+#define ADC2 (&adc2)
+#define ADC3 (&adc3)
+
+typedef enum adc_dev_index {
+ADC_1 = 1,
+ADC_2,
+ADC_3,
+} adc_dev_index;
+
+extern const adc_dev * const adc_devices[3];
 
 typedef struct adc_common_reg_map {
 	__io uint32 CSR;            ///< Common status register
@@ -347,30 +375,50 @@ typedef enum {
     ADC_JEXTSEL_EXTI15    = 15, /**< EXTI15 event */
 } adc_jextsel_event;
 
-void adc_set_exttrig(const adc_dev *dev, adc_ext_trigger trigger);
-void adc_set_jextrig(const adc_dev *dev, adc_ext_trigger trigger);
-void adc_set_extsel(const adc_dev *dev, adc_extsel_event event);
-void adc_set_jextsel(const adc_dev *dev, adc_jextsel_event event);
-void adc_foreach(void (*fn)(const adc_dev*));
-
 /**
  * @brief ADC sample times, in ADC clock cycles
  *
  * These control the amount of time spent sampling the input voltage.
  */
 typedef enum {
-    ADC_SMPR_1_5,               /**< 1.5 ADC cycles */
-    ADC_SMPR_7_5,               /**< 7.5 ADC cycles */
-    ADC_SMPR_13_5,              /**< 13.5 ADC cycles */
-    ADC_SMPR_28_5,              /**< 28.5 ADC cycles */
-    ADC_SMPR_41_5,              /**< 41.5 ADC cycles */
-    ADC_SMPR_55_5,              /**< 55.5 ADC cycles */
-    ADC_SMPR_71_5,              /**< 71.5 ADC cycles */
-    ADC_SMPR_239_5              /**< 239.5 ADC cycles */
+    ADC_SMPR_3 = 0,            /**<  3 ADC cycles */
+    ADC_SMPR_15,               /**< 15 ADC cycles */
+    ADC_SMPR_28,               /**< 28 ADC cycles */
+    ADC_SMPR_56,               /**< 56 ADC cycles */
+    ADC_SMPR_84,               /**< 84 ADC cycles */
+    ADC_SMPR_112,              /**< 112 ADC cycles */
+    ADC_SMPR_144,              /**< 144 ADC cycles */
+    ADC_SMPR_480,              /**< 480 ADC cycles */
 } adc_smp_rate;
 
-void adc_set_sample_rate(const adc_dev *dev, adc_smp_rate smp_rate);
+void adc_set_sampling_time(const adc_dev *dev, adc_smp_rate smp_rate);
+void adc_set_exttrig(const adc_dev *dev, adc_ext_trigger trigger);
+void adc_set_jextrig(const adc_dev *dev, adc_ext_trigger trigger);
+void adc_set_extsel(const adc_dev *dev, adc_extsel_event event);
+void adc_set_jextsel(const adc_dev *dev, adc_jextsel_event event);
+void adc_foreach(void (*fn)(const adc_dev*));
+void adc_enable_irq(const adc_dev* dev);
+void adc_disable_irq(const adc_dev* dev);
+void adc_attach_interrupt(const adc_dev *dev, adc_irq_id irq_id, voidFuncPtr handler);
+void adc_set_reg_sequence(const adc_dev * dev, uint8 * channels, uint8 len);
+void adc_enable_tsvref(void);
+void adc_enable_vbat(void);
+
 uint16 adc_read(const adc_dev *dev, uint8 channel);
+
+/*
+    Starts a single conversion in the specified channel.
+    Results must be read through interrupt or polled outside this function.
+*/
+void adc_start_single_convert(const adc_dev* dev, uint8 channel);
+
+/*
+    Starts the continuous mode on one channel of the ADC channel.
+    Results must be read through interrupt or polled outside this function.
+*/
+void adc_start_continuous_convert(const adc_dev* dev, uint8 channel);
+
+void setupADC_F4(void);
 
 /**
  * @brief Set the regular channel sequence length.
@@ -381,7 +429,8 @@ uint16 adc_read(const adc_dev *dev, uint8 channel);
  * @param dev ADC device.
  * @param length Regular channel sequence length, from 1 to 16.
  */
-static inline void adc_set_reg_seqlen(const adc_dev *dev, uint8 length) {
+static inline void adc_set_reg_seqlen(const adc_dev *dev, uint8 length)
+{
     uint32 tmp = dev->regs->SQR1;
     tmp &= ~ADC_SQR1_L;
     tmp |= (length - 1) << 20;
@@ -392,26 +441,104 @@ static inline void adc_set_reg_seqlen(const adc_dev *dev, uint8 length) {
  * @brief Enable an adc peripheral
  * @param dev ADC device to enable
  */
-static inline void adc_enable(const adc_dev *dev) {
-    *bb_perip(&dev->regs->CR2, ADC_CR2_ADON_BIT) = 1;
+static inline void adc_enable(const adc_dev *dev)
+{
+	dev->regs->CR2 |= ADC_CR2_ADON;
 }
 
 /**
  * @brief Disable an ADC peripheral
  * @param dev ADC device to disable
  */
-static inline void adc_disable(const adc_dev *dev) {
-    *bb_perip(&dev->regs->CR2, ADC_CR2_ADON_BIT) = 0;
+static inline void adc_disable(const adc_dev *dev)
+{
+	dev->regs->CR2 &= ~ADC_CR2_ADON;
 }
 
 /**
  * @brief Disable all ADC peripherals.
  */
-static inline void adc_disable_all(void) {
+static inline void adc_disable_all(void)
+{
     adc_foreach(adc_disable);
 }
 
-extern void setupADC_F4(void);
+static inline void adc_awd_set_low_limit(const adc_dev * dev, uint32 limit)
+{
+	dev->regs->LTR = limit;
+}
+
+static inline void adc_awd_set_high_limit(const adc_dev * dev, uint32 limit)
+{
+	dev->regs->HTR = limit;
+}
+
+static inline void adc_awd_enable_channel(const adc_dev * dev, uint8 awd_channel)
+{
+    dev->regs->CR1 |= (awd_channel & ADC_CR1_AWDCH);
+}
+
+static inline void adc_awd_enable_irq(const adc_dev * dev)
+{
+	dev->regs->CR1 |= (1U<<ADC_CR1_AWDIE_BIT);
+	nvic_irq_enable(NVIC_ADC_1_2_3);
+}
+
+static inline void adc_awd_enable(const adc_dev * dev)
+{
+	dev->regs->CR1 |= ADC_CR1_AWDEN;
+}
+
+static inline void adc_set_scan_mode(const adc_dev * dev)
+{
+	dev->regs->CR1 |= ADC_CR1_SCAN;
+}
+
+static inline void adc_set_continuous(const adc_dev * dev)
+{
+	dev->regs->CR2 |= ADC_CR2_CONT;
+}
+
+static inline void adc_clear_continuous(const adc_dev * dev)
+{
+	dev->regs->CR2 &= ~ADC_CR2_CONT;
+}
+
+static inline void adc_dma_disable(const adc_dev * dev)
+{
+	dev->regs->CR2 &= ~ADC_CR2_DMA;
+}
+
+static inline void adc_dma_enable(const adc_dev * dev)
+{
+	dev->regs->CR2 |= ADC_CR2_DMA;
+}
+
+static inline void adc_dma_single(const adc_dev * dev)
+{
+	dev->regs->CR2 &= ~ADC_CR2_DDS;
+}
+
+static inline void adc_dma_continuous(const adc_dev * dev)
+{
+	dev->regs->CR2 |= ADC_CR2_DDS;
+}
+
+static inline bool adc_is_end_of_convert(const adc_dev * dev)
+{
+	return (dev->regs->SR&ADC_SR_EOC);
+}
+
+static inline uint16 adc_get_data(const adc_dev * dev)
+{ 
+	return dev->regs->DR;
+}
+
+static inline void adc_start_convert(const adc_dev * dev)
+{
+	dev->regs->CR2 |= ADC_CR2_SWSTART;
+}
+
 
 #ifdef __cplusplus
 } // extern "C"

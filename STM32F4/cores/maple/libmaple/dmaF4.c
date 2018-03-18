@@ -37,48 +37,46 @@
  * Devices
  */
 
-static dma_dev dma1 = {
-    .regs     = DMA1_BASE,
-    .clk_id   = RCC_DMA1,
-    .handlers = {{ .handler = NULL, .irq_line = 11 },
-                 { .handler = NULL, .irq_line = 12 },
-                 { .handler = NULL, .irq_line = 13 },
-                 { .handler = NULL, .irq_line = 14 },
-                 { .handler = NULL, .irq_line = 15 },
-                 { .handler = NULL, .irq_line = 16 },
-                 { .handler = NULL, .irq_line = 17 },
-                 { .handler = NULL, .irq_line = 47 }}
+
+dma_handler_config dma1_handlers[8] = {
+	{ .handler = NULL, .irq_line = NVIC_DMA1_STREAM0 },
+	{ .handler = NULL, .irq_line = NVIC_DMA1_STREAM1 },
+	{ .handler = NULL, .irq_line = NVIC_DMA1_STREAM2 },
+	{ .handler = NULL, .irq_line = NVIC_DMA1_STREAM3 },
+	{ .handler = NULL, .irq_line = NVIC_DMA1_STREAM4 },
+	{ .handler = NULL, .irq_line = NVIC_DMA1_STREAM5 },
+	{ .handler = NULL, .irq_line = NVIC_DMA1_STREAM6 },
+	{ .handler = NULL, .irq_line = NVIC_DMA1_STREAM7 },
 };
+
+dma_handler_config dma2_handlers[8] = {
+	{ .handler = NULL, .irq_line = NVIC_DMA2_STREAM0 },
+	{ .handler = NULL, .irq_line = NVIC_DMA2_STREAM1 },
+	{ .handler = NULL, .irq_line = NVIC_DMA2_STREAM2 },
+	{ .handler = NULL, .irq_line = NVIC_DMA2_STREAM3 },
+	{ .handler = NULL, .irq_line = NVIC_DMA2_STREAM4 },
+	{ .handler = NULL, .irq_line = NVIC_DMA2_STREAM5 },
+	{ .handler = NULL, .irq_line = NVIC_DMA2_STREAM6 },
+	{ .handler = NULL, .irq_line = NVIC_DMA2_STREAM7 },
+};
+
 /** DMA1 device */
-dma_dev *DMA1 = &dma1;
-
-static dma_dev dma2 = {
-    .regs     = DMA2_BASE,
-    .clk_id   = RCC_DMA2,
-    .handlers = {{ .handler = NULL, .irq_line = 56 },
-                 { .handler = NULL, .irq_line = 57 },
-                 { .handler = NULL, .irq_line = 58 },
-                 { .handler = NULL, .irq_line = 59 },
-                 { .handler = NULL, .irq_line = 60 },
-                 { .handler = NULL, .irq_line = 68 },
-                 { .handler = NULL, .irq_line = 69 },
-                 { .handler = NULL, .irq_line = 70 }} /* !@#$ */
+const dma_dev dma1 = {
+    .regs   = DMA1_BASE,
+    .clk_id = RCC_DMA1,
+    .cfg_p  = &dma1_handlers,
 };
-/** DMA2 device */
-dma_dev *DMA2 = &dma2;
 
+/** DMA2 device */
+const dma_dev dma2 = {
+    .regs   = DMA2_BASE,
+    .clk_id = RCC_DMA2,
+    .cfg_p  = &dma2_handlers,
+};
 
 /*
  * Convenience routines
  */
-
-/**
- * @brief Initialize a DMA device.
- * @param dev Device to initialize.
- */
-void dma_init(dma_dev *dev) {
-    rcc_clk_enable(dev->clk_id);
-}
 
 /**
  * @brief Attach an interrupt to a DMA transfer.
@@ -92,11 +90,13 @@ void dma_init(dma_dev *dev) {
  * @see dma_setup_transfer()
  * @see dma_detach_interrupt()
  */
-void dma_attach_interrupt(dma_dev *dev,
+void dma_attach_interrupt(const dma_dev *dev,
                           dma_stream stream,
-                          void (*handler)(void)) {
-    dev->handlers[stream].handler = handler;
-    nvic_irq_enable(dev->handlers[stream].irq_line);
+                          void (*handler)(void))
+{
+	dma_handler_config * dma_cfg_p = &(*(dev->cfg_p))[stream];
+    dma_cfg_p->handler = handler;
+    nvic_irq_enable(dma_cfg_p->irq_line);
 }
 
 /**
@@ -110,19 +110,23 @@ void dma_attach_interrupt(dma_dev *dev,
  * @sideeffect Clears interrupt enable bits in the channel's CCR register.
  * @see dma_attach_interrupt()
  */
-void dma_detach_interrupt(dma_dev *dev, dma_stream stream) {
-    nvic_irq_disable(dev->handlers[stream].irq_line);
-    dev->handlers[stream].handler = NULL;
+void dma_detach_interrupt(const dma_dev *dev, dma_stream stream)
+{
+	dma_handler_config * dma_cfg_p = &(*(dev->cfg_p))[stream];
+    nvic_irq_disable(dma_cfg_p->irq_line);
+    dma_cfg_p->handler = NULL;
 }
 
 const uint8 dma_isr_bits_shift[] = { 0, 6, 16, 22};
 
-uint8 dma_get_isr_bit(dma_dev *dev, dma_stream stream, uint8_t mask) {
+uint8 dma_get_isr_bit(const dma_dev *dev, dma_stream stream, uint8_t mask)
+{
 	if ( stream&0xFC )	return ((dev->regs->HISR)>>dma_isr_bits_shift[stream&0x03]) & mask;
 	else				return ((dev->regs->LISR)>>dma_isr_bits_shift[stream&0x03]) & mask;
 }
 
-void dma_clear_isr_bit(dma_dev *dev, dma_stream stream, uint8_t mask) {
+void dma_clear_isr_bit(const dma_dev *dev, dma_stream stream, uint8_t mask)
+{
 	if ( stream&0xFC )	dev->regs->HIFCR = (uint32)mask << dma_isr_bits_shift[stream&0x03];
 	else				dev->regs->LIFCR = (uint32)mask << dma_isr_bits_shift[stream&0x03];
 }
@@ -131,8 +135,9 @@ void dma_clear_isr_bit(dma_dev *dev, dma_stream stream, uint8_t mask) {
  * IRQ handlers
  */
 
-static inline void dispatch_handler(dma_dev *dev, dma_stream stream) {
-    void (*handler)(void) = dev->handlers[stream].handler;
+static inline void dispatch_handler(const dma_dev *dev, dma_stream stream)
+{
+    voidFuncPtr handler = (*(dev->cfg_p))[stream].handler;
     if (handler) {
         handler();
         dma_clear_isr_bits(dev, stream); /* in case handler doesn't */

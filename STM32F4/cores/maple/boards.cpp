@@ -44,16 +44,14 @@
 #include "usb_serial.h"
 
 
-static void setupFlash(void);
 static void setupClocks(void);
 static void setupNVIC(void);
 static void setupADC(void);
 static void setupTimers(void);
 
-void init(void) {
-	setupFlash();
-
-	setupClocks();
+void init(void)
+{
+	setupClocks(); // will setup the FLASH
     setupNVIC();
 	systick_init(SYSTICK_RELOAD_VAL);
 	gpio_init_all();
@@ -71,23 +69,14 @@ void init(void) {
 
 /* You could farm this out to the files in boards/ if e.g. it takes
  * too long to test on Maple Native (all those FSMC pins...). */
-bool boardUsesPin(uint8 pin) {
+bool boardUsesPin(uint8 pin)
+{
     for (int i = 0; i < BOARD_NR_USED_PINS; i++) {
         if (pin == boardUsedPins[i]) {
             return true;
         }
     }
     return false;
-}
-
-static void setupFlash(void) {
-/*
-#ifndef STM32F2
-	// for F2 and F4 CPUs this is done in SetupClock...(), e.g. in SetupClock168MHz()
-    flash_enable_prefetch();
-    flash_set_latency(FLASH_WAIT_STATE_2);
-#endif
-*/
 }
 
 /*
@@ -98,14 +87,16 @@ static void setupFlash(void) {
  * If you change this function, you MUST change the file-level Doxygen
  * comment above.
  */
-static void setupClocks() {
+static void setupClocks()
+{
     rcc_clk_init(RCC_CLKSRC_PLL, RCC_PLLSRC_HSE, RCC_PLLMUL_9);
     rcc_set_prescaler(RCC_PRESCALER_AHB, RCC_AHB_SYSCLK_DIV_1);
     rcc_set_prescaler(RCC_PRESCALER_APB1, RCC_APB1_HCLK_DIV_2);
     rcc_set_prescaler(RCC_PRESCALER_APB2, RCC_APB2_HCLK_DIV_1);
 }
 
-static void setupNVIC() {
+static void setupNVIC()
+{
 #ifdef VECT_TAB_FLASH
     nvic_init(USER_ADDR_ROM, 0);
 #elif defined VECT_TAB_RAM
@@ -117,29 +108,22 @@ static void setupNVIC() {
 #endif
 }
 
-static void adcDefaultConfig(const adc_dev* dev);
+static void adcDefaultConfig(const adc_dev *dev)
+{
+    adc_init(dev);
+    adc_set_exttrig(dev, ADC_EXT_TRIGGER_DISABLE);
+    adc_set_sampling_time(dev, ADC_SMPR_144); // 1 µs sampling+conversion time
+	adc_enable(dev);
+}
 
-static void setupADC() {
+static void setupADC()
+{
 	setupADC_F4();
     adc_foreach(adcDefaultConfig);
 }
 
-static void timerDefaultConfig(timer_dev*);
-
-static void setupTimers() {
-    timer_foreach(timerDefaultConfig);
-}
-
-static void adcDefaultConfig(const adc_dev *dev) {
-    adc_init(dev);
-
-    adc_set_exttrig(dev, ADC_EXT_TRIGGER_DISABLE);
-
-    adc_enable(dev);
-    adc_set_sample_rate(dev, ADC_SMPR_55_5);
-}
-
-static void timerDefaultConfig(timer_dev *dev) {
+static void timerDefaultConfig(timer_dev *dev)
+{
     timer_adv_reg_map *regs = (dev->regs).adv;
     const uint16 full_overflow = 0xFFFF;
     const uint16 half_duty = 0x8FFF;
@@ -170,4 +154,9 @@ static void timerDefaultConfig(timer_dev *dev) {
 
     regs->EGR = TIMER_EGR_UG;
     timer_resume(dev);
+}
+
+static void setupTimers()
+{
+    timer_foreach(timerDefaultConfig);
 }
