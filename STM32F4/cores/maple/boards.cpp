@@ -51,12 +51,12 @@ static void setupTimers(void);
 
 void init(void)
 {
-	setupClocks(); // will setup the FLASH
+    setupClocks(); // will setup the FLASH
     setupNVIC();
-	systick_init(SYSTICK_RELOAD_VAL);
-	gpio_init_all();
+    systick_init(SYSTICK_RELOAD_VAL);
+    gpio_init_all();
 
-	rcc_clk_enable(RCC_SYSCFG);
+    rcc_clk_enable(RCC_SYSCFG);
 
     boardInit();
     setupADC();
@@ -113,12 +113,12 @@ static void adcDefaultConfig(const adc_dev *dev)
     adc_init(dev);
     adc_set_exttrig(dev, ADC_EXT_TRIGGER_DISABLE);
     adc_set_sampling_time(dev, ADC_SMPR_144); // 1 µs sampling+conversion time
-	adc_enable(dev);
+    adc_enable(dev);
 }
 
 static void setupADC()
 {
-	setupADC_F4();
+    setupADC_F4();
     adc_foreach(adcDefaultConfig);
 }
 

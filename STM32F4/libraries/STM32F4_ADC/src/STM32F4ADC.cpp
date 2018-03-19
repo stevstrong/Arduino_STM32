@@ -7,9 +7,9 @@
 */
 float STM32ADC::readVref()
 {
-	uint16_t result = adc_read(_dev, 17);
-	float vref = (3300.0*result)/4096; // mV
-	return vref/1000;
+    uint16_t result = adc_read(_dev, 17);
+    float vref = (3300.0*result)/4096; // mV
+    return vref/1000;
 }
 
 /*
@@ -17,12 +17,12 @@ float STM32ADC::readVref()
 */
 float STM32ADC::readTemp()
 {
-	uint16_t result = adc_read(_dev, 16);
-	//Serial.print("Res: "); Serial.print(result);
-	float vSense = (3300.0*result)/4096; // mV
-	//Serial.print(", mV: "); Serial.print(Vsense); Serial.print(", temp: ");
-	float temperature = ((vSense-v25)/averageSlope) + 25.0; 
-	return temperature;
+    uint16_t result = adc_read(_dev, 16);
+    //Serial.print("Res: "); Serial.print(result);
+    float vSense = (3300.0*result)/4096; // mV
+    //Serial.print(", mV: "); Serial.print(Vsense); Serial.print(", temp: ");
+    float temperature = ((vSense-v25)/averageSlope) + 25.0; 
+    return temperature;
 }
 
 /*
@@ -31,14 +31,14 @@ float STM32ADC::readTemp()
 */
 void STM32ADC::setPins(const uint8 * pins, uint8 length)
 {
-	//convert pins to channels.
-	uint8 channels[length];
-	for (uint8 i = 0; i < length; i++) { //convert the channels from pins to ch.
-		channels[i] = PIN_MAP[pins[i]].adc_channel;
-	}
+    //convert pins to channels.
+    uint8 channels[length];
+    for (uint8 i = 0; i < length; i++) { //convert the channels from pins to ch.
+        channels[i] = PIN_MAP[pins[i]].adc_channel;
+    }
 
-	adc_set_reg_sequence(_dev, channels, length);
-	if ( length>1 ) adc_set_scan_mode(_dev);
+    adc_set_reg_sequence(_dev, channels, length);
+    if ( length>1 ) adc_set_scan_mode(_dev);
 }
 
 /*
@@ -47,21 +47,21 @@ void STM32ADC::setPins(const uint8 * pins, uint8 length)
 */
 void STM32ADC::setDMA(void * buf, uint16 bufLen, uint8 dual, uint8 continous, uint32 dmaFlags, voidFuncPtr func)
 {
-	//initialize DMA
-	dma_init(DMA2);
-	dma_setup_transfer(DMA2, _dev->stream, _dev->channel, (dual?DMA_SIZE_32BITS:DMA_SIZE_16BITS), &_dev->regs->DR, buf, NULL, dmaFlags);
-	dma_set_num_transfers(DMA2, _dev->stream, bufLen);
-	dma_set_fifo_flags(DMA2, _dev->stream, 0);
-	dma_clear_isr_bits(DMA2, _dev->stream);
-	//if there is an int handler to be attached
-	if (func != NULL)
-		dma_attach_interrupt(DMA2, _dev->stream, func);
-	if ( continous )
-		adc_dma_continuous(_dev);
-	else
-		adc_dma_single(_dev);
+    //initialize DMA
+    dma_init(DMA2);
+    dma_setup_transfer(DMA2, _dev->dmaStream, _dev->dmaChannel, (dual?DMA_SIZE_32BITS:DMA_SIZE_16BITS), &_dev->regs->DR, buf, NULL, dmaFlags);
+    dma_set_num_transfers(DMA2, _dev->dmaStream, bufLen);
+    dma_set_fifo_flags(DMA2, _dev->dmaStream, 0);
+    dma_clear_isr_bits(DMA2, _dev->dmaStream);
+    //if there is an int handler to be attached
+    if (func != NULL)
+        dma_attach_interrupt(DMA2, _dev->dmaStream, func);
+    if ( continous )
+        adc_dma_continuous(_dev);
+    else
+        adc_dma_single(_dev);
 
-	enableDMA();
+    enableDMA();
 }
 
 /*
@@ -70,12 +70,12 @@ void STM32ADC::setDMA(void * buf, uint16 bufLen, uint8 dual, uint8 continous, ui
 */
 void STM32ADC::setWD(uint8 channel, uint32 highLimit, uint32 lowLimit, voidFuncPtr func)
 {
-	adc_awd_set_low_limit(_dev, lowLimit);
-	adc_awd_set_high_limit(_dev, highLimit);
-	adc_awd_enable_channel(_dev, channel);
-	if ( func!=NULL )
-		adc_attach_interrupt(_dev, ADC_AWD, func);
-	adc_awd_enable(_dev);
+    adc_awd_set_low_limit(_dev, lowLimit);
+    adc_awd_set_high_limit(_dev, highLimit);
+    adc_awd_enable_channel(_dev, channel);
+    if ( func!=NULL )
+        adc_attach_interrupt(_dev, ADC_AWD, func);
+    adc_awd_enable(_dev);
 }
 
 /*
@@ -84,5 +84,5 @@ void STM32ADC::setWD(uint8 channel, uint32 highLimit, uint32 lowLimit, voidFuncP
 */
 uint8 STM32ADC::getWDActiveFlag()
 {
-	return 1;
+    return 1;
 }

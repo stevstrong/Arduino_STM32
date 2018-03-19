@@ -14,16 +14,16 @@ public:
 */
     STM32ADC(const adc_dev * dev) { _dev = dev; }
 
-	uint16 readInput(uint8 pin)
-	{
-		return adc_read(_dev, PIN_MAP[pin].adc_channel);
-	}
+    uint16 readInput(uint8 pin)
+    {
+        return adc_read(_dev, PIN_MAP[pin].adc_channel);
+    }
 
     uint32 getData() { return adc_get_data(_dev); }
 
-	void enableTsVref(void) { adc_enable_tsvref(); }
+    void enableTsVref(void) { adc_enable_tsvref(); }
 
-	void enableVBAT(void) { adc_enable_vbat(); }
+    void enableVBAT(void) { adc_enable_vbat(); }
 
 /*
     Set the ADC sampling time.
@@ -37,49 +37,49 @@ public:
     ADC_SMPR_144,             < 144 ADC cycles
     ADC_SMPR_480,             < 480 ADC cycles
 */
-	void setSamplingTime(adc_smp_rate samplingTime) 
-	{
-		adc_set_sampling_time(_dev, samplingTime);
-	}
+    void setSamplingTime(adc_smp_rate samplingTime) 
+    {
+        adc_set_sampling_time(_dev, samplingTime);
+    }
 
 /*
     Attach an interrupt to the ADC completion.
 */
-	void attachInterrupt(voidFuncPtr func, adc_irq_id irq_id)
-	{
-		adc_attach_interrupt(_dev, irq_id, func);
-	}
+    void attachInterrupt(voidFuncPtr func, adc_irq_id irq_id)
+    {
+        adc_attach_interrupt(_dev, irq_id, func);
+    }
 
 /*
     This function is used to setup DMA with the ADC. 
     Used in continuous or scan mode.
 */
-	void enableDMA()
-	{
-		dma_enable(DMA2, _dev->stream); // enable DMA stream
-		adc_dma_enable(_dev); // enable ADC DMA transfer
-	}
-	void disableDMA()
-	{
-		adc_dma_disable(_dev); // disable ADC DMA transfer
-		dma_disable(DMA2, _dev->stream); // disable DMA stream
-	}
+    void enableDMA()
+    {
+        dma_enable(DMA2, _dev->dmaStream); // enable DMA stream
+        adc_dma_enable(_dev); // enable ADC DMA transfer
+    }
+    void disableDMA()
+    {
+        adc_dma_disable(_dev); // disable ADC DMA transfer
+        dma_disable(DMA2, _dev->dmaStream); // disable DMA stream
+    }
 
-	void setDMASingle()
-	{
-		adc_dma_single(_dev); // single DMA buffer
-	}
-	void setDMACircular()
-	{
-		adc_dma_continuous(_dev); // continuous DMA buffer
-	}
+    void setDMASingle()
+    {
+        adc_dma_single(_dev); // single DMA buffer
+    }
+    void setDMACircular()
+    {
+        adc_dma_continuous(_dev); // continuous DMA buffer
+    }
 
     void setDMA(void * Buf, uint16 BufLen, uint8 dual, uint8 cont, uint32 dmaFlags, voidFuncPtr func);
 
-    uint8_t getDMAHalfFlag() { return dma_get_isr_bit(DMA2, _dev->stream, DMA_ISR_HTIF); }
-    uint8_t getDMACompleteFlag() { return dma_get_isr_bit(DMA2, _dev->stream, DMA_ISR_TCIF); }
+    uint8_t getDMAHalfFlag() { return dma_get_isr_bit(DMA2, _dev->dmaStream, DMA_ISR_HTIF); }
+    uint8_t getDMACompleteFlag() { return dma_get_isr_bit(DMA2, _dev->dmaStream, DMA_ISR_TCIF); }
 
-    void clearDMAIsrBits() { dma_clear_isr_bits(DMA2, _dev->stream); }
+    void clearDMAIsrBits() { dma_clear_isr_bits(DMA2, _dev->dmaStream); }
 
 /*
     This will read the Vcc and return something useful.
@@ -99,7 +99,7 @@ public:
     For pin numbers, see setPins below
 */
     void setChannels(uint8 * channels, uint8 length)
-	{
+    {
         adc_set_reg_sequence(_dev, channels, length);
     }
 
@@ -129,10 +129,10 @@ public:
     ADC_EXTSEL_EXTI11   
 */
     void setTrigger(adc_extsel_event trigger) 
-	{
-		adc_set_extsel(_dev, trigger);
-		adc_set_exttrig(_dev, ADC_EXT_TRIGGER_ON_RISING_EDGE);
-	}
+    {
+        adc_set_extsel(_dev, trigger);
+        adc_set_exttrig(_dev, ADC_EXT_TRIGGER_ON_RISING_EDGE);
+    }
 
 /*
     this function will set the continuous conversion bit.
@@ -142,12 +142,12 @@ public:
 /*
     this function will reset the continuous bit.
 */
-	void resetContinuous() { adc_clear_continuous(_dev); }
+    void resetContinuous() { adc_clear_continuous(_dev); }
 
 /*
     This will be used to start conversions
 */
-	void startConversion() { adc_start_convert(_dev); }
+    void startConversion() { adc_start_convert(_dev); }
 
 /*
     This will set the Scan Mode on.
@@ -171,7 +171,6 @@ public:
 private:
 
     const adc_dev * _dev;
-	uint8_t adc_pins[10];
     static constexpr float averageSlope = 2.5; // mV/°C
     static constexpr float v25 = 760.0; // [mV]
 };

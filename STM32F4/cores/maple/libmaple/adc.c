@@ -42,31 +42,37 @@
 #include "adc.h"
 #include "wirish_time.h"
 
+
+voidFuncPtr adc1Handlers[ADC_LAST_IRQ_ID] = {NULL};
+voidFuncPtr adc2Handlers[ADC_LAST_IRQ_ID] = {NULL};
+voidFuncPtr adc3Handlers[ADC_LAST_IRQ_ID] = {NULL};
+
 /** ADC1 device. */
 const adc_dev adc1 = {
     .regs   = ADC1_BASE,
     .clk_id = RCC_ADC1,
-	.stream = DMA_STREAM0, // or DMA_STREAM4
-	.channel = DMA_CH0,
+    .dmaStream = DMA_STREAM0, // or DMA_STREAM4
+    .dmaChannel = DMA_CH0,
+    .handler_p = &adc1Handlers
 };
 
 /** ADC2 device. */
 const adc_dev adc2 = {
     .regs   = ADC2_BASE,
     .clk_id = RCC_ADC2,
-	.stream = DMA_STREAM2, // or DMA_STREAM3
-	.channel = DMA_CH1,
+    .dmaStream = DMA_STREAM2, // or DMA_STREAM3
+    .dmaChannel = DMA_CH1,
+    .handler_p = &adc2Handlers
 };
 
 /** ADC3 device. */
 const adc_dev adc3 = {
     .regs   = ADC3_BASE,
     .clk_id = RCC_ADC3,
-	.stream = DMA_STREAM0, // or DMA_STREAM1
-	.channel = DMA_CH2,
+    .dmaStream = DMA_STREAM0, // or DMA_STREAM1
+    .dmaChannel = DMA_CH2,
+    .handler_p = &adc3Handlers
 };
-
-const adc_dev * const adc_devices[3] = { ADC1, ADC2, ADC3};
 
 adc_common_reg_map* const ADC_COMMON = ADC_COMMON_BASE;
 
@@ -82,7 +88,7 @@ void adc_init(const adc_dev *dev)
 {
     rcc_clk_enable(dev->clk_id);
     if(dev->clk_id == RCC_ADC1) {
-    	rcc_reset_dev(dev->clk_id);
+        rcc_reset_dev(dev->clk_id);
     }
 }
 
@@ -136,23 +142,34 @@ void adc_disable_irq(const adc_dev* dev)
     dev->regs->CR1 &= ~ADC_CR1_EOCIE;
 }
 
+void adc_awd_enable_irq(const adc_dev * dev)
+{
+    dev->regs->CR1 |= ADC_CR1_AWDIE;
+    nvic_irq_enable(NVIC_ADC_1_2_3);
+}
+
 /*
     attach interrupt functionality for ADC
     use ADC_EOC, ADC_JEOC, ADC_AWD
     added by bubulindo
 */
 void adc_attach_interrupt(const adc_dev *dev,
-                            adc_irq_id irq_id, 
+                            adc_irq_id irq_id,
                             voidFuncPtr handler)
 {
-    adc_irq_handlers[irq_id] = handler;
-    adc_enable_irq(dev);
+    if (irq_id<ADC_LAST_IRQ_ID)
+    {
+        (*(dev->handler_p))[irq_id] = handler;
+        adc_enable_irq(dev);
+    }
 }
 
-void adc_detach_interrupt(const adc_dev *dev,
-                            adc_irq_id irq_id)
+void adc_detach_interrupt(const adc_dev *dev, adc_irq_id irq_id)
 {
-    adc_irq_handlers[irq_id] = NULL;
+    if (irq_id<ADC_LAST_IRQ_ID)
+    {
+        (*(dev->handler_p))[irq_id] = NULL;
+    }
 }
 
 /**
@@ -167,28 +184,28 @@ void adc_foreach(void (*fn)(const adc_dev*))
 }
 
 /**
- * @brief Turn the given sample rate into values for ADC_SMPRx. Don't
- * call this during conversion.
+ * @brief Set the given sampling times for all channels.
+ *        Don't call this during conversion!
  * @param dev adc device
- * @param smp_rate sample rate to set
+ * @param smpl_time sampling time to set
  * @see adc_smp_rate
  */
-void adc_set_sampling_time(const adc_dev *dev, adc_smp_rate smp_rate)
+void adc_set_sampling_time(const adc_dev *dev, adc_smp_rate smpl_time)
 {
-	uint32 adc_smpr1_val = 0, adc_smpr2_val = 0;
+    uint32 adc_smpr1_val = 0, adc_smpr2_val = 0;
 
-	for (uint8 i = 0; i < 18; i++)
-	{
-		if (i < 10)
-		{ // ADC_SMPR1 determines sample time for channels 10..18
-			adc_smpr1_val |= smp_rate << (i * 3);
-		}
-		else
-		{ // ADC_SMPR2 determines sample time for channels 0..9
-		
-			adc_smpr2_val |= smp_rate << (i * 3);
-		}
-	}
+    for (uint8 i = 0; i < 18; i++)
+    {
+        if (i < 10)
+        { // ADC_SMPR2 determines sampling times for channels 0..9
+        
+            adc_smpr2_val |= smpl_time << (i * 3);
+        }
+        else
+        { // ADC_SMPR1 determines sampling times for channels 10..18
+            adc_smpr1_val |= smpl_time << (i * 3);
+        }
+    }
 
     dev->regs->SMPR1 = adc_smpr1_val;
     dev->regs->SMPR2 = adc_smpr2_val;
@@ -200,9 +217,9 @@ void adc_set_sampling_time(const adc_dev *dev, adc_smp_rate smp_rate)
 */
 void adc_start_single_convert(const adc_dev* dev, uint8 channel)
 {
-	adc_set_reg_seqlen(dev, 1);
-	dev->regs->SQR3 = channel;
-	adc_start_convert(dev);
+    adc_set_reg_seqlen(dev, 1);
+    dev->regs->SQR3 = channel;
+    adc_start_convert(dev);
 }
 
 /*
@@ -211,8 +228,8 @@ void adc_start_single_convert(const adc_dev* dev, uint8 channel)
 */
 void adc_start_continuous_convert(const adc_dev* dev, uint8 channel)
 {
-	adc_set_continuous(dev);
-	adc_start_single_convert(dev, channel);
+    adc_set_continuous(dev);
+    adc_start_single_convert(dev, channel);
 }
 
 /**
@@ -226,44 +243,82 @@ uint16 adc_read(const adc_dev *dev, uint8 channel)
 {
     adc_start_single_convert(dev, channel);
 
-	while ( !adc_is_end_of_convert(dev) );
+    while ( !adc_is_end_of_convert(dev) );
 
     return adc_get_data(dev);
 }
 
 void adc_enable_tsvref(void)
 {
-	ADC_COMMON->CCR |= ADC_CCR_TSVREFE;
-	delayMicroseconds(10);
+    ADC_COMMON->CCR |= ADC_CCR_TSVREFE;
+    delayMicroseconds(10);
 }
 
 void adc_enable_vbat(void)
 {
-	ADC_COMMON->CCR |= ADC_CCR_VBATE;
-	delayMicroseconds(10);
+    ADC_COMMON->CCR |= ADC_CCR_VBATE;
+    delayMicroseconds(10);
 }
 
 //-----------------------------------------------------------------------------
 void adc_set_reg_sequence(const adc_dev * dev, uint8 * channels, uint8 len)
 {
-	//run away protection
-	if (len > 16) len = 16;
+    //run away protection
+    if (len > 16) len = 16;
 
-	uint32_t seq_reg[3];
-	//write the length
-	seq_reg[0] = seq_reg[1] = 0;
-	seq_reg[2] = (len - 1) << 20;
+    uint32_t seq_reg[3];
+    //write the length
+    seq_reg[0] = seq_reg[1] = 0;
+    seq_reg[2] = (len - 1) << 20;
 
-	//i goes through records, j goes through variables.
-	for (uint8 i = 0; i < len; i++) { //go through the channel list.
-		seq_reg[i/6] |= (channels[i] << ((i%6)*5));
-	}
-	//update the registers inside with the scan sequence.
-	dev->regs->SQR1 = seq_reg[2];
-	dev->regs->SQR2 = seq_reg[1];
-	dev->regs->SQR3 = seq_reg[0];
+    //i goes through records, j goes through variables.
+    for (uint8 i = 0; i < len; i++) { //go through the channel list.
+        seq_reg[i/6] |= (channels[i] << ((i%6)*5));
+    }
+    //update the registers inside with the scan sequence.
+    dev->regs->SQR1 = seq_reg[2];
+    dev->regs->SQR2 = seq_reg[1];
+    dev->regs->SQR3 = seq_reg[0];
 };
 
+/*
+    ADC IRQ handler. 
+    added by bubulindo
+*/
+void adc_irq_handler(const adc_dev * dev)
+{
+    //get status
+    uint32 adc_sr = dev->regs->SR;
+    //End Of Conversion
+    if (adc_sr & ADC_SR_EOC) {
+        dev->regs->SR &= ~ADC_SR_EOC;
+        voidFuncPtr handler = (*(dev->handler_p))[ADC_EOC];
+        if (handler) {
+            handler();
+        }
+    }
+    //Injected End Of Conversion
+    if (adc_sr & ADC_SR_JEOC) {
+        dev->regs->SR &= ~ADC_SR_JEOC;
+        voidFuncPtr handler = (*(dev->handler_p))[ADC_JEOC];
+        if (handler) {
+            handler();
+        }
+    }
+    //Analog Watchdog
+    if (adc_sr & ADC_SR_AWD) {
+        dev->regs->SR &= ~ADC_SR_AWD;
+        voidFuncPtr handler = (*(dev->handler_p))[ADC_AWD];
+        if (handler) {
+            handler();
+        }
+    }
+}
+
+void __irq_adc()
+{
+    adc_foreach(&adc_irq_handler);
+}
 //-----------------------------------------------------------------------------
 //  Read internal variables.
 //  Channels are:
@@ -340,27 +395,27 @@ void takeSamples ()
 //-----------------------------------------------------------------------------
 void setupADC_F4(void)
 {
-	uint32 tmpreg1 = 0;
+    uint32 tmpreg1 = 0;
 
-	tmpreg1 = ADC_COMMON->CCR;
+    tmpreg1 = ADC_COMMON->CCR;
 
-	/* Clear all bits */
+    /* Clear all bits */
 #define CR_CLEAR_MASK  ((uint32)0xFF3C10E0)
-	tmpreg1 &= CR_CLEAR_MASK;
+    tmpreg1 &= CR_CLEAR_MASK;
 
-	/* Configure ADCx: Multi mode, Delay between two sampling time, ADC prescaler,
-	 and DMA access mode for multimode */
-	/* Set MULTI bits according to ADC_Mode value */
-	/* Set ADCPRE bits according to ADC_Prescaler value */
-	/* Set DMA bits according to ADC_DMAAccessMode value */
-	/* Set DELAY bits according to ADC_TwoSamplingDelay value */
+    /* Configure ADCx: Multi mode, Delay between two sampling time, ADC prescaler,
+     and DMA access mode for multimode */
+    /* Set MULTI bits according to ADC_Mode value */
+    /* Set ADCPRE bits according to ADC_Prescaler value */
+    /* Set DMA bits according to ADC_DMAAccessMode value */
+    /* Set DELAY bits according to ADC_TwoSamplingDelay value */
 #define ADC_Mode_Independent            0
 #define ADC_Prescaler_Div2              0
 #define ADC_DMAAccessMode_Disabled      0     /* DMA mode disabled */
 #define ADC_TwoSamplingDelay_5Cycles    0
 
-	tmpreg1 |= ( ADC_Mode_Independent | ADC_Prescaler_Div2 | ADC_DMAAccessMode_Disabled | ADC_TwoSamplingDelay_5Cycles );
+    tmpreg1 |= ( ADC_Mode_Independent | ADC_Prescaler_Div2 | ADC_DMAAccessMode_Disabled | ADC_TwoSamplingDelay_5Cycles );
 
-	/* Write to ADC CCR */
-	ADC_COMMON->CCR = tmpreg1;
+    /* Write to ADC CCR */
+    ADC_COMMON->CCR = tmpreg1;
 }

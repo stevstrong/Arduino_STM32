@@ -179,13 +179,13 @@ typedef struct dma_handler_config {
     voidFuncPtr handler;      /**< User-specified channel interrupt
                                      handler */
     nvic_irq_num irq_line;      /**< Channel's NVIC interrupt number */
-} dma_handler_config;
+} dma_handler_t;
 
 /** DMA device type */
 typedef struct dma_dev {
     dma_reg_map *regs;             /**< Register map */
     rcc_clk_id clk_id;             /**< Clock ID */
-    dma_handler_config (*cfg_p)[]; /**<
+    dma_handler_t (*handler_p)[]; /**<
                                     * @brief IRQ handlers and NVIC numbers.
                                     * @see dma_detach_interrupt()
                                     */

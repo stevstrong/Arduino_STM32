@@ -30,18 +30,12 @@
 
 #include "wirish.h"
 
-/* Assumes that the ADC has been initialized and that the pin is set
- * to INPUT_ANALOG */
+// Assumes that the ADC has been initialized and the pin set to INPUT_ANALOG
 uint16 analogRead(uint8 pin)
 {
-	adc_dev_index adc_index = PIN_MAP[pin].adc_dev_indx;
-    if ( adc_index==0 )
+    uint8_t channel = PIN_MAP[pin].adc_channel;
+    if ( channel==ADCx )
         return 0;
 
-    const adc_dev * dev = adc_devices[adc_index-1];
-    if ( dev==NULL )
-        return 0;
-
-	uint8_t channel = PIN_MAP[pin].adc_channel;
-    return adc_read(dev, channel);
+    return adc_read(ADC1, channel);
 }

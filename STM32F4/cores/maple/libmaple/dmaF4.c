@@ -38,7 +38,7 @@
  */
 
 
-dma_handler_config dma1_handlers[8] = {
+dma_handler_t dma1_handlers[8] = {
 	{ .handler = NULL, .irq_line = NVIC_DMA1_STREAM0 },
 	{ .handler = NULL, .irq_line = NVIC_DMA1_STREAM1 },
 	{ .handler = NULL, .irq_line = NVIC_DMA1_STREAM2 },
@@ -49,7 +49,7 @@ dma_handler_config dma1_handlers[8] = {
 	{ .handler = NULL, .irq_line = NVIC_DMA1_STREAM7 },
 };
 
-dma_handler_config dma2_handlers[8] = {
+dma_handler_t dma2_handlers[8] = {
 	{ .handler = NULL, .irq_line = NVIC_DMA2_STREAM0 },
 	{ .handler = NULL, .irq_line = NVIC_DMA2_STREAM1 },
 	{ .handler = NULL, .irq_line = NVIC_DMA2_STREAM2 },
@@ -62,16 +62,16 @@ dma_handler_config dma2_handlers[8] = {
 
 /** DMA1 device */
 const dma_dev dma1 = {
-    .regs   = DMA1_BASE,
-    .clk_id = RCC_DMA1,
-    .cfg_p  = &dma1_handlers,
+    .regs      = DMA1_BASE,
+    .clk_id    = RCC_DMA1,
+    .handler_p = &dma1_handlers,
 };
 
 /** DMA2 device */
 const dma_dev dma2 = {
-    .regs   = DMA2_BASE,
-    .clk_id = RCC_DMA2,
-    .cfg_p  = &dma2_handlers,
+    .regs      = DMA2_BASE,
+    .clk_id    = RCC_DMA2,
+    .handler_p = &dma2_handlers,
 };
 
 /*
@@ -94,9 +94,9 @@ void dma_attach_interrupt(const dma_dev *dev,
                           dma_stream stream,
                           void (*handler)(void))
 {
-	dma_handler_config * dma_cfg_p = &(*(dev->cfg_p))[stream];
-    dma_cfg_p->handler = handler;
-    nvic_irq_enable(dma_cfg_p->irq_line);
+	dma_handler_t * dma_handler_p = &(*(dev->handler_p))[stream];
+    dma_handler_p->handler = handler;
+    nvic_irq_enable(dma_handler_p->irq_line);
 }
 
 /**
@@ -112,9 +112,9 @@ void dma_attach_interrupt(const dma_dev *dev,
  */
 void dma_detach_interrupt(const dma_dev *dev, dma_stream stream)
 {
-	dma_handler_config * dma_cfg_p = &(*(dev->cfg_p))[stream];
-    nvic_irq_disable(dma_cfg_p->irq_line);
-    dma_cfg_p->handler = NULL;
+	dma_handler_t * dma_handler_p = &(*(dev->handler_p))[stream];
+    nvic_irq_disable(dma_handler_p->irq_line);
+    dma_handler_p->handler = NULL;
 }
 
 const uint8 dma_isr_bits_shift[] = { 0, 6, 16, 22};
@@ -137,7 +137,7 @@ void dma_clear_isr_bit(const dma_dev *dev, dma_stream stream, uint8_t mask)
 
 static inline void dispatch_handler(const dma_dev *dev, dma_stream stream)
 {
-    voidFuncPtr handler = (*(dev->cfg_p))[stream].handler;
+    voidFuncPtr handler = (*(dev->handler_p))[stream].handler;
     if (handler) {
         handler();
         dma_clear_isr_bits(dev, stream); /* in case handler doesn't */

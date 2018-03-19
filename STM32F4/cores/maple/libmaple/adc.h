@@ -69,23 +69,24 @@ typedef struct adc_reg_map {
 
 //Added by bubulindo - Interrupt ID's for ADC
 typedef enum {
-    ADC_EOC,     /**< Enod Of Converiosn interrupt. */
-    ADC_AWD ,    /**Analog WatchDog interrupt */
-    ADC_JEOC,    /**< Injected End Of Conversion interrupt. */
-    //ADC_JSTRT,
-    //ADC_STRT,
+    ADC_EOC,     // End Of Conversion interrupt.
+    ADC_AWD ,    // Analog WatchDog interrupt
+    ADC_JEOC,    // Injected End Of Conversion interrupt.
 	ADC_LAST_IRQ_ID
 } adc_irq_id;
 
-extern voidFuncPtr adc_irq_handlers[ADC_LAST_IRQ_ID]; /* EOC, JEOC, AWD Interrupts*/
+extern voidFuncPtr adc1Handlers[ADC_LAST_IRQ_ID]; // EOC, JEOC, AWD Interrupts
+extern voidFuncPtr adc2Handlers[ADC_LAST_IRQ_ID]; // EOC, JEOC, AWD Interrupts
+extern voidFuncPtr adc3Handlers[ADC_LAST_IRQ_ID]; // EOC, JEOC, AWD Interrupts
 
 /** ADC device type. */
 typedef struct adc_dev
 {
     adc_reg_map *regs; /**< Register map */
     rcc_clk_id clk_id; /**< RCC clock information */
-	dma_stream stream;
-	dma_channel channel;
+	dma_stream dmaStream;
+	dma_channel dmaChannel;
+	voidFuncPtr (*handler_p)[];
 } adc_dev;
 
 extern const adc_dev adc1;
@@ -94,14 +95,6 @@ extern const adc_dev adc3;
 #define ADC1 (&adc1)
 #define ADC2 (&adc2)
 #define ADC3 (&adc3)
-
-typedef enum adc_dev_index {
-ADC_1 = 1,
-ADC_2,
-ADC_3,
-} adc_dev_index;
-
-extern const adc_dev * const adc_devices[3];
 
 typedef struct adc_common_reg_map {
 	__io uint32 CSR;            ///< Common status register
@@ -478,11 +471,7 @@ static inline void adc_awd_enable_channel(const adc_dev * dev, uint8 awd_channel
     dev->regs->CR1 |= (awd_channel & ADC_CR1_AWDCH);
 }
 
-static inline void adc_awd_enable_irq(const adc_dev * dev)
-{
-	dev->regs->CR1 |= (1U<<ADC_CR1_AWDIE_BIT);
-	nvic_irq_enable(NVIC_ADC_1_2_3);
-}
+void adc_awd_enable_irq(const adc_dev * dev);
 
 static inline void adc_awd_enable(const adc_dev * dev)
 {
