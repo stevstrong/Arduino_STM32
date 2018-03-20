@@ -407,7 +407,7 @@ uint8 SPIClass::dmaTransfer(const void * transmitBuf, void * receiveBuf, uint16 
 						_currentSetting->spiDmaChannel,
 						dma_bit_size,
 						&_currentSetting->spi_d->regs->DR,	// peripheral address
-						(volatile void*)transmitBuf,						// memory bank 0 address
+						transmitBuf,						// memory bank 0 address
 						NULL,								// memory bank 1 address
 						flags
 	);
@@ -454,7 +454,7 @@ uint8 SPIClass::dmaSend(const void * transmitBuf, uint16 length, bool minc)
 						_currentSetting->spiDmaChannel,
 						dma_bit_size,
 						&_currentSetting->spi_d->regs->DR,	// peripheral address
-						(volatile void*)transmitBuf,						// memory bank 0 address
+						transmitBuf,						// memory bank 0 address
 						NULL,								// memory bank 1 address
 						( (DMA_MINC_MODE*minc) | DMA_FROM_MEM ) //| DMA_TRNS_CMPLT ) // flags
 	);// Transmit buffer DMA 
