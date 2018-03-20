@@ -138,7 +138,7 @@ private:
 	spi_dev *spi_d;
 	uint32_t clockDivider;
 
-	dma_dev* spiDmaDev;
+	const dma_dev * spiDmaDev;
 	dma_channel spiDmaChannel;
 	dma_stream spiRxDmaStream, spiTxDmaStream;
 
