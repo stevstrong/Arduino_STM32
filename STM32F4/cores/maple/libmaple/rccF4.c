@@ -249,9 +249,7 @@ void SetupClock72MHz()
 		RCC->CR |= RCC_CR_PLLON;
 
 		/* Wait till the main PLL is ready */
-		while((RCC->CR & RCC_CR_PLLRDY) == 0)
-		{
-		}
+		while((RCC->CR & RCC_CR_PLLRDY) == 0);
 
 		/* Configure Flash prefetch, Instruction cache, Data cache and wait state */
 		FLASH->ACR = FLASH_ACR_ICEN |FLASH_ACR_DCEN |FLASH_ACR_LATENCY_2WS;
@@ -262,8 +260,7 @@ void SetupClock72MHz()
 
 		/* Wait till the main PLL is used as system clock source */
 		while ((RCC->CFGR & (uint32_t)RCC_CFGR_SWS ) != RCC_CFGR_SWS_PLL);
-		{
-		}
+
 	}
 	else
 	{ /* If HSE fails to start-up, the application will have wrong clock
@@ -340,9 +337,7 @@ void SetupClock120MHz()
 		RCC->CR |= RCC_CR_PLLON;
 
 		/* Wait till the main PLL is ready */
-		while((RCC->CR & RCC_CR_PLLRDY) == 0)
-		{
-		}
+		while((RCC->CR & RCC_CR_PLLRDY) == 0);
 
 		/* Configure Flash prefetch, Instruction cache, Data cache and wait state */
 		FLASH->ACR = FLASH_ACR_ICEN |FLASH_ACR_DCEN |FLASH_ACR_LATENCY_3WS;
@@ -353,8 +348,7 @@ void SetupClock120MHz()
 
 		/* Wait till the main PLL is used as system clock source */
 		while ((RCC->CFGR & (uint32_t)RCC_CFGR_SWS ) != RCC_CFGR_SWS_PLL);
-		{
-		}
+
 	}
 	else
 	{ /* If HSE fails to start-up, the application will have wrong clock
@@ -441,9 +435,7 @@ void SetupClock168MHz()
 		RCC->CR |= RCC_CR_PLLON;
 
 		/* Wait till the main PLL is ready */
-		while((RCC->CR & RCC_CR_PLLRDY) == 0)
-		{
-		}
+		while((RCC->CR & RCC_CR_PLLRDY) == 0);
 
 		/* Configure Flash prefetch, Instruction cache, Data cache and wait state */
 		FLASH->ACR = FLASH_ACR_ICEN |FLASH_ACR_DCEN |FLASH_ACR_LATENCY_5WS;
@@ -454,8 +446,7 @@ void SetupClock168MHz()
 
 		/* Wait till the main PLL is used as system clock source */
 		while ((RCC->CFGR & (uint32_t)RCC_CFGR_SWS ) != RCC_CFGR_SWS_PLL);
-		{
-		}
+
 	}
 	else
 	{ /* If HSE fails to start-up, the application will have wrong clock
@@ -539,9 +530,7 @@ void rcc_clk_init2(rcc_sysclk_src sysclk_src,
     RCC->CR |= RCC_CR_PLLON;
 
     /* Wait till the main PLL is ready */
-    while((RCC->CR & RCC_CR_PLLRDY) == 0)
-    {
-    }
+    while((RCC->CR & RCC_CR_PLLRDY) == 0);
 
     /* Configure Flash prefetch, Instruction cache, Data cache and wait state */
     ((FLASH_TypeDef*)FLASH)->ACR = FLASH_ACR_PRFTEN |FLASH_ACR_ICEN |FLASH_ACR_DCEN |FLASH_ACR_LATENCY_3WS;
@@ -552,8 +541,7 @@ void rcc_clk_init2(rcc_sysclk_src sysclk_src,
 
     /* Wait till the main PLL is used as system clock source */
     while ((RCC->CFGR & RCC_CFGR_SWS ) != RCC_CFGR_SWS_PLL);
-    {
-    }
+
   }
   else
   { /* If HSE fails to start-up, the application will have wrong clock
@@ -575,21 +563,18 @@ void rcc_clk_init2(rcc_sysclk_src sysclk_src,
     cr = RCC->CR;
     cr |= RCC_CR_HSEON;
     RCC->CR = cr;
-    while (!(RCC->CR & RCC_CR_HSERDY))
-        ;
+    while (!(RCC->CR & RCC_CR_HSERDY));
 
     /* Now the PLL */
     cr |= RCC_CR_PLLON;
     RCC->CR = cr;
-    while (!(RCC->CR & RCC_CR_PLLRDY))
-        ;
+    while (!(RCC->CR & RCC_CR_PLLRDY));
 
     /* Finally, let's switch over to the PLL */
     cfgr &= ~RCC_CFGR_SW;
     cfgr |= RCC_CFGR_SW_PLL;
     RCC->CFGR = cfgr;
-    while ((RCC->CFGR & RCC_CFGR_SWS) != RCC_CFGR_SWS_PLL)
-        ;
+    while ((RCC->CFGR & RCC_CFGR_SWS) != RCC_CFGR_SWS_PLL);
 #endif
 }
 
