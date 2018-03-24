@@ -100,7 +100,7 @@ void usart_set_parity(usart_dev *dev, uint16_t odd)
 {
 	uint32_t cr1 = dev->regs->CR1 & (~USART_CR1_PS);
 	if (odd) cr1 |= USART_CR1_PS_ODD;
-	dev->regs->CR1 = cr1;
+	dev->regs->CR1 = cr1 | USART_CR1_PCE;
 }
 
 void usart_set_stop_bits(usart_dev *dev, uint16_t stop_bits)
