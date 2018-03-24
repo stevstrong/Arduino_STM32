@@ -152,6 +152,7 @@ typedef struct usart_reg_map {
 /* Control register 2 */
 
 #define USART_CR2_LINEN_BIT             14
+#define USART_CR2_STOP_SHIFT            12
 #define USART_CR2_CLKEN_BIT             11
 #define USART_CR2_CPOL_BIT              10
 #define USART_CR2_CPHA_BIT              9
@@ -160,13 +161,13 @@ typedef struct usart_reg_map {
 #define USART_CR2_LBDL_BIT              5
 
 #define USART_CR2_LINEN                 BIT(USART_CR2_LINEN_BIT)
-#define USART_CR2_STOP                  (0x3 << 12)
-#define USART_CR2_STOP_BITS_1           (0x0 << 12)
+#define USART_CR2_STOP                  (0x3 << USART_CR2_STOP_SHIFT)
+#define USART_CR2_STOP_BITS_1           (0x0 << USART_CR2_STOP_SHIFT)
 /* Not on UART4, UART5 */
-#define USART_CR2_STOP_BITS_POINT_5     (0x1 << 12)
+#define USART_CR2_STOP_BITS_POINT_5     (0x1 << USART_CR2_STOP_SHIFT)
 /* Not on UART4, UART5 */
-#define USART_CR2_STOP_BITS_1_POINT_5   (0x3 << 12)
-#define USART_CR2_STOP_BITS_2           (0x2 << 12)
+#define USART_CR2_STOP_BITS_1_POINT_5   (0x3 << USART_CR2_STOP_SHIFT)
+#define USART_CR2_STOP_BITS_2           (0x2 << USART_CR2_STOP_SHIFT)
 #define USART_CR2_CLKEN                 BIT(USART_CR2_CLKEN_BIT)
 /* Not on UART4, UART5 */
 #define USART_CR2_CPOL                  BIT(USART_CR2_CPOL_BIT)
@@ -273,6 +274,10 @@ void usart_disable(usart_dev *dev);
 void usart_foreach(void (*fn)(usart_dev *dev));
 uint32 usart_tx(usart_dev *dev, const uint8 *buf, uint32 len);
 void usart_putudec(usart_dev *dev, uint32 val);
+
+
+void usart_set_parity(usart_dev *dev, uint16_t odd);
+void usart_set_stop_bits(usart_dev *dev, uint16_t stop_bits);
 
 /**
  * @brief Disable all serial ports.

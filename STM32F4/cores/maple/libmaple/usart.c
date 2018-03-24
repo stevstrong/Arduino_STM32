@@ -96,6 +96,19 @@ void usart_init(usart_dev *dev) {
     nvic_irq_enable(dev->irq_num);
 }
 
+void usart_set_parity(usart_dev *dev, uint16_t odd)
+{
+	uint32_t cr1 = dev->regs->CR1 & (~USART_CR1_PS);
+	if (odd) cr1 |= USART_CR1_PS_ODD;
+	dev->regs->CR1 = cr1;
+}
+
+void usart_set_stop_bits(usart_dev *dev, uint16_t stop_bits)
+{
+	uint32_t cr2 = dev->regs->CR2 & (~USART_CR2_STOP);
+	dev->regs->CR2 = cr2 | (stop_bits)<<USART_CR2_STOP_SHIFT;
+}
+
 /**
  * @brief Configure a serial port's baud rate.
  *
