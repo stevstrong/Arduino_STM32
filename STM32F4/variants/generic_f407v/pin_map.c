@@ -34,9 +34,7 @@
 extern "C"{
 #endif
 
-//#include "generic_f407v.h"
 
-//#include "fsmc.h"
 #include <libmaple/gpio.h>
 #include <libmaple/rcc.h>
 #include <libmaple/timer.h>
@@ -48,13 +46,12 @@ typedef struct stm32_pin_info {
     gpio_dev *gpio_device;      // Maple pin's GPIO device
     timer_dev *timer_device;    // Pin's timer device, if any.
     uint8 timer_channel;        // Timer channel, or 0 if none.
-    uint8 adc_dev_indx;         // ADC device index, if any.
-    uint8 adc_channel;          // Pin ADC channel, or ADCx if none.
+    uint8 adc_channel;          // ADC channel, or ADCx if none.
 } stm32_pin_info;
 */
 
 const stm32_pin_info PIN_MAP[] =
-{ // LQFP100 package pin
+{
 {GPIOA, TIMER5, 1,    0}, // PA0  | 23 | USART2_CTS | UART4_TX       | ETH_MII_CRS      | TIM2_CH1_ETR   | TIM5_CH1       | TIM8_ETR                      | ADC123_IN0/WKUP
 {GPIOA, TIMER5, 2,    1}, // PA1  | 24 | USART2_RTS | UART4_RX       | ETH_RMII_REF_CLK | ETH_MII_RX_CLK | TIM5_CH2       | TIM2_CH2                      | ADC123_IN1
 {GPIOA, TIMER5, 3,    2}, // PA2  | 25 | USART2_TX  | TIM5_CH3       | TIM9_CH1         | TIM2_CH3       | ETH_MDIO                                       | ADC123_IN2
@@ -63,8 +60,8 @@ const stm32_pin_info PIN_MAP[] =
 {GPIOA,   NULL, 0,    5}, // PA5  | 30 | SPI1_SCK   | OTG_HS_ULPI_CK | TIM2_CH1_ETR     | TIM8_CH1N                                                       | ADC12_IN5 / DAC_OUT2
 {GPIOA,   NULL, 0,    6}, // PA6  | 31 | SPI1_MISO  | TIM8_BKIN      | TIM13_CH1        | DCMI_PIXCLK    | TIM3_CH1       | TIM1_BKIN                     | ADC12_IN6
 {GPIOA,   NULL, 0,    7}, // PA7  | 32 | SPI1_MOSI  | TIM8_CH1N      | TIM14_CH1        | TIM3_CH2       | ETH_MII_RX_DV  | TIM1_CH1N   / ETH_RMII_CRS_DV | ADC12_IN7
-{GPIOA,   NULL, 0, ADCx}, // PA8  | 67 | MCO1       | USART1_CK      | TIM1_CH1         | I2C3_SCL       | OTG_FS_SOF
-{GPIOA,   NULL, 0, ADCx}, // PA9  | 68 | USART1_TX  | TIM1_CH2       | I2C3_SMBA        | DCMI_D0
+{GPIOA, TIMER1, 1, ADCx}, // PA8  | 67 | MCO1       | USART1_CK      | TIM1_CH1         | I2C3_SCL       | OTG_FS_SOF
+{GPIOA, TIMER1, 2, ADCx}, // PA9  | 68 | USART1_TX  | TIM1_CH2       | I2C3_SMBA        | DCMI_D0
 {GPIOA,   NULL, 0, ADCx}, // PA10 | 69 | USART1_RX  | TIM1_CH3       | OTG_FS_ID        | DCMI_D1
 {GPIOA,   NULL, 0, ADCx}, // PA11 | 70 | USART1_CTS | CAN1_RX        | TIM1_CH4         | OTG_FS_DM
 {GPIOA,   NULL, 0, ADCx}, // PA12 | 71 | USART1_RTS | CAN1_TX        | TIM1_ETR         | OTG_FS_DP
@@ -139,7 +136,7 @@ const stm32_pin_info PIN_MAP[] =
 {GPIOE, TIMER1, 3, ADCx}, // PE13 | 44 | FSMC_D10  | TIM1_CH3   // remap in
 {GPIOE, TIMER1, 4, ADCx}, // PE14 | 45 | FSMC_D11  | TIM1_CH4   // remap in
 {GPIOE,   NULL, 0, ADCx}, // PE15 | 46 | FSMC_D12  | TIM1_BKIN
-#if 0 // not available on LQFP100 package
+#ifdef PACKAGE_LQFP144 // not available on LQFP100 package
 {GPIOF,    NULL, 0, ADCx}, // PF0
 {GPIOF,    NULL, 0, ADCx}, // PF1
 {GPIOF,    NULL, 0, ADCx}, // PF2
