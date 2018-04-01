@@ -33,11 +33,16 @@
 
 #include <libmaple/spi.h>
 #include <libmaple/gpio.h>
-#include "spi_private.h"
 
 /*
  * Devices
  */
+#define SPI_DEV(num)                \
+    {                               \
+        .regs    = SPI##num##_BASE, \
+        .clk_id  = RCC_SPI##num,    \
+        .irq_num = NVIC_SPI##num,   \
+    }
 
 static spi_dev spi1 = SPI_DEV(1);
 static spi_dev spi2 = SPI_DEV(2);

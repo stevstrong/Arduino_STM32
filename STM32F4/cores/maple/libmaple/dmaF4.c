@@ -140,8 +140,8 @@ static inline void dispatch_handler(const dma_dev *dev, dma_stream stream)
     voidFuncPtr handler = (*(dev->handler_p))[stream].handler;
     if (handler) {
         handler();
-        dma_clear_isr_bits(dev, stream); /* in case handler doesn't */
     }
+    dma_clear_isr_bits(dev, stream); // in case handler doesn't
 }
 
 void __irq_dma1_stream0(void) {

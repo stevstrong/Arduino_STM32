@@ -57,22 +57,22 @@ extern "C"{
  *
  */
 typedef struct dma_stream_t {
-    __io uint32 CR;           /**< Stream configuration register */
-    __io uint32 NDTR;         /**< Stream number of data register */
-    __io uint32 PAR;          /**< Stream peripheral address register */
-    __io uint32 M0AR;         /**< Stream memory address register 0 */
-    __io uint32 M1AR;         /**< Stream memory address register 1 */
-    __io uint32 FCR;          /**< Stream FIFO configuration register */
+    __IO uint32 CR;           /**< Stream configuration register */
+    __IO uint32 NDTR;         /**< Stream number of data register */
+    __IO uint32 PAR;          /**< Stream peripheral address register */
+    __IO uint32 M0AR;         /**< Stream memory address register 0 */
+    __IO uint32 M1AR;         /**< Stream memory address register 1 */
+    __IO uint32 FCR;          /**< Stream FIFO configuration register */
 } dma_stream_t;
 /**
  * @brief DMA register map type.
  *
  */
 typedef struct dma_reg_map {
-    __io uint32  LISR;         /**< Low interrupt status register */
-    __io uint32  HISR;         /**< High interrupt status register */
-    __io uint32  LIFCR;        /**< Low interrupt flag clear register */
-    __io uint32  HIFCR;        /**< High interrupt flag clear register */
+    __IO uint32  LISR;         /**< Low interrupt status register */
+    __IO uint32  HISR;         /**< High interrupt status register */
+    __IO uint32  LIFCR;        /**< Low interrupt flag clear register */
+    __IO uint32  HIFCR;        /**< High interrupt flag clear register */
     dma_stream_t STREAM[8];
 } dma_reg_map;
 
