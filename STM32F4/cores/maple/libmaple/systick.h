@@ -42,10 +42,10 @@ extern "C"{
 
 /** SysTick register map type */
 typedef struct systick_reg_map {
-    __io uint32 CTRL;           /**< Control and status register */
-    __io uint32 LOAD;           /**< Reload value register */
-    __io uint32 VAL;            /**< Current value register ("count") */
-    __io uint32 CALIB;          /**< Calibration value register */
+    __IO uint32 CTRL;           /**< Control and status register */
+    __IO uint32 LOAD;           /**< Reload value register */
+    __IO uint32 VAL;            /**< Current value register ("count") */
+    __IO uint32 CALIB;          /**< Calibration value register */
 } systick_reg_map;
 
 extern systick_reg_map * const SYSTICK;

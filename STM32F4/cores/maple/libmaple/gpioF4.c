@@ -204,7 +204,7 @@ void gpio_cfg_debug_ports(gpio_debug_cfg config) {
  * @see afio_exti_port
  */
 void afio_exti_select(afio_exti_num exti, afio_exti_port gpio_port) {
-    __io uint32 *exti_cr = &SYSCFG->EXTICR1 + exti / 4;
+    __IO uint32 *exti_cr = &SYSCFG->EXTICR1 + exti / 4;
     uint32 shift = 4 * (exti % 4);
     uint32 cr = *exti_cr;
 

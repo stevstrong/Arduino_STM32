@@ -47,15 +47,16 @@ extern "C"{
 
 /** GPIO register map type */
 typedef struct gpio_reg_map {
-    __io uint32_t MODER;    /*!< GPIO port mode register,               Address offset: 0x00      */
-    __io uint32_t OTYPER;   /*!< GPIO port output type register,        Address offset: 0x04      */
-    __io uint32_t OSPEEDR;  /*!< GPIO port output speed register,       Address offset: 0x08      */
-    __io uint32_t PUPDR;    /*!< GPIO port pull-up/pull-down register,  Address offset: 0x0C      */
-    __io uint32_t IDR;      /*!< GPIO port input data register,         Address offset: 0x10      */
-    __io uint32_t ODR;      /*!< GPIO port output data register,        Address offset: 0x14      */
-    __io uint32_t BSRR;     /*!< GPIO port bit set/reset register,      Address offset: 0x18      */
-    __io uint32_t LCKR;     /*!< GPIO port configuration lock register, Address offset: 0x1C      */
-    __io uint32_t AFR[2];   /*!< GPIO alternate function registers,     Address offset: 0x24-0x28 */
+    __IO uint32 MODER;    /*!< GPIO port mode register,               Address offset: 0x00      */
+    __IO uint32 OTYPER;   /*!< GPIO port output type register,        Address offset: 0x04      */
+    __IO uint32 OSPEEDR;  /*!< GPIO port output speed register,       Address offset: 0x08      */
+    __IO uint32 PUPDR;    /*!< GPIO port pull-up/pull-down register,  Address offset: 0x0C      */
+    __IO uint32 IDR;      /*!< GPIO port input data register,         Address offset: 0x10      */
+    __IO uint32 ODR;      /*!< GPIO port output data register,        Address offset: 0x14      */
+    __IO uint16 BSRRL;    /*!< GPIO port bit set/reset low register,  Address offset: 0x18      */
+    __IO uint16 BSRRH;    /*!< GPIO port bit set/reset high register, Address offset: 0x1A      */
+    __IO uint32 LCKR;     /*!< GPIO port configuration lock register, Address offset: 0x1C      */
+    __IO uint32 AFR[2];   /*!< GPIO alternate function registers,     Address offset: 0x24-0x28 */
 } gpio_reg_map;
 
 
@@ -190,13 +191,13 @@ typedef enum gpio_pin_mode {
 
 /** AFIO register map */
 typedef struct syscfg_reg_map {
-    __io uint32 MEMRMP;    /**< memory remap register  */
-    __io uint32 PMC;      /**< peripheral mode configuration register */
-    __io uint32 EXTICR1;  /**< External interrupt configuration register 1. */
-    __io uint32 EXTICR2;  /**< External interrupt configuration register 2. */
-    __io uint32 EXTICR3;  /**< External interrupt configuration register 3. */
-    __io uint32 EXTICR4;  /**< External interrupt configuration register 4. */
-    __io uint32 CMPCR;    /**< Compensation cell control register */
+    __IO uint32 MEMRMP;    /**< memory remap register  */
+    __IO uint32 PMC;      /**< peripheral mode configuration register */
+    __IO uint32 EXTICR1;  /**< External interrupt configuration register 1. */
+    __IO uint32 EXTICR2;  /**< External interrupt configuration register 2. */
+    __IO uint32 EXTICR3;  /**< External interrupt configuration register 3. */
+    __IO uint32 EXTICR4;  /**< External interrupt configuration register 4. */
+    __IO uint32 CMPCR;    /**< Compensation cell control register */
 } syscfg_reg_map;
 
 extern syscfg_reg_map * const SYSCFG;

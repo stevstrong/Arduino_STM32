@@ -55,19 +55,19 @@ extern "C"{
 
 /** NVIC register map type. */
 typedef struct nvic_reg_map {
-    __io uint32 ISER[3];      /**< Interrupt Set Enable Registers */
+    __IO uint32 ISER[3];      /**< Interrupt Set Enable Registers */
     uint32 RESERVED0[29];     /**< Reserved */
-    __io uint32 ICER[3];      /**< Interrupt Clear Enable Registers */
+    __IO uint32 ICER[3];      /**< Interrupt Clear Enable Registers */
     uint32 RSERVED1[29];      /**< Reserved */
-    __io uint32 ISPR[3];      /**< Interrupt Set Pending Registers */
+    __IO uint32 ISPR[3];      /**< Interrupt Set Pending Registers */
     uint32 RESERVED2[29];     /**< Reserved */
-    __io uint32 ICPR[3];      /**< Interrupt Clear Pending Registers */
+    __IO uint32 ICPR[3];      /**< Interrupt Clear Pending Registers */
     uint32 RESERVED3[29];     /**< Reserved */
-    __io uint32 IABR[3];      /**< Interrupt Active bit Registers */
+    __IO uint32 IABR[3];      /**< Interrupt Active bit Registers */
     uint32 RESERVED4[61];     /**< Reserved */
-    __io uint8  IP[84];       /**< Interrupt Priority Registers */
+    __IO uint8  IP[84];       /**< Interrupt Priority Registers */
     uint32 RESERVED5[683];    /**< Reserved */
-    __io uint32 STIR;         /**< Software Trigger Interrupt Registers */
+    __IO uint32 STIR;         /**< Software Trigger Interrupt Registers */
 } nvic_reg_map;
 
 /** NVIC register map base pointer. */

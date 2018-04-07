@@ -264,7 +264,7 @@ static inline void dma_setup_transfer(const dma_dev *dev,
                                       dma_stream    stream,
                                       dma_channel   channel,
                                       dma_xfer_size trx_size,
-                                      __io void     *peripheral_address,
+                                      __IO void     *peripheral_address,
                                       const void    *memory_address0,
                                       const void    *memory_address1,
                                       uint32        flags)
