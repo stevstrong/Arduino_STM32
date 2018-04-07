@@ -78,6 +78,9 @@
 #define SPI_DATA_SIZE_8BIT SPI_CR1_DFF_8_BIT
 #define SPI_DATA_SIZE_16BIT SPI_CR1_DFF_16_BIT
 
+/** Time in ms for DMA receive timeout */
+#define DMA_TIMEOUT 200
+
 typedef enum {
     SPI_STATE_IDLE,
     SPI_STATE_READY,
@@ -85,7 +88,9 @@ typedef enum {
     SPI_STATE_TRANSMIT,
     SPI_STATE_TRANSFER
 } spi_mode_t;
-class SPISettings {
+
+class SPISettings
+{
 private:
 	inline void init_AlwaysInline(uint32_t clock, BitOrder bitOrder, uint8_t dataMode, uint32_t dataSize)
 	{
@@ -130,20 +135,25 @@ private:
 	BitOrder bitOrder;
 	uint8_t dataMode;
 	uint32_t dataSize;
-
-	volatile spi_mode_t state;
-	spi_dev *spi_d;
 	uint32_t clockDivider;
 
+	volatile spi_mode_t state;
+
+	spi_dev * spi_d;
 	const dma_dev * spiDmaDev;
 	dma_channel spiDmaChannel;
 	dma_stream spiRxDmaStream, spiTxDmaStream;
-	void (*receiveCallback)(void) = NULL;
-	void (*transmitCallback)(void) = NULL;
+
+	voidFuncPtr dmaIsr;
+	voidFuncPtr rxCallback = NULL;
+	voidFuncPtr trxCallback = NULL;
+	voidFuncPtr txCallback = NULL;
+	uint32_t dmaTimeout = DMA_TIMEOUT;
 
 	friend class SPIClass;
 };
 
+extern SPISettings _settings[BOARD_NR_SPI];
 
 /**
  * @brief Wirish SPI interface.
@@ -211,8 +221,9 @@ public:
 	* onTransmit used to set the callback in case of dmaSend (tx only). That function
 	* will NOT be called in case of TX/RX
 	*/
-	void onReceive(void(*)(void));
-	void onTransmit(void(*)(void));
+	void onReceive(voidFuncPtr callback);
+	void onTransmit(voidFuncPtr callback);
+	void onTransfer(voidFuncPtr callback);
 
     /*
      * I/O
@@ -276,9 +287,9 @@ public:
      * @param receiveBuf buffer Bytes to save received data. 
      * @param length Number of bytes in buffer to transmit.
 	 */
-    uint8 dmaTransfer(const void * transmitBuf, void * receiveBuf, uint16 length);
-    void  dmaTransferSet(const void *transmitBuf, void *receiveBuf);
-    uint8 dmaTransferRepeat(uint16 length);
+    void dmaTransfer(const void * transmitBuf, void * receiveBuf, uint16 length);
+    void dmaTransferSet(const void *transmitBuf, void *receiveBuf);
+    void dmaTransferRepeat(uint16 length);
 
 	/**
      * @brief Sets up a DMA Transmit for SPI 8 or 16 bit transfer mode.
@@ -290,12 +301,15 @@ public:
      * @param length Number of bytes in buffer to transmit.
      * @param minc Set to use Memory Increment mode, clear to use Circular mode.
      */
-    uint8 dmaSend(const void * transmitBuf, uint16 length, bool minc = 1);
-    void  dmaSendSet(const void * transmitBuf, bool minc);
-    uint8 dmaSendRepeat(uint16 length);
+    void dmaSend(const void * transmitBuf, uint16 length, bool minc = 1);
+    void dmaSendSet(const void * transmitBuf, bool minc);
+    void dmaSendRepeat(uint16 length);
 
-    uint8 dmaSendAsync(const void * transmitBuf, uint16 length, bool minc = 1);
-	void  dmaReset(void);
+    void dmaSendAsync(const void * transmitBuf, uint16 length, bool minc = 1);
+	bool dmaIsReady(void)
+	{
+		return ((_currentSetting->state==SPI_STATE_READY)?true:false);
+	}
     /*
      * Pin accessors
      */
@@ -365,32 +379,32 @@ public:
      */
     uint8 send(uint8 *data, uint32 length);
 
-    /**
-     * @brief Deprecated.
-     *
-     * Use HardwareSPI::read() instead.
-     *
-     * @see HardwareSPI::read()
-     */
-    uint8 recv(void);
+	void EventCallback(uint16_t spi_num);
 
 private:
-	uint8 dmaSendWaitCompletion(void);
 
-	SPISettings _settings[BOARD_NR_SPI];
-	SPISettings *_currentSetting;
+	volatile SPISettings * _currentSetting;
 
 	void updateSettings(void);
-	/*
-	* Functions added for DMA transfers with Callback. 
-	* Experimental.
-	*/
 
-	void EventCallback(void);
+	void dmaWaitCompletion(void);
 
-	static void _spi1EventCallback(void);
-	static void _spi2EventCallback(void);
-	static void _spi3EventCallback(void);
+	inline void dmaAttachTxInterrupt() 
+	{
+		dma_attach_interrupt(_currentSetting->spiDmaDev, _currentSetting->spiTxDmaStream, _currentSetting->dmaIsr);
+	}
+	inline void dmaAttachRxInterrupt() 
+	{
+		dma_attach_interrupt(_currentSetting->spiDmaDev, _currentSetting->spiRxDmaStream, _currentSetting->dmaIsr);
+	}
+	inline void dmaDetachTxInterrupt()
+	{
+		dma_detach_interrupt(_currentSetting->spiDmaDev, _currentSetting->spiTxDmaStream);
+	}
+	inline void dmaDetachRxInterrupt()
+	{
+		dma_detach_interrupt(_currentSetting->spiDmaDev, _currentSetting->spiRxDmaStream);
+	}
 
 };
 

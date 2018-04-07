@@ -126,8 +126,8 @@ void dcmi_dma_config(uint32_t * buf, uint16 bufLen, voidFuncPtr func)
 	(DMA_PRIO_VERY_HIGH | DMA_MINC_MODE | DMA_CIRC_MODE | DMA_TRNS_HALF | DMA_TRNS_CMPLT));
 
     dma_set_num_transfers(DMA2, DMA_STREAM1, bufLen);
-	//dma_set_fifo_flags(DMA2, DMA_STREAM1, (DMA_FCR_DMDIS|DMA_FCR_FTH_1_4));
-	dma_set_fifo_flags(DMA2, DMA_STREAM1, 0);
+	dma_set_fifo_flags(DMA2, DMA_STREAM1, (DMA_FCR_DMDIS|DMA_FCR_FTH_2_4));
+	//dma_set_fifo_flags(DMA2, DMA_STREAM1, 0);
 	dma_clear_isr_bits(DMA2, DMA_STREAM1);
 	//if there is an int handler to be attached
 	if (func != NULL)

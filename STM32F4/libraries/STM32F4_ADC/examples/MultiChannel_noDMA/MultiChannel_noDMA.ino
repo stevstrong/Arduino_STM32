@@ -47,6 +47,11 @@ void blink(uint16_t dly)
 }
 
 //-----------------------------------------------------------------------------
+void ADC_ISR()
+{
+	
+}
+//-----------------------------------------------------------------------------
 void setup()
 {
     // Declare the LED_BUILTIN's pin as an OUTPUT.
@@ -63,6 +68,7 @@ void setup()
 	//myADC.enableVBAT(); // needed if reading Vbat, channel 18
 	myADC.enableTsVref(); // needed if reading internal temperature sensor
 	myADC.setSamplingTime(ADC_SMPR_480); // 3µsec, needed for temp sensor
+	myADC.attachInterrupt(ADC_ISR, ADC_EOC);
 
 	//myADC.readTemp(); // dummy reads first to stabilize
 }
