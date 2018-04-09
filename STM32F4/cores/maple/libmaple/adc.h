@@ -97,9 +97,9 @@ extern const adc_dev adc3;
 #define ADC3 (&adc3)
 
 typedef struct adc_common_reg_map {
-	__io uint32 CSR;            ///< Common status register
-	__io uint32 CCR;            ///< Common control register
-	__io uint32 CDR;            ///< Common regular data register for dual AND triple modes
+	__IO uint32 CSR;            ///< Common status register
+	__IO uint32 CCR;            ///< Common control register
+	__IO uint32 CDR;            ///< Common regular data register for dual AND triple modes
 } adc_common_reg_map;
 
 /*
