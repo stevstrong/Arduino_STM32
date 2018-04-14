@@ -13,9 +13,6 @@
 
 USB_OTG_CORE_HANDLE  USB_OTG_dev;
 
-extern uint8_t usb_isConnected(void);
-extern uint8_t usb_isConfigured(void);
-
 void setupUSB (void)
 {
 	gpio_set_mode(BOARD_USB_DP_PIN, GPIO_OUTPUT_OD); // ala42
@@ -26,9 +23,7 @@ void setupUSB (void)
 #endif
 
   gpio_clear_pin(BOARD_USB_DP_PIN); // ala42
-  delay_us(200000);
-
-  /* setup the apb1 clock for USB */
+  delay_us(50000);
 
   /* initialize the usb application */
   gpio_set_pin(BOARD_USB_DP_PIN); // ala42 // presents us to the host
@@ -39,71 +34,39 @@ void setupUSB (void)
             &USR_cb);
 }
 
-extern uint16_t VCP_DataTx (uint8_t* Buf, uint32_t Len);
-extern void     VCP_SetUSBTxBlocking(uint8_t mode);
-extern uint32_t VCPBytesAvailable(void);
+extern uint16_t VCP_DataTx (const uint8_t* Buf, uint32_t Len);
 extern uint8_t  VCPGetByte(void);
-extern uint8_t  VCPGetDTR(void);
 
-uint32_t usbSendBytes(const uint8_t* sendBuf, uint32_t len) {
+uint32_t usbSendBytes(const uint8_t* sendBuf, uint32_t len)
+{
 	VCP_DataTx((uint8_t*)sendBuf, len);
 	return len;
 }
 
-void usbEnableBlockingTx(void) {
-	VCP_SetUSBTxBlocking(1);
+uint32_t usbReceiveBytes(uint8_t* recvBuf, uint32_t len)
+{
+	uint32_t newBytes = usbBytesAvailable();
+	if (len > newBytes) {
+		len = newBytes;
+	}
+
+	for (uint32_t i=0; i<len; i++) {
+		recvBuf[i] = VCPGetByte();
+	}
+
+	return len;
 }
 
-void usbDisableBlockingTx(void) {
-	VCP_SetUSBTxBlocking(0);
+RESULT usbPowerOff(void)
+{
+	USBD_DeInitFull(&USB_OTG_dev);
+	return USB_SUCCESS;
 }
-
-
-uint32_t usbBytesAvailable(void) {
-	return VCPBytesAvailable();
-
-}
-uint32_t usbReceiveBytes(uint8_t* recvBuf, uint32_t len) {
-	  int newBytes = usbBytesAvailable();
-	  if (len > newBytes) {
-	      len = newBytes;
-	  }
-
-	  int i;
-	  for (i=0;i<len;i++) {
-	      recvBuf[i] = VCPGetByte();
-	  }
-
-	  return len;
-}
-
-uint8 usbIsConfigured() {
-  return usb_isConfigured();
-}
-
-uint8 usbIsConnected() {
-  return usb_isConnected();
-}
-
-uint8_t usbGetDTR(void) {
-  return VCPGetDTR();
-}
-
-RESULT usbPowerOn(void) {
-  return USB_SUCCESS;
-}
-
-RESULT usbPowerOff(void) {
-  USBD_DeInitFull(&USB_OTG_dev);
-  return USB_SUCCESS;
-}
-
-void usbDsbISR(void) {};
 
 #include <STM32_USB_OTG_Driver/inc/usb_dcd_int.h>
 void __irq_usb_fs(void)
 {
-  USBD_OTG_ISR_Handler (&USB_OTG_dev);
+	USBD_OTG_ISR_Handler (&USB_OTG_dev);
 }
 
 void x__irq_usbwakeup(void)

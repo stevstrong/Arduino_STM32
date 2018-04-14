@@ -52,26 +52,31 @@ extern volatile int APP_Rx_ptr_in;    /* Increment this pointer or roll it back 
 extern volatile int APP_Rx_ptr_out;
 
 #define UsbRecBufferSize 2048
+#define UsbRecBufferSizeMask (UsbRecBufferSize-1)
 uint8_t __CCMRAM__ UsbRecBuffer[UsbRecBufferSize];
 volatile int UsbRecRead = 0;
 volatile int UsbRecWrite = 0;
-volatile int VCP_DTRHIGH = 0;
+volatile uint8_t VCP_DTRHIGH = 0;
+volatile uint8_t VCP_RTSHIGH = 0;
 uint8_t UsbTXBlock = 1;
 
 uint8_t VCPGetDTR(void) { return VCP_DTRHIGH; }
+uint8_t VCPGetRTS(void) { return VCP_RTSHIGH; }
 
-uint32_t VCPBytesAvailable(void) {
-	return (UsbRecWrite - UsbRecRead + UsbRecBufferSize) % UsbRecBufferSize;
+uint32_t VCPBytesAvailable(void)
+{
+	return (UsbRecWrite - UsbRecRead) & UsbRecBufferSizeMask;
 }
 
-uint8_t VCPGetByte(void) {
-	if(UsbRecWrite == UsbRecRead) {
-		return 0;
+int16_t VCPGetByte(void)
+{
+	int usbRxRead = UsbRecRead; // take volatile
+	if(UsbRecWrite == usbRxRead) {
+		return -1;
 	} else {
-		uint8_t c = UsbRecBuffer[UsbRecRead++];
-		if(UsbRecRead == UsbRecBufferSize) {
-			UsbRecRead = 0;
-		}
+		uint8_t c = UsbRecBuffer[usbRxRead++];
+		usbRxRead &= UsbRecBufferSizeMask;
+		UsbRecRead = usbRxRead; // update volatile
 		return c;
 	}
 }
@@ -80,7 +85,7 @@ uint8_t VCPGetByte(void) {
 static uint16_t VCP_Init     (void);
 static uint16_t VCP_DeInit   (void);
 static uint16_t VCP_Ctrl     (uint32_t Cmd, uint8_t* Buf, uint32_t Len);
-uint16_t VCP_DataTx   (uint8_t* Buf, uint32_t Len);
+uint16_t VCP_DataTx   (const uint8_t* Buf, uint32_t Len);
 static uint16_t VCP_DataRx   (uint8_t* Buf, uint32_t Len);
 
 static uint16_t VCP_COMConfig(uint8_t Conf);
@@ -182,11 +187,8 @@ static uint16_t VCP_Ctrl (uint32_t Cmd, uint8_t* Buf, uint32_t Len)
 
   case SET_CONTROL_LINE_STATE:
 	linecoding.bitrate = (uint32_t)(Buf[0] | (Buf[1] << 8));
-	if(Buf[0] & 1) {
-		VCP_DTRHIGH = 1;
-	} else {
-		VCP_DTRHIGH = 0;
-	}
+	VCP_DTRHIGH = (Buf[0] & 0x1);
+	VCP_RTSHIGH = (Buf[0] & 0x2)>>1;
     /* Not  needed for this driver */
     break;
 
@@ -209,25 +211,19 @@ static uint16_t VCP_Ctrl (uint32_t Cmd, uint8_t* Buf, uint32_t Len)
   * @param  Len: Number of data to be sent (in bytes)
   * @retval Result of the operation: USBD_OK if all operations are OK else VCP_FAIL
   */
-uint16_t VCP_DataTx (uint8_t* Buf, uint32_t Len)
+uint16_t VCP_DataTx (const uint8_t* Buf, uint32_t Len)
 {
-	while(Len-- > 0) {
-		if(UsbTXBlock) {
-			while ((APP_Rx_ptr_in - APP_Rx_ptr_out + APP_RX_DATA_SIZE) % APP_RX_DATA_SIZE + 1 >= APP_RX_DATA_SIZE)
-				if (!VCP_DTRHIGH) return USBD_BUSY;
-		} else {
-			if ((APP_Rx_ptr_in - APP_Rx_ptr_out + APP_RX_DATA_SIZE) % APP_RX_DATA_SIZE + 1 >= APP_RX_DATA_SIZE) {
-				return USBD_BUSY;
-			}
+	int ptrIn = APP_Rx_ptr_in;
+	while(Len-- > 0)
+	{
+		while ( ((ptrIn+1)&APP_RX_DATA_SIZE_MASK)==APP_Rx_ptr_out )
+		{
+			if( !UsbTXBlock || !VCP_DTRHIGH ) return USBD_BUSY;
 		}
 
-
-		APP_Rx_Buffer[APP_Rx_ptr_in++] = *Buf++;
-		  /* To avoid buffer overflow */
-		  if(APP_Rx_ptr_in == APP_RX_DATA_SIZE)
-		  {
-		    APP_Rx_ptr_in = 0;
-		  }
+		APP_Rx_Buffer[ptrIn++] = *Buf++;
+		ptrIn &= APP_RX_DATA_SIZE_MASK; // To avoid buffer overflow
+		APP_Rx_ptr_in = ptrIn;
 	}
 	return USBD_OK;
 }
@@ -286,22 +282,19 @@ void systemHardReset(void) {
   */
 static uint16_t VCP_DataRx (uint8_t* Buf, uint32_t Len)
 {
-	if(VCP_DTRHIGH) {
-		if(Len >= 4) {
-			if(Buf[0] == '1' && Buf[1] == 'E' && Buf[2] == 'A' && Buf[3] == 'F') {
-				Len = 0;
-				*(int*)0x20000BFC = 0x4AFC6BB2;
-				systemHardReset();
-			}
+	if(!VCP_DTRHIGH) return USBD_BUSY;
+
+	if(Len >= 4) {
+		if(Buf[0] == '1' && Buf[1] == 'E' && Buf[2] == 'A' && Buf[3] == 'F') {
+			Len = 0;
+			*(int*)0x20000BFC = 0x4AFC6BB2;
+			systemHardReset();
 		}
 	}
+
 	while(Len-- > 0) {
-		UsbRecBuffer[UsbRecWrite] = *Buf++;
-		if(UsbRecWrite == UsbRecBufferSize) {
-			UsbRecWrite = 0;
-		} else {
-			UsbRecWrite ++;
-		}
+		UsbRecBuffer[UsbRecWrite++] = *Buf++;
+		UsbRecWrite &= UsbRecBufferSizeMask;
 	}
 
   return USBD_OK;
