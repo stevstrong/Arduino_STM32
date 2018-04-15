@@ -452,7 +452,7 @@ static uint8_t  usbd_cdc_Init (void  *pdev,
   pbuf[5] = DEVICE_SUBCLASS_CDC;
   
   /* Initialize the Interface physical components */
-  APP_FOPS.pIf_Init();
+  APP_FOPS.pIf_Init(pdev);
 
   /* Prepare Out endpoint to receive next packet */
   DCD_EP_PrepareRx(pdev,
@@ -716,42 +716,41 @@ static uint8_t  usbd_cdc_DataIn (void *pdev, uint8_t epnum)
   return USBD_OK;
 }
 
+void usbd_cdc_PrepareRx (void *pdev)
+{
+    DCD_EP_PrepareRx(pdev, CDC_OUT_EP, USB_Rx_Buffer, CDC_DATA_OUT_PACKET_SIZE);
+}
 
 /**
-  * @brief  usbd_audio_DataOut
+  * @brief  usbd_cdc_DataOut
   *         Data received on non-control Out endpoint
   * @param  pdev: device instance
   * @param  epnum: endpoint number
   * @retval status
   */
-static uint8_t  usbd_cdc_DataOut (void *pdev, uint8_t epnum)
+static uint8_t usbd_cdc_DataOut(void *pdev, uint8_t epnum)
 {      
-  uint16_t USB_Rx_Cnt;
-  
   /* Get the received data buffer and update the counter */
-  USB_Rx_Cnt = ((USB_OTG_CORE_HANDLE*)pdev)->dev.out_ep[epnum].xfer_count;
+  uint16_t USB_Rx_Cnt = ((USB_OTG_CORE_HANDLE*)pdev)->dev.out_ep[epnum].xfer_count;
   
   /* USB data will be immediately processed, this allow next USB traffic being 
      NAKed till the end of the application Xfer */
-  APP_FOPS.pIf_DataRx(USB_Rx_Buffer, USB_Rx_Cnt);
-  
-  /* Prepare Out endpoint to receive next packet */
-  DCD_EP_PrepareRx(pdev,
-                   CDC_OUT_EP,
-                   (uint8_t*)(USB_Rx_Buffer),
-                   CDC_DATA_OUT_PACKET_SIZE);
-
+  if ( APP_FOPS.pIf_DataRx(USB_Rx_Buffer, USB_Rx_Cnt)==USBD_OK )
+  {
+    /* Prepare Out endpoint to receive next packet */
+    DCD_EP_PrepareRx(pdev, CDC_OUT_EP, USB_Rx_Buffer, CDC_DATA_OUT_PACKET_SIZE);
+  }
   return USBD_OK;
 }
 
 /**
-  * @brief  usbd_audio_SOF
+  * @brief  usbd_cdc_SOF
   *         Start Of Frame event management
   * @param  pdev: instance
   * @param  epnum: endpoint number
   * @retval status
   */
-static uint8_t  usbd_cdc_SOF (void *pdev)
+static uint8_t  usbd_cdc_SOF(void *pdev)
 {      
   static uint32_t FrameCount = 0;
   
@@ -773,7 +772,7 @@ static uint8_t  usbd_cdc_SOF (void *pdev)
   * @param  pdev: instance
   * @retval None
   */
-static void Handle_USBAsynchXfer (void *pdev)
+static void Handle_USBAsynchXfer(void *pdev)
 {
   uint16_t USB_Tx_ptr;
   uint16_t USB_Tx_length;

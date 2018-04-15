@@ -36,6 +36,7 @@ void setupUSB (void)
 
 extern uint16_t VCP_DataTx (const uint8_t* Buf, uint32_t Len);
 extern uint8_t  VCPGetByte(void);
+extern uint8_t  VCPGetBytes(uint8_t * rxBuf, uint32_t len);
 
 uint32_t usbSendBytes(const uint8_t* sendBuf, uint32_t len)
 {
@@ -45,16 +46,7 @@ uint32_t usbSendBytes(const uint8_t* sendBuf, uint32_t len)
 
 uint32_t usbReceiveBytes(uint8_t* recvBuf, uint32_t len)
 {
-	uint32_t newBytes = usbBytesAvailable();
-	if (len > newBytes) {
-		len = newBytes;
-	}
-
-	for (uint32_t i=0; i<len; i++) {
-		recvBuf[i] = VCPGetByte();
-	}
-
-	return len;
+	return VCPGetBytes(recvBuf, len);
 }
 
 RESULT usbPowerOff(void)

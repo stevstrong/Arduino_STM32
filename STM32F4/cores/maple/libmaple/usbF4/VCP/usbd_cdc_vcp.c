@@ -59,6 +59,8 @@ volatile int UsbRecWrite = 0;
 volatile uint8_t VCP_DTRHIGH = 0;
 volatile uint8_t VCP_RTSHIGH = 0;
 uint8_t UsbTXBlock = 1;
+uint8_t rxDisabled = 1;
+USB_OTG_CORE_HANDLE * usbDevice = NULL;
 
 uint8_t VCPGetDTR(void) { return VCP_DTRHIGH; }
 uint8_t VCPGetRTS(void) { return VCP_RTSHIGH; }
@@ -68,25 +70,38 @@ uint32_t VCPBytesAvailable(void)
 	return (UsbRecWrite - UsbRecRead) & UsbRecBufferSizeMask;
 }
 
-int16_t VCPGetByte(void)
+uint32_t VCPGetBytes(uint8_t * rxBuf, uint32_t len)
 {
 	int usbRxRead = UsbRecRead; // take volatile
-	if(UsbRecWrite == usbRxRead) {
-		return -1;
-	} else {
-		uint8_t c = UsbRecBuffer[usbRxRead++];
-		usbRxRead &= UsbRecBufferSizeMask;
-		UsbRecRead = usbRxRead; // update volatile
-		return c;
+	uint32_t rx_unread = (UsbRecWrite - usbRxRead) & UsbRecBufferSizeMask;
+	if (rx_unread==0) {
+		return 0;
 	}
+	if (len>rx_unread) len = rx_unread;
+	
+	for (uint32_t i = 0; i<len; i++)
+	{
+		*rxBuf++ = UsbRecBuffer[usbRxRead++];
+		usbRxRead &= UsbRecBufferSizeMask;
+	}
+	UsbRecRead = usbRxRead; // update volatile
+	// check if the OUT endpoint has to be re-enabled
+	uint32_t free_rx_space = (usbRxRead-UsbRecWrite-1) & UsbRecBufferSizeMask;
+	if ( free_rx_space>=CDC_DATA_MAX_PACKET_SIZE && rxDisabled )
+	{
+		rxDisabled = 0;
+		extern void usbd_cdc_PrepareRx (void *pdev);
+		if (usbDevice) usbd_cdc_PrepareRx(usbDevice);
+	}
+	return len;
 }
 
 /* Private function prototypes -----------------------------------------------*/
-static uint16_t VCP_Init     (void);
-static uint16_t VCP_DeInit   (void);
-static uint16_t VCP_Ctrl     (uint32_t Cmd, uint8_t* Buf, uint32_t Len);
+static uint16_t VCP_Init  (void *pdev);
+static uint16_t VCP_DeInit(void);
+static uint16_t VCP_Ctrl  (uint32_t Cmd, uint8_t* Buf, uint32_t Len);
 uint16_t VCP_DataTx   (const uint8_t* Buf, uint32_t Len);
-static uint16_t VCP_DataRx   (uint8_t* Buf, uint32_t Len);
+static uint16_t VCP_DataRx(uint8_t* Buf, uint32_t Len);
 
 static uint16_t VCP_COMConfig(uint8_t Conf);
 
@@ -106,8 +121,10 @@ CDC_IF_Prop_TypeDef VCP_fops =
   * @param  None
   * @retval Result of the opeartion (USBD_OK in all cases)
   */
-static uint16_t VCP_Init(void)
+static uint16_t VCP_Init(void *pdev)
 {
+  usbDevice = pdev;
+  rxDisabled = 0;
   return USBD_OK;
 }
 
@@ -119,7 +136,8 @@ static uint16_t VCP_Init(void)
   */
 static uint16_t VCP_DeInit(void)
 {
-
+  usbDevice = NULL;
+  rxDisabled = 1;
   return USBD_OK;
 }
 
@@ -213,18 +231,21 @@ static uint16_t VCP_Ctrl (uint32_t Cmd, uint8_t* Buf, uint32_t Len)
   */
 uint16_t VCP_DataTx (const uint8_t* Buf, uint32_t Len)
 {
-	int ptrIn = APP_Rx_ptr_in;
+	int ptrIn = APP_Rx_ptr_in; // get volatile
 	while(Len-- > 0)
 	{
 		while ( ((ptrIn+1)&APP_RX_DATA_SIZE_MASK)==APP_Rx_ptr_out )
 		{
-			if( !UsbTXBlock || !VCP_DTRHIGH ) return USBD_BUSY;
+			if( !UsbTXBlock || !VCP_DTRHIGH )
+			{
+				APP_Rx_ptr_in = ptrIn; // store volatile
+				return USBD_BUSY;
+			}
 		}
-
 		APP_Rx_Buffer[ptrIn++] = *Buf++;
 		ptrIn &= APP_RX_DATA_SIZE_MASK; // To avoid buffer overflow
-		APP_Rx_ptr_in = ptrIn;
 	}
+	APP_Rx_ptr_in = ptrIn; // store volatile
 	return USBD_OK;
 }
 
@@ -280,11 +301,11 @@ void systemHardReset(void) {
   * @param  Len: Number of data received (in bytes)
   * @retval Result of the opeartion: USBD_OK if all operations are OK else VCP_FAIL
   */
-static uint16_t VCP_DataRx (uint8_t* Buf, uint32_t Len)
+static uint16_t VCP_DataRx(uint8_t* Buf, uint32_t Len)
 {
-	if(!VCP_DTRHIGH) return USBD_BUSY;
+	if (!VCP_DTRHIGH) return USBD_BUSY;
 
-	if(Len >= 4) {
+	if (Len >= 4) {
 		if(Buf[0] == '1' && Buf[1] == 'E' && Buf[2] == 'A' && Buf[3] == 'F') {
 			Len = 0;
 			*(int*)0x20000BFC = 0x4AFC6BB2;
@@ -292,12 +313,20 @@ static uint16_t VCP_DataRx (uint8_t* Buf, uint32_t Len)
 		}
 	}
 
+	uint32_t rxWr = UsbRecWrite; // get volatile
 	while(Len-- > 0) {
-		UsbRecBuffer[UsbRecWrite++] = *Buf++;
-		UsbRecWrite &= UsbRecBufferSizeMask;
+		UsbRecBuffer[rxWr++] = *Buf++;
+		rxWr &= UsbRecBufferSizeMask;
 	}
-
-  return USBD_OK;
+	UsbRecWrite = rxWr; // store volatile
+	// check for enough space in Rx buffer for the next Rx packet
+	uint32_t free_rx_space = (UsbRecRead-rxWr-1) & UsbRecBufferSizeMask;
+	if ( free_rx_space<CDC_DATA_MAX_PACKET_SIZE )
+	{
+		rxDisabled = 1; // disable OUT endpoint
+		return USBD_BUSY;
+	}
+	return USBD_OK;
 }
 
 /**
@@ -404,14 +433,5 @@ static uint16_t VCP_COMConfig(uint8_t Conf)
   return USBD_OK;
 }
 
-/**
-  * @brief  EVAL_COM_IRQHandler
-  *
-  * @param  None.
-  * @retval None.
-  */
-void EVAL_COM_IRQHandler(void)
-{
-}
 
 /******************* (C) COPYRIGHT 2011 STMicroelectronics *****END OF FILE****/
