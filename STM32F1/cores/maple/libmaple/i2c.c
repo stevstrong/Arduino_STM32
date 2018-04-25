@@ -152,8 +152,8 @@ void i2c_bus_reset(const i2c_dev *dev) {
  * @param dev Device to initialize.
  */
 void i2c_init(i2c_dev *dev) {
-    rcc_reset_dev(dev->clk_id);
     rcc_clk_enable(dev->clk_id);
+    rcc_reset_dev(dev->clk_id);
 }
 
 /* Hack for deprecated bit of STM32F1 functionality */
@@ -176,7 +176,7 @@ void i2c_init(i2c_dev *dev) {
  */
 void i2c_master_enable(i2c_dev *dev, uint32 flags) {
     /* PE must be disabled to configure the device */
-    ASSERT(!(dev->regs->CR1 & I2C_CR1_PE));
+    i2c_disable(dev);
 
     /* Ugh */
     _i2c_handle_remap(dev, flags);
@@ -196,7 +196,6 @@ void i2c_master_enable(i2c_dev *dev, uint32 flags) {
     /* Enable event and buffer interrupts */
     nvic_irq_enable(dev->ev_nvic_line);
     nvic_irq_enable(dev->er_nvic_line);
-    i2c_enable_irq(dev, I2C_IRQ_EVENT | I2C_IRQ_BUFFER | I2C_IRQ_ERROR);
 
     /* Make it go! */
     i2c_peripheral_enable(dev);
@@ -233,7 +232,7 @@ int32 i2c_master_xfer(i2c_dev *dev,
     dev->timestamp = systick_uptime();
     dev->state = I2C_STATE_BUSY;
 
-    i2c_enable_irq(dev, I2C_IRQ_EVENT);
+    i2c_enable_irq(dev, I2C_IRQ_EVENT | I2C_IRQ_BUFFER | I2C_IRQ_ERROR);
     i2c_start_condition(dev);
     
     rc = wait_for_state_change(dev, I2C_STATE_XFER_DONE, timeout);
