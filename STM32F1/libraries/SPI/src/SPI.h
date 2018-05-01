@@ -99,14 +99,28 @@
 #define DATA_SIZE_8BIT SPI_CR1_DFF_8_BIT
 #define DATA_SIZE_16BIT SPI_CR1_DFF_16_BIT
 
+typedef void (*u32FuncPtr)(uint32_t);
+
 typedef enum {
-		SPI_STATE_IDLE,
-		SPI_STATE_READY,
-		SPI_STATE_RECEIVE,
-		SPI_STATE_TRANSMIT,
-        SPI_STATE_TRANSFER
-	} spi_mode_t;
-class SPISettings {
+	SPI_STATE_IDLE,
+	SPI_STATE_READY,
+	SPI_STATE_RECEIVE,
+	SPI_STATE_TRANSMIT,
+	SPI_STATE_TRANSFER
+} spi_mode_t;
+
+class SPISettings
+{
+private:
+	inline void init_AlwaysInline(uint32_t clock, BitOrder bitOrder, uint8_t dataMode, uint32_t dataSize) {
+		this->clock = clock;
+		this->bitOrder = bitOrder;
+		this->dataMode = dataMode;
+		this->dataSize = dataSize;
+	}
+	void init_MightInline(uint32_t clock, BitOrder bitOrder, uint8_t dataMode, uint32_t dataSize) {
+		init_AlwaysInline(clock, bitOrder, dataMode, dataSize);
+	}
 public:
 	SPISettings(uint32_t clock, BitOrder bitOrder, uint8_t dataMode) {
 		if (__builtin_constant_p(clock)) {
@@ -131,41 +145,24 @@ public:
 	}
 	SPISettings() { init_AlwaysInline(4000000, MSBFIRST, SPI_MODE0, DATA_SIZE_8BIT); }
 private:
-	void init_MightInline(uint32_t clock, BitOrder bitOrder, uint8_t dataMode, uint32_t dataSize) {
-		init_AlwaysInline(clock, bitOrder, dataMode, dataSize);
-	}
-	void init_AlwaysInline(uint32_t clock, BitOrder bitOrder, uint8_t dataMode, uint32_t dataSize) __attribute__((__always_inline__)) {
-		this->clock = clock;
-		this->bitOrder = bitOrder;
-		this->dataMode = dataMode;
-		this->dataSize = dataSize;
-	}
 	uint32_t clock;
-  uint32_t dataSize;
-  uint32_t clockDivider;
+	uint32_t dataSize;
+	uint32_t clockDivider;
 	BitOrder bitOrder;
 	uint8_t dataMode;
-  uint8_t _SSPin;
+	uint8_t _SSPin;
 	volatile spi_mode_t state;
-	spi_dev *spi_d;
+	spi_dev * spi_d;
+	dma_dev * spiDmaDev;
 	dma_channel spiRxDmaChannel, spiTxDmaChannel;
-	dma_dev* spiDmaDev;
-  void (*receiveCallback)(void) = NULL;
-  void (*transmitCallback)(void) = NULL;
-	
+	voidFuncPtr dmaIsr;
+	u32FuncPtr rxCallback = NULL;
+	u32FuncPtr txCallback = NULL;
+
 	friend class SPIClass;
 };
 
-
-/*
-    Should move this to within the class once tested out, just for tidyness
-*/
-static uint8_t ff = 0XFF;
-static void (*_spi1_this);
-static void (*_spi2_this);
-#if BOARD_NR_SPI >= 3
-static void (*_spi3_this);
-#endif
+extern SPISettings _settings[BOARD_NR_SPI];
 
 /**
  * @brief Wirish SPI interface.
@@ -236,8 +233,8 @@ public:
 	* onTransmit used to set the callback in case of dmaSend (tx only). That function
 	* will NOT be called in case of TX/RX
     */
-    void onReceive(void(*)(void));
-    void onTransmit(void(*)(void));
+    void onReceive(u32FuncPtr callback) { _currentSetting->rxCallback = callback; }
+    void onTransmit(u32FuncPtr callback) { _currentSetting->txCallback = callback; }
 
     /*
      * I/O
@@ -301,9 +298,11 @@ public:
      * @param receiveBuf buffer Bytes to save received data. 
      * @param length Number of bytes in buffer to transmit.
 	 */
-    uint8 dmaTransfer(const void * transmitBuf, void * receiveBuf, uint16 length);
-    void dmaTransferSet(const void *transmitBuf, void *receiveBuf);
-    uint8 dmaTransferRepeat(uint16 length);
+    void dmaTransfer(const void * transmitBuf, void * receiveBuf, uint16 length, uint16 flags = 0);
+    void dmaTransfer(const uint16_t tx_data, void * receiveBuf, uint16 length, uint16 flags = 0);
+    void dmaTransferSet(const void * transmitBuf, void * receiveBuf, uint16 flags);
+    void dmaTransferRepeat(uint16 length, uint16 async = 0);
+	uint8_t dmaTransferReady() { return (_currentSetting->state == SPI_STATE_READY) ? 1 : 0; }
 
 	/**
      * @brief Sets up a DMA Transmit for SPI 8 or 16 bit transfer mode.
@@ -315,11 +314,13 @@ public:
      * @param length Number of bytes in buffer to transmit.
 	 * @param minc Set to use Memory Increment mode, clear to use Circular mode.
      */
-    uint8 dmaSend(const void * transmitBuf, uint16 length, bool minc = 1);
-    void dmaSendSet(const void * transmitBuf, bool minc);
-    uint8 dmaSendRepeat(uint16 length);
+    void dmaSend(const void * transmitBuf, uint16 length, uint16 flags = 0);
+    void dmaSend(const uint16_t tx_data, uint16 length, uint16 flags = 0);
+    void dmaSendSet(const void * transmitBuf, uint16 flags);
+    void dmaSendRepeat(uint16 length, uint16 async = 0);
+	uint8_t dmaSendReady() { return (_currentSetting->state == SPI_STATE_READY) ? 1 : 0; }
 
-    uint8 dmaSendAsync(const void * transmitBuf, uint16 length, bool minc = 1);
+    #define dmaSendAsync(transmit, length, minc) ( dmaSend(transmit, length, (minc&BIT0)) )
     /*
      * Pin accessors
      */
@@ -389,40 +390,16 @@ public:
      */
     uint8 send(uint8 *data, uint32 length);
 
-    /**
-     * @brief Deprecated.
-     *
-     * Use HardwareSPI::read() instead.
-     *
-     * @see HardwareSPI::read()
-     */
-    uint8 recv(void);
+	void EventCallback(uint16_t spi_num);
 
 private:
 
-	SPISettings _settings[BOARD_NR_SPI];
 	SPISettings *_currentSetting;
 
 	void updateSettings(void);
-    /*
-	* Functions added for DMA transfers with Callback. 
-	* Experimental.
-	*/
 
-    void EventCallback(void);
+	void dmaWaitCompletion(void);
 
-    static void _spi1EventCallback(void);
-    static void _spi2EventCallback(void);
-    #if BOARD_NR_SPI >= 3
-    static void _spi3EventCallback(void);
-    #endif
-	/*
-	spi_dev *spi_d;
-	uint8_t _SSPin;
-	uint32_t clockDivider;
-	uint8_t dataMode;
-	BitOrder bitOrder;
-	*/
 };
 
 
