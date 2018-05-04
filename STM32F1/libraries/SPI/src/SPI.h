@@ -98,6 +98,7 @@
 
 #define DATA_SIZE_8BIT SPI_CR1_DFF_8_BIT
 #define DATA_SIZE_16BIT SPI_CR1_DFF_16_BIT
+#define DMA_ASYNC (BIT0)
 
 typedef void (*u32FuncPtr)(uint32_t);
 
@@ -151,15 +152,17 @@ private:
 	BitOrder bitOrder;
 	uint8_t dataMode;
 	uint8_t _SSPin;
-	volatile spi_mode_t state;
+public:
 	spi_dev * spi_d;
 	dma_dev * spiDmaDev;
-	dma_channel spiRxDmaChannel, spiTxDmaChannel;
 	voidFuncPtr dmaIsr;
-	u32FuncPtr rxCallback = NULL;
-	u32FuncPtr txCallback = NULL;
+	u32FuncPtr rxCallback;
+	u32FuncPtr txCallback;
+	dma_channel spiRxDmaChannel, spiTxDmaChannel;
+	volatile spi_mode_t state;
 
-	friend class SPIClass;
+private:
+    friend class SPIClass;
 };
 
 extern SPISettings _settings[BOARD_NR_SPI];
@@ -261,14 +264,14 @@ public:
      * @brief Transmit one byte/word.
      * @param data to transmit.
      */
-    void write(uint16 data);
-    void write16(uint16 data); // write 2 bytes in 8 bit mode (DFF=0)
+    void write(const uint16 data);
+    void write16(const uint16 data); // write 2 bytes in 8 bit mode (DFF=0)
 
     /**
      * @brief Transmit one byte/word a specified number of times.
      * @param data to transmit.
      */
-    void write(uint16 data, uint32 n);	
+    void write(const uint16 data, uint32 n);	
 
     /**
      * @brief Transmit multiple bytes/words.
@@ -286,7 +289,11 @@ public:
      * @return Next unread byte.
      */
     uint8 transfer(uint8 data) const;
-    uint16_t transfer16(uint16_t data) const;
+	uint16_t transfer16(uint16_t data) const;
+    void transfer(const uint8_t * tx_buf, uint8_t * rx_buf, uint32 len);
+    void transfer(const uint8_t tx_data, uint8_t * rx_buf, uint32 len);
+    void transfer(const uint16_t * tx_buf, uint16_t * rx_buf, uint32 len);
+    void transfer(const uint16_t tx_data, uint16_t * rx_buf, uint32 len);
 
 	/**
      * @brief Sets up a DMA Transfer for "length" bytes.
