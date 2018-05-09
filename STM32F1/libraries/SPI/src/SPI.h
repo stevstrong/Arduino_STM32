@@ -145,23 +145,25 @@ public:
 		}
 	}
 	SPISettings() { init_AlwaysInline(4000000, MSBFIRST, SPI_MODE0, DATA_SIZE_8BIT); }
+
 private:
 	uint32_t clock;
 	uint32_t dataSize;
 	uint32_t clockDivider;
-	BitOrder bitOrder;
-	uint8_t dataMode;
-	uint8_t _SSPin;
 public:
 	spi_dev * spi_d;
 	dma_dev * spiDmaDev;
 	voidFuncPtr dmaIsr;
-	u32FuncPtr rxCallback;
-	u32FuncPtr txCallback;
+	u32FuncPtr trxCallback;
 	dma_channel spiRxDmaChannel, spiTxDmaChannel;
 	volatile spi_mode_t state;
-
 private:
+	const void * dmaTxBuffer;
+	uint16_t dmaTrxLength;
+	uint8_t  dmaTrxAsync;
+	BitOrder bitOrder;
+	uint8_t dataMode;
+
     friend class SPIClass;
 };
 
@@ -210,8 +212,8 @@ public:
      */
     void end(void);
 
-	void beginTransaction(SPISettings settings) { beginTransaction(BOARD_SPI_DEFAULT_SS, settings); }
 	void beginTransaction(uint8_t pin, SPISettings settings);
+	void beginTransaction(SPISettings settings) { beginTransaction(BOARD_SPI_DEFAULT_SS, settings); }
 	void endTransaction(void);
 
 	void beginTransactionSlave(SPISettings settings);
@@ -236,8 +238,9 @@ public:
 	* onTransmit used to set the callback in case of dmaSend (tx only). That function
 	* will NOT be called in case of TX/RX
     */
-    void onReceive(u32FuncPtr callback) { _currentSetting->rxCallback = callback; }
-    void onTransmit(u32FuncPtr callback) { _currentSetting->txCallback = callback; }
+    void onTransferEnd(u32FuncPtr callback) { _currentSetting->trxCallback = callback; }
+    inline void onTransmit(u32FuncPtr callback) { onTransferEnd(callback); }
+    inline void onReceive(u32FuncPtr callback) { onTransferEnd(callback); }
 
     /*
      * I/O
@@ -305,11 +308,19 @@ public:
      * @param receiveBuf buffer Bytes to save received data. 
      * @param length Number of bytes in buffer to transmit.
 	 */
+private:
+    void dmaTransferSet(void * receiveBuf, uint16 flags);
+    void dmaTransferRepeat();
+public:
+    void dmaTransferInit(const void * transmitBuf, void * receiveBuf, uint16 length, uint16 flags = 0);
+    void dmaTransferInit(const uint16_t tx_data, void * receiveBuf, uint16 length, uint16 flags = 0);
     void dmaTransfer(const void * transmitBuf, void * receiveBuf, uint16 length, uint16 flags = 0);
     void dmaTransfer(const uint16_t tx_data, void * receiveBuf, uint16 length, uint16 flags = 0);
-    void dmaTransferSet(const void * transmitBuf, void * receiveBuf, uint16 flags);
-    void dmaTransferRepeat(uint16 length, uint16 async = 0);
+    void dmaTransfer(void) { dmaTransferRepeat(); }
 	uint8_t dmaTransferReady() { return (_currentSetting->state == SPI_STATE_READY) ? 1 : 0; }
+	uint16_t dmaTransferRemaining(void) {
+		return dma_get_count(_currentSetting->spiDmaDev, _currentSetting->spiRxDmaChannel);
+	}
 
 	/**
      * @brief Sets up a DMA Transmit for SPI 8 or 16 bit transfer mode.
@@ -321,11 +332,21 @@ public:
      * @param length Number of bytes in buffer to transmit.
 	 * @param minc Set to use Memory Increment mode, clear to use Circular mode.
      */
+private:
+    void dmaSendSet(uint16 flags);
+    void dmaSendRepeat();
+public:
+    void dmaSendInit(const void * transmitBuf, uint16 length, uint16 flags = 0);
+    void dmaSendInit(const uint16_t tx_dat, uint16 length, uint16 flags = 0);
     void dmaSend(const void * transmitBuf, uint16 length, uint16 flags = 0);
     void dmaSend(const uint16_t tx_data, uint16 length, uint16 flags = 0);
-    void dmaSendSet(const void * transmitBuf, uint16 flags);
-    void dmaSendRepeat(uint16 length, uint16 async = 0);
+    void dmaSend(const void * transmitBuf);
+    void dmaSend(const uint16_t tx_data);
+    void dmaSend(void) { dmaSendRepeat(); }
 	uint8_t dmaSendReady() { return (_currentSetting->state == SPI_STATE_READY) ? 1 : 0; }
+	uint16_t dmaSendRemaining(void) {
+		return dma_get_count(_currentSetting->spiDmaDev, _currentSetting->spiTxDmaChannel);
+	}
 
     #define dmaSendAsync(transmit, length, minc) ( dmaSend(transmit, length, (minc&BIT0)) )
     /*

@@ -162,7 +162,6 @@ static spi_baud_rate determine_baud_rate(spi_dev *dev, uint32_t freq) {
 
 //-----------------------------------------------------------------------------
 static uint16_t ff = 0XFFFF;
-//static void (*_spi_this) = NULL;
 
 SPISettings _settings[BOARD_NR_SPI];
 
@@ -171,67 +170,49 @@ SPISettings _settings[BOARD_NR_SPI];
 //  Also see if we need to check whether callbacks are set or not,
 //  may be better to be checked during the initial setup and only set the callback to EventCallback if they are set.
 //-----------------------------------------------------------------------------
-void EventCallback(uint32 spi_num)
+void spiEventCallback(uint32 spi_num)
 {
     SPISettings * crtSetting = &_settings[spi_num];
+	dma_channel dmaChannel = (crtSetting->state==SPI_STATE_TRANSMIT) ? crtSetting->spiTxDmaChannel :
+							 ( (crtSetting->state==SPI_STATE_RECEIVE) ? crtSetting->spiRxDmaChannel : (dma_channel)-1);
 
-    if (crtSetting->state==SPI_STATE_TRANSMIT)
-    {
-		uint32_t ccr = dma_channel_regs(crtSetting->spiDmaDev, crtSetting->spiTxDmaChannel)->CCR;
-        // check for half transfer IRQ
-        if ( (ccr&DMA_CCR_HTIE) && (dma_get_isr_bits(crtSetting->spiDmaDev, crtSetting->spiTxDmaChannel)&DMA_ISR_HTIF) )
-        {
-            if (crtSetting->txCallback)
-                crtSetting->txCallback(0); // half transfer
-            return;
-        }
-        // transfer complete. stop DMA if not in circular mode
-        if (!(ccr&DMA_CCR_CIRC))
-        {
-            while (spi_is_tx_empty(crtSetting->spi_d) == 0); // "5. Wait until TXE=1 ..."
-            while (spi_is_busy(crtSetting->spi_d) != 0); // "... and then wait until BSY=0"
-            //while (spi_is_rx_nonempty(crtSetting->spi_d));
-            spi_tx_dma_disable(crtSetting->spi_d);
-            //dma_disable(crtSetting->spiDmaDev, crtSetting->spiTxDmaChannel);
-            crtSetting->state = SPI_STATE_READY;
-        }
-        if (crtSetting->txCallback)
-            crtSetting->txCallback(1); // transfer complete
-    }
-    else if (crtSetting->state==SPI_STATE_RECEIVE)
-    {
-		uint32_t ccr = dma_channel_regs(crtSetting->spiDmaDev, crtSetting->spiRxDmaChannel)->CCR;
-        // check for half transfer IRQ
-        if ( (ccr&DMA_CCR_HTIE) && (dma_get_isr_bits(crtSetting->spiDmaDev, crtSetting->spiRxDmaChannel)&DMA_ISR_HTIF) )
-        {
-            if (crtSetting->rxCallback)
-                crtSetting->rxCallback(0); // half transfer
-            return;
-        }
-        // transfer complete. stop DMA if not in circular mode
-        if (!(ccr&DMA_CCR_CIRC))
-        {
-            while (spi_is_tx_empty(crtSetting->spi_d) == 0); // "5. Wait until TXE=1 ..."
-            while (spi_is_busy(crtSetting->spi_d) != 0); // "... and then wait until BSY=0"
-            //while (spi_is_rx_nonempty(crtSetting->spi_d));
-            spi_tx_dma_disable(crtSetting->spi_d);
-            spi_rx_dma_disable(crtSetting->spi_d);
-            //dma_disable(crtSetting->spiDmaDev, crtSetting->spiTxDmaChannel);
-            //dma_disable(crtSetting->spiDmaDev, crtSetting->spiRxDmaChannel);
-            crtSetting->state = SPI_STATE_READY;
-        }
-        if (crtSetting->rxCallback)
-            crtSetting->rxCallback(1); // transfer complete
-    }
+    if ( dmaChannel==(dma_channel)-1 )
+	{
+		PRINTF("SPI event: wrong state="); PRINTF(crtSetting->state);
+		return;
+	}
+
+	uint32_t ccr = dma_channel_regs(crtSetting->spiDmaDev, dmaChannel)->CCR;
+	// check for half transfer IRQ
+	if ( (ccr&DMA_CCR_HTIE) && (dma_get_isr_bits(crtSetting->spiDmaDev, dmaChannel)&DMA_ISR_HTIF) )
+	{
+		if (crtSetting->trxCallback)
+			crtSetting->trxCallback(0); // half transfer
+		return;
+	}
+	// transfer complete. stop the DMA if not in circular mode
+	if (!(ccr&DMA_CCR_CIRC))
+	{
+		while (spi_is_tx_empty(crtSetting->spi_d) == 0); // "5. Wait until TXE=1 ..."
+		while (spi_is_busy(crtSetting->spi_d) != 0); // "... and then wait until BSY=0"
+		//while (spi_is_rx_nonempty(crtSetting->spi_d));
+		spi_tx_dma_disable(crtSetting->spi_d);
+		spi_rx_dma_disable(crtSetting->spi_d);
+		//dma_disable(crtSetting->spiDmaDev, crtSetting->spiRxDmaChannel);
+		//dma_disable(crtSetting->spiDmaDev, crtSetting->spiTxDmaChannel);
+		crtSetting->state = SPI_STATE_READY;
+	}
+    if (crtSetting->trxCallback)
+        crtSetting->trxCallback(1); // transfer complete
 }
 //-----------------------------------------------------------------------------
 //  DMA call back functions, one per port.
 //-----------------------------------------------------------------------------
-void _spi1EventCallback(void) { EventCallback(0); }
+void _spi1EventCallback(void) { spiEventCallback(0); }
 
-void _spi2EventCallback(void) { EventCallback(1); }
+void _spi2EventCallback(void) { spiEventCallback(1); }
 
-void _spi3EventCallback(void) { EventCallback(2); }
+void _spi3EventCallback(void) { spiEventCallback(2); }
 
 //-----------------------------------------------------------------------------
 //  Constructor
@@ -645,7 +626,7 @@ void SPIClass::dmaWaitCompletion(void)
     PRINTF("-dWC>");
 }
 //-----------------------------------------------------------------------------
-void SPIClass::dmaTransferSet(const void *transmitBuf, void *receiveBuf, uint16 flags)
+void SPIClass::dmaTransferSet(void *receiveBuf, uint16 flags)
 {
     PRINTF("<dTS-");
     dmaWaitCompletion();
@@ -655,37 +636,37 @@ void SPIClass::dmaTransferSet(const void *transmitBuf, void *receiveBuf, uint16 
     dma_setup_transfer(_currentSetting->spiDmaDev, _currentSetting->spiRxDmaChannel,
                        &_currentSetting->spi_d->regs->DR, dma_bit_size,
                        receiveBuf, dma_bit_size,
-                       flags | (DMA_TRNS_CMPLT));
+                       (flags | DMA_MINC_MODE|DMA_TRNS_CMPLT));
     dma_set_priority(_currentSetting->spiDmaDev, _currentSetting->spiRxDmaChannel, DMA_PRIORITY_VERY_HIGH);
     dma_attach_interrupt(_currentSetting->spiDmaDev, _currentSetting->spiRxDmaChannel, _currentSetting->dmaIsr);
     // TX
     dma_setup_transfer(_currentSetting->spiDmaDev, _currentSetting->spiTxDmaChannel,
                        &_currentSetting->spi_d->regs->DR, dma_bit_size,
-                       (volatile void*)transmitBuf, dma_bit_size,
-                       (flags&(DMA_CIRC_MODE|DMA_MINC_MODE)) | DMA_FROM_MEM);
+                       (volatile void*)&ff, dma_bit_size,
+                       (flags | DMA_FROM_MEM));
     dma_set_priority(_currentSetting->spiDmaDev, _currentSetting->spiTxDmaChannel, DMA_PRIORITY_LOW);
     PRINTF("-dTS>");
 }
 //-----------------------------------------------------------------------------
-void SPIClass::dmaTransferRepeat(uint16 length, uint16 async)
+void SPIClass::dmaTransferRepeat()
 {
-    if (length == 0) return;
     PRINTF("<dTR-");
     dmaWaitCompletion();
     _currentSetting->state = SPI_STATE_RECEIVE;
     // RX
-    dma_set_num_transfers(_currentSetting->spiDmaDev, _currentSetting->spiRxDmaChannel, length);
+    dma_set_num_transfers(_currentSetting->spiDmaDev, _currentSetting->spiRxDmaChannel, _currentSetting->dmaTrxLength);
     dma_clear_isr_bits(_currentSetting->spiDmaDev, _currentSetting->spiRxDmaChannel);
     dma_enable(_currentSetting->spiDmaDev, _currentSetting->spiRxDmaChannel);
     // TX
-    dma_set_num_transfers(_currentSetting->spiDmaDev, _currentSetting->spiTxDmaChannel, length);
+	dma_set_mem_addr(_currentSetting->spiDmaDev, _currentSetting->spiTxDmaChannel, (__IO void*)_currentSetting->dmaTxBuffer);
+    dma_set_num_transfers(_currentSetting->spiDmaDev, _currentSetting->spiTxDmaChannel, _currentSetting->dmaTrxLength);
     dma_clear_isr_bits(_currentSetting->spiDmaDev, _currentSetting->spiTxDmaChannel);
     dma_enable(_currentSetting->spiDmaDev, _currentSetting->spiTxDmaChannel);
     // enable SPI DMA
     spi_rx_reg(_currentSetting->spi_d); // pre-empty Rx pipe
     spi_rx_dma_enable(_currentSetting->spi_d);
     spi_tx_dma_enable(_currentSetting->spi_d);
-    if (!async)
+    if (!_currentSetting->dmaTrxAsync)
         dmaWaitCompletion();
     PRINTF("-dTR>");
 }
@@ -700,18 +681,49 @@ void SPIClass::dmaTransferRepeat(uint16 length, uint16 async)
 void SPIClass::dmaTransfer(const void *transmitBuf, void *receiveBuf, uint16 length, uint16 flags)
 {
     PRINTF("<dT-");
-    dmaTransferSet(transmitBuf, receiveBuf, (flags&(~DMA_ASYNC)) | DMA_MINC_MODE);
-    dmaTransferRepeat(length, (flags&DMA_ASYNC));
-    PRINTF("-dT>");
+    dmaWaitCompletion();
+    _currentSetting->dmaTxBuffer = transmitBuf;
+    _currentSetting->dmaTrxLength = length;
+    _currentSetting->dmaTrxAsync = (flags&DMA_ASYNC);
+    dmaTransferSet(receiveBuf, (flags&(DMA_CIRC_MODE|DMA_HALF_TRNS)) | DMA_MINC_MODE);
+    dmaTransferRepeat();
+    PRINTF("-dT>\n");
 }
 //-----------------------------------------------------------------------------
 void SPIClass::dmaTransfer(const uint16_t tx_data, void *receiveBuf, uint16 length, uint16 flags)
 {
     PRINTF("<dT-");
+    dmaWaitCompletion();
 	ff = tx_data;
-    dmaTransferSet(&ff, receiveBuf, (flags&(~DMA_ASYNC)));
-    dmaTransferRepeat(length, (flags&DMA_ASYNC));
-    PRINTF("-dT>");
+    _currentSetting->dmaTxBuffer = &ff;
+    _currentSetting->dmaTrxLength = length;
+    _currentSetting->dmaTrxAsync = (flags&DMA_ASYNC);
+    dmaTransferSet(receiveBuf, (flags&(DMA_CIRC_MODE|DMA_HALF_TRNS)));
+    dmaTransferRepeat();
+    PRINTF("-dT>\n");
+}
+//-----------------------------------------------------------------------------
+void SPIClass::dmaTransferInit(const void *transmitBuf, void *receiveBuf, uint16 length, uint16 flags)
+{
+    PRINTF("<dTI-");
+    dmaWaitCompletion();
+    _currentSetting->dmaTxBuffer = transmitBuf;
+    _currentSetting->dmaTrxLength = length;
+    _currentSetting->dmaTrxAsync = (flags&DMA_ASYNC);
+    dmaTransferSet(receiveBuf, (flags&(DMA_CIRC_MODE|DMA_HALF_TRNS)) | DMA_MINC_MODE);
+    PRINTF("-dTI>\n");
+}
+//-----------------------------------------------------------------------------
+void SPIClass::dmaTransferInit(const uint16_t tx_data, void *receiveBuf, uint16 length, uint16 flags)
+{
+    PRINTF("<dTI-");
+    dmaWaitCompletion();
+	ff = tx_data;
+    _currentSetting->dmaTxBuffer = &ff;
+    _currentSetting->dmaTrxLength = length;
+    _currentSetting->dmaTrxAsync = (flags&DMA_ASYNC);
+    dmaTransferSet(receiveBuf, (flags&(DMA_CIRC_MODE|DMA_HALF_TRNS)));
+    PRINTF("-dTI>\n");
 }
 
 //-----------------------------------------------------------------------------
@@ -721,43 +733,98 @@ void SPIClass::dmaTransfer(const uint16_t tx_data, void *receiveBuf, uint16 leng
 //  Still in progress.
 //  2016 - stevstrong - reworked to automatically detect bit size from SPI setting
 //-----------------------------------------------------------------------------
-void SPIClass::dmaSendSet(const void * transmitBuf, uint16 flags)
+void SPIClass::dmaSendSet(uint16 flags)
 {
+    PRINTF("<dSS-");
     dmaWaitCompletion();
     dma_init(_currentSetting->spiDmaDev);
     dma_xfer_size dma_bit_size = (_currentSetting->dataSize==DATA_SIZE_16BIT) ? DMA_SIZE_16BITS : DMA_SIZE_8BITS;
     dma_setup_transfer(_currentSetting->spiDmaDev, _currentSetting->spiTxDmaChannel,
                        &_currentSetting->spi_d->regs->DR, dma_bit_size,
-                       (volatile void*)transmitBuf, dma_bit_size,
+                       (volatile void*)&ff, dma_bit_size,
                        (flags | (DMA_FROM_MEM | DMA_TRNS_CMPLT)));
     dma_set_priority(_currentSetting->spiDmaDev, _currentSetting->spiTxDmaChannel, DMA_PRIORITY_LOW);
+    dma_attach_interrupt(_currentSetting->spiDmaDev, _currentSetting->spiTxDmaChannel, _currentSetting->dmaIsr);
+    PRINTF("-dSS>");
 }
 //-----------------------------------------------------------------------------
-void SPIClass::dmaSendRepeat(uint16 length, uint16 async)
+void SPIClass::dmaSendRepeat(void)
 {
-    if (length == 0) return;
+    PRINTF("<dSR-");
     dmaWaitCompletion();
     _currentSetting->state = SPI_STATE_TRANSMIT;
-    dma_set_num_transfers(_currentSetting->spiDmaDev, _currentSetting->spiTxDmaChannel, length);
+	dma_set_mem_addr(_currentSetting->spiDmaDev, _currentSetting->spiTxDmaChannel, (__IO void*)_currentSetting->dmaTxBuffer);
+    dma_set_num_transfers(_currentSetting->spiDmaDev, _currentSetting->spiTxDmaChannel, _currentSetting->dmaTrxLength);
     dma_clear_isr_bits(_currentSetting->spiDmaDev, _currentSetting->spiTxDmaChannel);
-    dma_attach_interrupt(_currentSetting->spiDmaDev, _currentSetting->spiTxDmaChannel, _currentSetting->dmaIsr);
     dma_enable(_currentSetting->spiDmaDev, _currentSetting->spiTxDmaChannel);
     spi_tx_dma_enable(_currentSetting->spi_d);
-    if (!async) // check async flag
+    if (!_currentSetting->dmaTrxAsync) // check async flag
         dmaWaitCompletion();
+    PRINTF("-dSR>");
 }
 //-----------------------------------------------------------------------------
 void SPIClass::dmaSend(const void * transmitBuf, uint16 length, uint16 flags)
 {
-    dmaSendSet(transmitBuf, (flags&(~DMA_ASYNC)) | DMA_MINC_MODE);
-    dmaSendRepeat(length, (flags&DMA_ASYNC));
+    PRINTF("<dS-");
+    dmaWaitCompletion();
+    _currentSetting->dmaTxBuffer = transmitBuf;
+    _currentSetting->dmaTrxLength = length;
+    _currentSetting->dmaTrxAsync = (flags&DMA_ASYNC);
+    dmaSendSet((flags&(DMA_CIRC_MODE|DMA_HALF_TRNS)) | DMA_MINC_MODE);
+    dmaSendRepeat();
+    PRINTF("-dS>\n");
 }
 //-----------------------------------------------------------------------------
 void SPIClass::dmaSend(const uint16_t tx_data, uint16 length, uint16 flags)
 {
+    PRINTF("<dS-");
+    dmaWaitCompletion();
 	ff = tx_data;
-    dmaSendSet(&ff, (flags&(~DMA_ASYNC)));
-    dmaSendRepeat(length, (flags&DMA_ASYNC));
+    _currentSetting->dmaTxBuffer = &ff;
+    _currentSetting->dmaTrxLength = length;
+    _currentSetting->dmaTrxAsync = (flags&DMA_ASYNC);
+    dmaSendSet(flags&(DMA_CIRC_MODE|DMA_HALF_TRNS));
+    dmaSendRepeat();
+    PRINTF("-dS>\n");
+}
+//-----------------------------------------------------------------------------
+void SPIClass::dmaSend(const void * transmitBuf)
+{
+    PRINTF("<dS-");
+    dmaWaitCompletion();
+    _currentSetting->dmaTxBuffer = transmitBuf;
+    dmaSendRepeat();
+    PRINTF("-dS>\n");
+}
+//-----------------------------------------------------------------------------
+void SPIClass::dmaSend(const uint16_t tx_data)
+{
+    PRINTF("<dS-");
+    dmaWaitCompletion();
+	ff = tx_data;
+    dmaSendRepeat();
+    PRINTF("-dS>\n");
+}
+//-----------------------------------------------------------------------------
+void SPIClass::dmaSendInit(const void * txBuf, uint16 length, uint16 flags)
+{
+    PRINTF("<dSI-");
+    _currentSetting->dmaTxBuffer = txBuf;
+    _currentSetting->dmaTrxLength = length;
+    _currentSetting->dmaTrxAsync = (flags&DMA_ASYNC);
+    dmaSendSet((flags&(DMA_CIRC_MODE|DMA_HALF_TRNS)) | DMA_MINC_MODE);
+    PRINTF("-dSI>\n");
+}
+//-----------------------------------------------------------------------------
+void SPIClass::dmaSendInit(const uint16_t tx_data, uint16 length, uint16 flags)
+{
+    PRINTF("<dSI-");
+	ff = tx_data;
+    _currentSetting->dmaTxBuffer = &ff;
+    _currentSetting->dmaTrxLength = length;
+    _currentSetting->dmaTrxAsync = (flags&DMA_ASYNC);
+    dmaSendSet((flags&(DMA_CIRC_MODE|DMA_HALF_TRNS)));
+    PRINTF("-dSI>\n");
 }
 
 

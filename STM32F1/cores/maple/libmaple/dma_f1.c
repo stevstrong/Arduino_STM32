@@ -213,14 +213,11 @@ int dma_tube_cfg(dma_dev *dev, dma_channel channel, dma_tube_config *cfg) {
 
 void dma_set_priority(dma_dev *dev,
                       dma_channel channel,
-                      dma_priority priority) {
-    dma_channel_reg_map *channel_regs;
-    uint32 ccr;
-
-    ASSERT_FAULT(!dma_is_channel_enabled(dev, channel));
-
-    channel_regs = dma_channel_regs(dev, channel);
-    ccr = channel_regs->CCR;
+                      dma_priority priority)
+{
+    dma_disable(dev, channel);
+    dma_channel_reg_map * channel_regs = dma_channel_regs(dev, channel);
+    uint32 ccr = channel_regs->CCR;
     ccr &= ~DMA_CCR_PL;
     ccr |= (priority << 12);
     channel_regs->CCR = ccr;
@@ -228,13 +225,10 @@ void dma_set_priority(dma_dev *dev,
 
 void dma_set_num_transfers(dma_dev *dev,
                            dma_channel channel,
-                           uint16 num_transfers) {
-    dma_channel_reg_map *channel_regs;
-
-    ASSERT_FAULT(!dma_is_channel_enabled(dev, channel));
-
-    channel_regs = dma_channel_regs(dev, channel);
-    channel_regs->CNDTR = num_transfers;
+                           uint16 num_transfers)
+{
+    dma_disable(dev, channel);
+    dma_channel_regs(dev, channel)->CNDTR = num_transfers;
 }
 
 void dma_attach_interrupt(dma_dev *dev, dma_channel channel,
@@ -293,22 +287,16 @@ dma_irq_cause dma_get_irq_cause(dma_dev *dev, dma_channel channel) {
     return DMA_TRANSFER_ERROR;
 }
 
-void dma_set_mem_addr(dma_dev *dev, dma_channel channel, __IO void *addr) {
-    dma_channel_reg_map *chan_regs;
-
-    ASSERT_FAULT(!dma_is_channel_enabled(dev, channel));
-
-    chan_regs = dma_channel_regs(dev, channel);
-    chan_regs->CMAR = (uint32)addr;
+void dma_set_mem_addr(dma_dev *dev, dma_channel channel, __IO void *addr)
+{
+    dma_disable(dev, channel);
+    dma_channel_regs(dev, channel)->CMAR = (uint32)addr;
 }
 
-void dma_set_per_addr(dma_dev *dev, dma_channel channel, __IO void *addr) {
-    dma_channel_reg_map *chan_regs;
-
-    ASSERT_FAULT(!dma_is_channel_enabled(dev, channel));
-
-    chan_regs = dma_channel_regs(dev, channel);
-    chan_regs->CPAR = (uint32)addr;
+void dma_set_per_addr(dma_dev *dev, dma_channel channel, __IO void *addr)
+{
+    dma_disable(dev, channel);
+    dma_channel_regs(dev, channel)->CPAR = (uint32)addr;
 }
 
 /**
