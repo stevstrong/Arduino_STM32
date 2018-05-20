@@ -611,17 +611,17 @@ void SPIClass::dmaWaitCompletion(void)
     
             if ((millis()-m)>DMA_TIMEOUT)
             {
-                Serial.print("DMA1 timeout");
+                PRINTF("DMA1 timeout");
                 //Serial.print("DMA timeout: "); Serial.println(_currentSetting->dmaTimeout);
-                Serial.print(", CCR2: "); Serial.print(DMA1->regs->CCR2, HEX);
-                Serial.print(", CCR3: "); Serial.print(DMA1->regs->CCR3, HEX);
-                Serial.print(", CNDTR2: "); Serial.print(DMA1->regs->CNDTR2);
-                Serial.print(", CNDTR3: "); Serial.print(DMA1->regs->CNDTR3);
-                Serial.print(", CCR4: "); Serial.print(DMA1->regs->CCR4, HEX);
-                Serial.print(", CCR5: "); Serial.print(DMA1->regs->CCR5, HEX);
-                Serial.print(", CNDTR4: "); Serial.print(DMA1->regs->CNDTR4);
-                Serial.print(", CNDTR5: "); Serial.print(DMA1->regs->CNDTR5);
-                Serial.write('\n');
+                PRINTF(", CCR2: "); PRINTF(DMA1->regs->CCR2, HEX);
+                PRINTF(", CCR3: "); PRINTF(DMA1->regs->CCR3, HEX);
+                PRINTF(", CNDTR2: "); PRINTF(DMA1->regs->CNDTR2);
+                PRINTF(", CNDTR3: "); PRINTF(DMA1->regs->CNDTR3);
+                PRINTF(", CCR4: "); PRINTF(DMA1->regs->CCR4, HEX);
+                PRINTF(", CCR5: "); PRINTF(DMA1->regs->CCR5, HEX);
+                PRINTF(", CNDTR4: "); PRINTF(DMA1->regs->CNDTR4);
+                PRINTF(", CNDTR5: "); PRINTF(DMA1->regs->CNDTR5);
+                PRINTF("\n");
                 // disable DMA
                 while (spi_is_tx_empty(_currentSetting->spi_d) == 0); // "5. Wait until TXE=1 ..."
                 while (spi_is_busy(_currentSetting->spi_d) != 0); // "... and then wait until BSY=0"
