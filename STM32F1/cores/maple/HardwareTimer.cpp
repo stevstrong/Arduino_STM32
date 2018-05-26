@@ -56,7 +56,8 @@ extern "C" {
  * HardwareTimer routines
  */
 
-HardwareTimer::HardwareTimer(uint8 timerNum) {
+HardwareTimer::HardwareTimer(uint8 timerNum)
+{
     rcc_clk_id timerID = (rcc_clk_id)(RCC_TIMER1 + (timerNum - 1));
     this->dev = NULL;
     noInterrupts(); // Hack to ensure we're the only ones using
@@ -68,41 +69,9 @@ HardwareTimer::HardwareTimer(uint8 timerNum) {
     ASSERT(this->dev != NULL);
 }
 
-void HardwareTimer::pause(void) {
-    timer_pause(this->dev);
-}
-
-void HardwareTimer::resume(void) {
-    timer_resume(this->dev);
-}
-
-uint32 HardwareTimer::getPrescaleFactor(void) {
-    return timer_get_prescaler(this->dev) + 1;
-}
-
-void HardwareTimer::setPrescaleFactor(uint32 factor) {
-    timer_set_prescaler(this->dev, (uint16)(factor - 1));
-}
-
-uint16 HardwareTimer::getOverflow() {
-    return timer_get_reload(this->dev);
-}
-
-void HardwareTimer::setOverflow(uint16 val) {
-    timer_set_reload(this->dev, val);
-}
-
-uint16 HardwareTimer::getCount(void) {
-    return timer_get_count(this->dev);
-}
-
-void HardwareTimer::setCount(uint16 val) {
-    uint16 ovf = this->getOverflow();
-    timer_set_count(this->dev, min(val, ovf));
-}
-
 #define MAX_RELOAD ((1 << 16) - 1)
-uint16 HardwareTimer::setPeriod(uint32 microseconds) {
+uint16 HardwareTimer::setPeriod(uint32 microseconds)
+{
     // Not the best way to handle this edge case?
     if (!microseconds) {
         this->setPrescaleFactor(1);
@@ -118,40 +87,8 @@ uint16 HardwareTimer::setPeriod(uint32 microseconds) {
     return overflow;
 }
 
-void HardwareTimer::setMode(int channel, timer_mode mode) {
-    timer_set_mode(this->dev, (uint8)channel, (timer_mode)mode);
-}
-
-uint16 HardwareTimer::getCompare(int channel) {
-    return timer_get_compare(this->dev, (uint8)channel);
-}
-
-void HardwareTimer::setCompare(int channel, uint16 val) {
-    uint16 ovf = this->getOverflow();
-    timer_set_compare(this->dev, (uint8)channel, min(val, ovf));
-}
-
-void HardwareTimer::attachInterrupt(int channel, voidFuncPtr handler) {
-    timer_attach_interrupt(this->dev, (uint8)channel, handler);
-}
-
-void HardwareTimer::detachInterrupt(int channel) {
-    timer_detach_interrupt(this->dev, (uint8)channel);
-}
-
-void HardwareTimer::enableDMA(int channel) {
-    timer_dma_enable_req(this->dev, (uint8)channel);
-}
-
-void HardwareTimer::disableDMA(int channel) {
-    timer_dma_disable_req(this->dev, (uint8)channel);
-}
-
-void HardwareTimer::refresh(void) {
-    timer_generate_update(this->dev);
-}
-
-void HardwareTimer::setMasterModeTrGo(uint32_t mode) {
+void HardwareTimer::setMasterModeTrGo(uint32_t mode)
+{
 	this->dev->regs.bas->CR2 &= ~TIMER_CR2_MMS;
 	this->dev->regs.bas->CR2 |= mode;
 }

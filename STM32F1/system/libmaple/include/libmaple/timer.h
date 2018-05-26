@@ -1090,6 +1090,16 @@ static inline void timer_oc_set_mode(timer_dev *dev,
     *ccmr = tmp;
 }
 
+static void timer_set_cc_mode(timer_dev *dev,
+                              timer_channel channel,
+                              uint8 cc_mode,
+                              uint8 flags)
+{
+    timer_oc_set_mode(dev, channel, (timer_oc_mode)cc_mode, flags);
+    timer_cc_enable(dev, channel);
+}
+
+
 /**
  * Timer output compare modes.
  */

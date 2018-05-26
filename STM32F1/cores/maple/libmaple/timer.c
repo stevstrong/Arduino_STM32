@@ -36,11 +36,9 @@
 #include "timer_private.h"
 
 static void disable_channel(timer_dev *dev, uint8 channel);
-static void pwm_mode(timer_dev *dev, uint8 channel);
-static void output_compare_mode(timer_dev *dev, uint8 channel);
-static void encoder_mode(timer_dev *dev, uint8 channel) ;//CARLOS
+static void encoder_mode(timer_dev *dev); //CARLOS
 
-static inline void enable_irq(timer_dev *dev, timer_interrupt_id iid);
+static void enable_irq(timer_dev *dev, timer_interrupt_id iid);
 
 /*
  * Devices
@@ -213,31 +211,30 @@ void timer_disable(timer_dev *dev) {
  * @param channel Relevant channel
  * @param mode New timer mode for channel
  */
-void timer_set_mode(timer_dev *dev, uint8 channel, timer_mode mode) {
-    ASSERT_FAULT(channel > 0 && channel <= 4);
+void timer_set_mode(timer_dev *dev, uint8 channel, timer_mode mode)
+{
+    if ( channel==0 || channel>4 ) return;
 
     /* TODO decide about the basic timers */
-    ASSERT(dev->type != TIMER_BASIC);
-    if (dev->type == TIMER_BASIC)
-        return;
+    if (dev->type == TIMER_BASIC) return;
 
     switch (mode) {
     case TIMER_DISABLED:
         disable_channel(dev, channel);
         break;
     case TIMER_PWM:
-        pwm_mode(dev, channel);
+        timer_disable_irq(dev, channel);
+        timer_set_cc_mode(dev, channel, TIMER_OC_MODE_PWM_1, TIMER_OC_PE);
         break;
     case TIMER_OUTPUT_COMPARE:
-        output_compare_mode(dev, channel);
+        timer_set_cc_mode(dev, channel, TIMER_OC_MODE_ACTIVE_ON_MATCH, 0);
         break;
-    //added by CARLOS. 
-    case TIMER_ENCODER: 
-        encoder_mode(dev, channel); //find a way to pass all the needed stuff on the 8bit var
+    case TIMER_ENCODER: //added by CARLOS.
+        encoder_mode(dev); //find a way to pass all the needed stuff on the 8bit var
         break;
-    case TIMER_INPUT_CAPTURE:// code from @Cesco
-        input_capture_mode(dev, channel, TIMER_IC_INPUT_DEFAULT);
-        break;		
+    case TIMER_INPUT_CAPTURE:
+		timer_set_cc_mode(dev, channel, 0, TIMER_IC_INPUT_DEFAULT);
+        break;
     }
 }
 
@@ -317,19 +314,8 @@ static void disable_channel(timer_dev *dev, uint8 channel) {
     timer_cc_disable(dev, channel);
 }
 
-static void pwm_mode(timer_dev *dev, uint8 channel) {
-    timer_disable_irq(dev, channel);
-    timer_oc_set_mode(dev, channel, TIMER_OC_MODE_PWM_1, TIMER_OC_PE);
-    timer_cc_enable(dev, channel);
-}
-
-static void output_compare_mode(timer_dev *dev, uint8 channel) {
-    timer_oc_set_mode(dev, channel, TIMER_OC_MODE_ACTIVE_ON_MATCH, 0);
-    timer_cc_enable(dev, channel);
-}
-
 //added by CARLOS.
-static void encoder_mode(timer_dev *dev, uint8 channel __attribute__((unused))) {
+static void encoder_mode(timer_dev *dev) {
     
     //prescaler. 
     //(dev->regs).gen->PSC = 1;
@@ -351,21 +337,6 @@ static void encoder_mode(timer_dev *dev, uint8 channel __attribute__((unused))) 
     timer_resume(dev);
 }
 
-void input_capture_mode(timer_dev *dev, uint8 channel, timer_ic_input_select input) {
-    timer_oc_set_mode(dev, channel, 0, input);
-    timer_cc_enable(dev, channel);
-}
-
-static void enable_adv_irq(timer_dev *dev, timer_interrupt_id id);
-static void enable_bas_gen_irq(timer_dev *dev);
-
-static inline void enable_irq(timer_dev *dev, timer_interrupt_id iid) {
-    if (dev->type == TIMER_ADVANCED) {
-        enable_adv_irq(dev, iid);
-    } else {
-        enable_bas_gen_irq(dev);
-    }
-}
 
 /* Advanced control timers have several IRQ lines corresponding to
  * different timer interrupts.
@@ -453,6 +424,15 @@ static void enable_bas_gen_irq(timer_dev *dev) {
         return;
     }
     nvic_irq_enable(irq_num);
+}
+
+static void enable_irq(timer_dev *dev, timer_interrupt_id iid)
+{
+    if (dev->type == TIMER_ADVANCED) {
+        enable_adv_irq(dev, iid);
+    } else {
+        enable_bas_gen_irq(dev);
+    }
 }
 
 
