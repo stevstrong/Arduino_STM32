@@ -506,21 +506,20 @@ void SPIClass::transfer(const uint8_t * tx_buf, uint8_t * rx_buf, uint32 len)
     if ( len == 0 ) return;
     spi_rx_reg(_currentSetting->spi_d);      // clear the RX buffer in case a byte is waiting on it.
     spi_reg_map * regs = _currentSetting->spi_d->regs;
-
-	// start sequence: write byte 0
-	regs->DR = *tx_buf++;                  // write the first byte
-	// main loop
-	while ( (--len) ) {
-		while( !(regs->SR & SPI_SR_TXE) );   // wait for TXE flag
-		noInterrupts();                      // go atomic level - avoid interrupts to surely get the previously received data
-		regs->DR = *tx_buf++;              // write the next data item to be transmitted into the SPI_DR register. This clears the TXE flag.
-		while ( !(regs->SR & SPI_SR_RXNE) ); // wait till data is available in the DR register
-		*rx_buf++ = (uint8)(regs->DR);     // read and store the received byte. This clears the RXNE flag.
-		interrupts();                        // let systick do its job
-	}
-	// read remaining last byte
-	while ( !(regs->SR & SPI_SR_RXNE) );     // wait till data is available in the Rx register
-	*rx_buf++ = (uint8)(regs->DR);         // read and store the received byte
+    // start sequence: write byte 0
+    regs->DR = *tx_buf++;                    // write the first byte
+    // main loop
+    while ( (--len) ) {
+        while( !(regs->SR & SPI_SR_TXE) );   // wait for TXE flag
+        noInterrupts();                      // go atomic level - avoid interrupts to surely get the previously received data
+        regs->DR = *tx_buf++;                // write the next data item to be transmitted into the SPI_DR register. This clears the TXE flag.
+        while ( !(regs->SR & SPI_SR_RXNE) ); // wait till data is available in the DR register
+        *rx_buf++ = (uint8)(regs->DR);       // read and store the received byte. This clears the RXNE flag.
+        interrupts();                        // let systick do its job
+    }
+    // read remaining last byte
+    while ( !(regs->SR & SPI_SR_RXNE) );     // wait till data is available in the Rx register
+    *rx_buf++ = (uint8)(regs->DR);           // read and store the received byte
 }
 
 void SPIClass::transfer(const uint8_t tx_data, uint8_t * rx_buf, uint32 len)
@@ -549,6 +548,20 @@ void SPIClass::transfer(const uint16_t * tx_buf, uint16_t * rx_buf, uint32 len)
     if ( len == 0 ) return;
     spi_rx_reg(_currentSetting->spi_d);      // clear the RX buffer in case a byte is waiting on it.
     spi_reg_map * regs = _currentSetting->spi_d->regs;
+    // start sequence: write byte 0
+    regs->DR = *tx_buf++;                    // write the first byte
+    // main loop
+    while ( (--len) ) {
+        while( !(regs->SR & SPI_SR_TXE) );   // wait for TXE flag
+        noInterrupts();                      // go atomic level - avoid interrupts to surely get the previously received data
+        regs->DR = *tx_buf++;                // write the next data item to be transmitted into the SPI_DR register. This clears the TXE flag.
+        while ( !(regs->SR & SPI_SR_RXNE) ); // wait till data is available in the DR register
+        *rx_buf++ = regs->DR;                // read and store the received byte. This clears the RXNE flag.
+        interrupts();                        // let systick do its job
+    }
+    // read remaining last byte
+    while ( !(regs->SR & SPI_SR_RXNE) );     // wait till data is available in the Rx register
+    *rx_buf++ = regs->DR;                    // read and store the received byte
 }
 
 void SPIClass::transfer(const uint16_t tx_data, uint16_t * rx_buf, uint32 len)
@@ -598,17 +611,17 @@ void SPIClass::dmaWaitCompletion(void)
     
             if ((millis()-m)>DMA_TIMEOUT)
             {
-                Serial.print("DMA1 timeout");
+                PRINTF("DMA1 timeout");
                 //Serial.print("DMA timeout: "); Serial.println(_currentSetting->dmaTimeout);
-                Serial.print(", CCR2: "); Serial.print(DMA1->regs->CCR2, HEX);
-                Serial.print(", CCR3: "); Serial.print(DMA1->regs->CCR3, HEX);
-                Serial.print(", CNDTR2: "); Serial.print(DMA1->regs->CNDTR2);
-                Serial.print(", CNDTR3: "); Serial.print(DMA1->regs->CNDTR3);
-                Serial.print(", CCR4: "); Serial.print(DMA1->regs->CCR4, HEX);
-                Serial.print(", CCR5: "); Serial.print(DMA1->regs->CCR5, HEX);
-                Serial.print(", CNDTR4: "); Serial.print(DMA1->regs->CNDTR4);
-                Serial.print(", CNDTR5: "); Serial.print(DMA1->regs->CNDTR5);
-                Serial.write('\n');
+                PRINTF(", CCR2: "); PRINTF(DMA1->regs->CCR2, HEX);
+                PRINTF(", CCR3: "); PRINTF(DMA1->regs->CCR3, HEX);
+                PRINTF(", CNDTR2: "); PRINTF(DMA1->regs->CNDTR2);
+                PRINTF(", CNDTR3: "); PRINTF(DMA1->regs->CNDTR3);
+                PRINTF(", CCR4: "); PRINTF(DMA1->regs->CCR4, HEX);
+                PRINTF(", CCR5: "); PRINTF(DMA1->regs->CCR5, HEX);
+                PRINTF(", CNDTR4: "); PRINTF(DMA1->regs->CNDTR4);
+                PRINTF(", CNDTR5: "); PRINTF(DMA1->regs->CNDTR5);
+                PRINTF("\n");
                 // disable DMA
                 while (spi_is_tx_empty(_currentSetting->spi_d) == 0); // "5. Wait until TXE=1 ..."
                 while (spi_is_busy(_currentSetting->spi_d) != 0); // "... and then wait until BSY=0"
