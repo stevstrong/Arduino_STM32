@@ -112,16 +112,37 @@ typedef enum exti_trigger_mode {
  * Routines
  */
 
-void exti_attach_interrupt(exti_num num,
+/**
+ * @brief Register a handler to run upon external interrupt.
+ *
+ * This function assumes that the interrupt request corresponding to
+ * the given external interrupt is masked.
+ *
+ * @param num     External interrupt line number.
+ * @param port    Port to use as source input for external interrupt.
+ * @param handler Function handler to execute when interrupt is triggered.
+ * @param mode    Type of transition to trigger on, one of:
+ *                EXTI_RISING, EXTI_FALLING, EXTI_RISING_FALLING.
+ * @see exti_num
+ * @see exti_cfg
+ * @see voidFuncPtr
+ * @see exti_trigger_mode
+ */
+extern void exti_attach_callback(exti_num num,
+                          exti_cfg port,
+                          voidFuncPtr handler,
+                          exti_trigger_mode mode);
+
+inline void exti_attach_interrupt(exti_num num,
                            exti_cfg port,
                            voidFuncPtr handler,
-                           exti_trigger_mode mode);
-void exti_attach_callback(exti_num num,
-                          exti_cfg port,
-                          voidArgumentFuncPtr handler,
-                          void *arg,
-                          exti_trigger_mode mode);
+                           exti_trigger_mode mode) {
+    // Call callback version with arg being null
+    exti_attach_callback(num, port, handler, mode);
+}
+
 void exti_detach_interrupt(exti_num num);
+
 
 /**
  * @brief Set the GPIO port for an EXTI line.

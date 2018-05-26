@@ -37,7 +37,20 @@
 
 #include "boards.h"
 
-static inline exti_trigger_mode exti_out_mode(ExtIntTriggerMode mode);
+
+static inline exti_trigger_mode exti_out_mode(ExtIntTriggerMode mode) {
+    switch (mode) {
+    case RISING:
+        return EXTI_RISING;
+    case FALLING:
+        return EXTI_FALLING;
+    case CHANGE:
+        return EXTI_RISING_FALLING;
+    }
+    // Can't happen
+    ASSERT(0);
+    return (exti_trigger_mode)0;
+}
 
 void attachInterrupt(uint8 pin, voidFuncPtr handler, ExtIntTriggerMode mode) {
     if (pin >= BOARD_NR_GPIO_PINS || !handler) {
@@ -52,39 +65,10 @@ void attachInterrupt(uint8 pin, voidFuncPtr handler, ExtIntTriggerMode mode) {
                           outMode);
 }
 
-void attachInterrupt(uint8 pin, voidArgumentFuncPtr handler, void *arg,
-                     ExtIntTriggerMode mode) {
-    if (pin >= BOARD_NR_GPIO_PINS || !handler) {
-        return;
-    }
-
-    exti_trigger_mode outMode = exti_out_mode(mode);
-
-    exti_attach_callback((exti_num)(PIN_MAP[pin].gpio_bit),
-                          gpio_exti_port(PIN_MAP[pin].gpio_device),
-                          handler,
-                          arg,
-                          outMode);
-}
-
 void detachInterrupt(uint8 pin) {
     if (pin >= BOARD_NR_GPIO_PINS) {
         return;
     }
 
     exti_detach_interrupt((exti_num)(PIN_MAP[pin].gpio_bit));
-}
-
-static inline exti_trigger_mode exti_out_mode(ExtIntTriggerMode mode) {
-    switch (mode) {
-    case RISING:
-        return EXTI_RISING;
-    case FALLING:
-        return EXTI_FALLING;
-    case CHANGE:
-        return EXTI_RISING_FALLING;
-    }
-    // Can't happen
-    ASSERT(0);
-    return (exti_trigger_mode)0;
 }
