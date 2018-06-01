@@ -32,25 +32,23 @@
 #include <board/board.h>           // for CYCLES_PER_MICROSECOND
 #include <libmaple/dma.h>
 
-// TODO [0.1.0] Remove deprecated pieces
 
-/*
- * Evil hack to infer this->dev from timerNum in the HardwareTimer
- * constructor. See:
- *
- * http://www.parashift.com/c++-faq-lite/pointers-to-members.html#faq-33.2
- * http://yosefk.com/c++fqa/function.html#fqa-33.2
- */
+#define MAX_RELOAD ((1 << 16) - 1)
 
-extern "C" {
-    static timer_dev **this_devp;
-    static rcc_clk_id this_id;
-    static void set_this_dev(timer_dev *dev) {
-        if (dev->clk_id == this_id) {
-            *this_devp = dev;
-        }
-    }
-}
+#define NR_TIMERS 8
+
+static timer_dev * const devs[] = {
+    TIMER1,
+    TIMER2,
+    TIMER3,
+    TIMER4,
+    TIMER5,
+#ifdef STM32_HIGH_DENSITY
+    TIMER6,
+    TIMER7,
+    TIMER8,
+#endif
+};
 
 /*
  * HardwareTimer routines
@@ -58,18 +56,12 @@ extern "C" {
 
 HardwareTimer::HardwareTimer(uint8 timerNum)
 {
-    rcc_clk_id timerID = (rcc_clk_id)(RCC_TIMER1 + (timerNum - 1));
-    this->dev = NULL;
-    noInterrupts(); // Hack to ensure we're the only ones using
-                    // set_this_dev() and friends. TODO: use a lock.
-    this_id = timerID;
-    this_devp = &this->dev;
-    timer_foreach(set_this_dev);
-    interrupts();
-    ASSERT(this->dev != NULL);
+    if (timerNum > NR_TIMERS) {
+        ASSERT(0);
+    }
+    this->dev = devs[timerNum - 1];
 }
 
-#define MAX_RELOAD ((1 << 16) - 1)
 uint16 HardwareTimer::setPeriod(uint32 microseconds)
 {
     // Not the best way to handle this edge case?
@@ -79,9 +71,9 @@ uint16 HardwareTimer::setPeriod(uint32 microseconds)
         return this->getOverflow();
     }
 
-    uint32 period_cyc = microseconds * CYCLES_PER_MICROSECOND;
+    uint32 period_cyc = microseconds * (CYCLES_PER_MICROSECOND / 2);
     uint16 prescaler = (uint16)(period_cyc / MAX_RELOAD + 1);
-    uint16 overflow = (uint16)((period_cyc + (prescaler / 2)) / prescaler);
+    uint16 overflow = (uint16)round(period_cyc / prescaler);
     this->setPrescaleFactor(prescaler);
     this->setOverflow(overflow);
     return overflow;
@@ -89,19 +81,19 @@ uint16 HardwareTimer::setPeriod(uint32 microseconds)
 
 void HardwareTimer::setMasterModeTrGo(uint32_t mode)
 {
-	this->dev->regs.bas->CR2 &= ~TIMER_CR2_MMS;
-	this->dev->regs.bas->CR2 |= mode;
+    this->dev->regs.bas->CR2 &= ~TIMER_CR2_MMS;
+    this->dev->regs.bas->CR2 |= mode;
 }
 
-    
+
 /* -- Deprecated predefined instances -------------------------------------- */
 
 HardwareTimer Timer1(1);
 HardwareTimer Timer2(2);
 HardwareTimer Timer3(3);
 HardwareTimer Timer4(4);
-#ifdef STM32_HIGH_DENSITY
 HardwareTimer Timer5(5);
+#ifdef STM32_HIGH_DENSITY
 HardwareTimer Timer6(6);
 HardwareTimer Timer7(7);
 HardwareTimer Timer8(8);

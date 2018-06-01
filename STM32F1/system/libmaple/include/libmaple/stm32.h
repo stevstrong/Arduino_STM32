@@ -76,7 +76,6 @@ extern "C" {
      !defined(STM32_MCU_SERIES)    ||     \
      !defined(STM32_NR_INTERRUPTS) ||     \
      !defined(STM32_NR_GPIO_PORTS) ||     \
-     !defined(STM32_TIMER_MASK)    ||     \
      !defined(STM32_DELAY_US_MULT) ||     \
      !defined(STM32_SRAM_END)      ||     \
      !defined(STM32_HAVE_DAC)      ||     \
@@ -88,15 +87,6 @@ extern "C" {
 /*
  * Derived macros
  */
-
-/* FIXME [0.0.13] add this to ReST API page */
-/**
- * @brief Statically determine whether a timer is present.
- *
- * Given a constant timer number n (starting from 1), this macro has a
- * nonzero value exactly when TIMERn is available.
- */
-#define STM32_HAVE_TIMER(n) (STM32_TIMER_MASK & (1 << (n)))
 
 /*
  * Doxygen for functionality provided by series header.
