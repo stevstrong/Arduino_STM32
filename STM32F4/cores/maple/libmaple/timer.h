@@ -27,9 +27,7 @@
 /**
  * @file   timer.h
  * @author Marti Bolivar <mbolivar@leaflabs.com>
- * @brief  New-style timer interface.
- *
- * Replaces old timers.h implementation.
+ * @brief  Timer interface.
  */
 
 #ifndef _TIMERS_H_
@@ -54,7 +52,7 @@ typedef struct timer_adv_reg_map {
     __IO uint32 CR1;            /**< Control register 1 */
     __IO uint32 CR2;            /**< Control register 2 */
     __IO uint32 SMCR;           /**< Slave mode control register */
-    __IO uint32 DIER;           /**< DMA/Interrupt enable register */
+    __IO uint32 DIER;           /**< DMA/interrupt enable register */
     __IO uint32 SR;             /**< Status register */
     __IO uint32 EGR;            /**< Event generation register  */
     __IO uint32 CCMR1;          /**< Capture/compare mode register 1 */
@@ -102,7 +100,7 @@ typedef struct timer_bas_reg_map {
     __IO uint32 CR1;            /**< Control register 1 */
     __IO uint32 CR2;            /**< Control register 2 */
     const uint32 RESERVED1;     /**< Reserved */
-    __IO uint32 DIER;           /**< DMA/Interrupt enable register */
+    __IO uint32 DIER;           /**< DMA/interrupt enable register */
     __IO uint32 SR;             /**< Status register */
     __IO uint32 EGR;            /**< Event generation register  */
     const uint32 RESERVED2;     /**< Reserved */
@@ -249,7 +247,7 @@ extern timer_dev timer14;
 #define TIMER_CR2_OIS2_BIT              10
 #define TIMER_CR2_OIS1N_BIT             9
 #define TIMER_CR2_OIS1_BIT              8
-#define TIMER_CR2_TI1S_BIT              7 /* tills? yikes */
+#define TIMER_CR2_TI1S_BIT              7
 #define TIMER_CR2_CCDS_BIT              3
 #define TIMER_CR2_CCUS_BIT              2
 #define TIMER_CR2_CCPC_BIT              0
@@ -295,7 +293,7 @@ typedef enum {
 #define TIMER_SMCR_ETPS_DIV8            (0x3 << 12)
 #define TIMER_SMCR_ETF                  (0xF << 12)
 #define TIMER_SMCR_MSM                  BIT(TIMER_SMCR_MSM_BIT)
-#define TIMER_SMCR_TS                   (0x3 << 4)
+#define TIMER_SMCR_TS                   (0x7 << 4)
 #define TIMER_SMCR_TS_ITR0              (0x0 << 4)
 #define TIMER_SMCR_TS_ITR1              (0x1 << 4)
 #define TIMER_SMCR_TS_ITR2              (0x2 << 4)
@@ -304,7 +302,7 @@ typedef enum {
 #define TIMER_SMCR_TS_TI1FP1            (0x5 << 4)
 #define TIMER_SMCR_TS_TI2FP2            (0x6 << 4)
 #define TIMER_SMCR_TS_ETRF              (0x7 << 4)
-#define TIMER_SMCR_SMS                  0x3
+#define TIMER_SMCR_SMS                  0x7
 #define TIMER_SMCR_SMS_DISABLED         0x0
 #define TIMER_SMCR_SMS_ENCODER1         0x1
 #define TIMER_SMCR_SMS_ENCODER2         0x2
@@ -317,12 +315,15 @@ typedef enum {
 /* DMA/Interrupt enable register (DIER) */
 
 #define TIMER_DIER_TDE_BIT              14
+#define TIMER_DIER_COMDE_BIT            13
 #define TIMER_DIER_CC4DE_BIT            12
 #define TIMER_DIER_CC3DE_BIT            11
 #define TIMER_DIER_CC2DE_BIT            10
 #define TIMER_DIER_CC1DE_BIT            9
 #define TIMER_DIER_UDE_BIT              8
+#define TIMER_DIER_BIE_BIT              7
 #define TIMER_DIER_TIE_BIT              6
+#define TIMER_DIER_COMIE_BIT            5
 #define TIMER_DIER_CC4IE_BIT            4
 #define TIMER_DIER_CC3IE_BIT            3
 #define TIMER_DIER_CC2IE_BIT            2
@@ -330,12 +331,15 @@ typedef enum {
 #define TIMER_DIER_UIE_BIT              0
 
 #define TIMER_DIER_TDE                  BIT(TIMER_DIER_TDE_BIT)
+#define TIMER_DIER_COMDE                BIT(TIMER_DIER_COMDE_BIT)
 #define TIMER_DIER_CC4DE                BIT(TIMER_DIER_CC4DE_BIT)
 #define TIMER_DIER_CC3DE                BIT(TIMER_DIER_CC3DE_BIT)
 #define TIMER_DIER_CC2DE                BIT(TIMER_DIER_CC2DE_BIT)
 #define TIMER_DIER_CC1DE                BIT(TIMER_DIER_CC1DE_BIT)
 #define TIMER_DIER_UDE                  BIT(TIMER_DIER_UDE_BIT)
+#define TIMER_DIER_BIE                  BIT(TIMER_DIER_BIE_BIT)
 #define TIMER_DIER_TIE                  BIT(TIMER_DIER_TIE_BIT)
+#define TIMER_DIER_COMIE                BIT(TIMER_DIER_COMIE_BIT)
 #define TIMER_DIER_CC4IE                BIT(TIMER_DIER_CC4IE_BIT)
 #define TIMER_DIER_CC3IE                BIT(TIMER_DIER_CC3IE_BIT)
 #define TIMER_DIER_CC2IE                BIT(TIMER_DIER_CC2IE_BIT)
@@ -372,19 +376,29 @@ typedef enum {
 
 /* Event generation register (EGR) */
 
+#define TIMER_EGR_BG_BIT                7
 #define TIMER_EGR_TG_BIT                6
+#define TIMER_EGR_COMG_BIT              5
 #define TIMER_EGR_CC4G_BIT              4
 #define TIMER_EGR_CC3G_BIT              3
 #define TIMER_EGR_CC2G_BIT              2
 #define TIMER_EGR_CC1G_BIT              1
 #define TIMER_EGR_UG_BIT                0
 
+#define TIMER_EGR_BG                    BIT(TIMER_EGR_BG_BIT)
 #define TIMER_EGR_TG                    BIT(TIMER_EGR_TG_BIT)
+#define TIMER_EGR_COMG                  BIT(TIMER_EGR_COMG_BIT)
 #define TIMER_EGR_CC4G                  BIT(TIMER_EGR_CC4G_BIT)
 #define TIMER_EGR_CC3G                  BIT(TIMER_EGR_CC3G_BIT)
 #define TIMER_EGR_CC2G                  BIT(TIMER_EGR_CC2G_BIT)
 #define TIMER_EGR_CC1G                  BIT(TIMER_EGR_CC1G_BIT)
 #define TIMER_EGR_UG                    BIT(TIMER_EGR_UG_BIT)
+
+/* Capture/compare mode registers, common values */
+
+#define TIMER_CCMR_CCS_INPUT_TI1        0x1
+#define TIMER_CCMR_CCS_INPUT_TI2        0x2
+#define TIMER_CCMR_CCS_INPUT_TRC        0x3
 
 /* Capture/compare mode register 1 (CCMR1) */
 
@@ -396,7 +410,7 @@ typedef enum {
 #define TIMER_CCMR1_OC1FE_BIT           2
 
 #define TIMER_CCMR1_OC2CE               BIT(TIMER_CCMR1_OC2CE_BIT)
-#define TIMER_CCMR1_OC2M                (0x3 << 12)
+#define TIMER_CCMR1_OC2M                (0x7 << 12)
 #define TIMER_CCMR1_IC2F                (0xF << 12)
 #define TIMER_CCMR1_OC2PE               BIT(TIMER_CCMR1_OC2PE_BIT)
 #define TIMER_CCMR1_OC2FE               BIT(TIMER_CCMR1_OC2FE_BIT)
@@ -407,7 +421,7 @@ typedef enum {
 #define TIMER_CCMR1_CC2S_INPUT_TI1      (0x2 << 8)
 #define TIMER_CCMR1_CC2S_INPUT_TRC      (0x3 << 8)
 #define TIMER_CCMR1_OC1CE               BIT(TIMER_CCMR1_OC1CE_BIT)
-#define TIMER_CCMR1_OC1M                (0x3 << 4)
+#define TIMER_CCMR1_OC1M                (0x7 << 4)
 #define TIMER_CCMR1_IC1F                (0xF << 4)
 #define TIMER_CCMR1_OC1PE               BIT(TIMER_CCMR1_OC1PE_BIT)
 #define TIMER_CCMR1_OC1FE               BIT(TIMER_CCMR1_OC1FE_BIT)
@@ -428,45 +442,57 @@ typedef enum {
 #define TIMER_CCMR2_OC3FE_BIT           2
 
 #define TIMER_CCMR2_OC4CE               BIT(TIMER_CCMR2_OC4CE_BIT)
-#define TIMER_CCMR2_OC4M                (0x3 << 12)
-#define TIMER_CCMR2_IC2F                (0xF << 12)
+#define TIMER_CCMR2_OC4M                (0x7 << 12)
+#define TIMER_CCMR2_IC4F                (0xF << 12)
 #define TIMER_CCMR2_OC4PE               BIT(TIMER_CCMR2_OC4PE_BIT)
 #define TIMER_CCMR2_OC4FE               BIT(TIMER_CCMR2_OC4FE_BIT)
-#define TIMER_CCMR2_IC2PSC              (0x3 << 10)
+#define TIMER_CCMR2_IC4PSC              (0x3 << 10)
 #define TIMER_CCMR2_CC4S                (0x3 << 8)
-#define TIMER_CCMR1_CC4S_OUTPUT         (0x0 << 8)
-#define TIMER_CCMR1_CC4S_INPUT_TI4      (0x1 << 8)
-#define TIMER_CCMR1_CC4S_INPUT_TI3      (0x2 << 8)
-#define TIMER_CCMR1_CC4S_INPUT_TRC      (0x3 << 8)
+#define TIMER_CCMR2_CC4S_OUTPUT         (0x0 << 8)
+#define TIMER_CCMR2_CC4S_INPUT_TI4      (0x1 << 8)
+#define TIMER_CCMR2_CC4S_INPUT_TI3      (0x2 << 8)
+#define TIMER_CCMR2_CC4S_INPUT_TRC      (0x3 << 8)
 #define TIMER_CCMR2_OC3CE               BIT(TIMER_CCMR2_OC3CE_BIT)
-#define TIMER_CCMR2_OC3M                (0x3 << 4)
-#define TIMER_CCMR2_IC1F                (0xF << 4)
+#define TIMER_CCMR2_OC3M                (0x7 << 4)
+#define TIMER_CCMR2_IC3F                (0xF << 4)
 #define TIMER_CCMR2_OC3PE               BIT(TIMER_CCMR2_OC3PE_BIT)
 #define TIMER_CCMR2_OC3FE               BIT(TIMER_CCMR2_OC3FE_BIT)
-#define TIMER_CCMR2_IC1PSC              (0x3 << 2)
+#define TIMER_CCMR2_IC3PSC              (0x3 << 2)
 #define TIMER_CCMR2_CC3S                0x3
-#define TIMER_CCMR1_CC3S_OUTPUT         0x0
-#define TIMER_CCMR1_CC3S_INPUT_TI3      0x1
-#define TIMER_CCMR1_CC3S_INPUT_TI4      0x2
-#define TIMER_CCMR1_CC3S_INPUT_TRC      0x3
+#define TIMER_CCMR2_CC3S_OUTPUT         0x0
+#define TIMER_CCMR2_CC3S_INPUT_TI3      0x1
+#define TIMER_CCMR2_CC3S_INPUT_TI4      0x2
+#define TIMER_CCMR2_CC3S_INPUT_TRC      0x3
 
 /* Capture/compare enable register (CCER) */
 
 #define TIMER_CCER_CC4P_BIT             13
 #define TIMER_CCER_CC4E_BIT             12
+#define TIMER_CCER_CC3NP_BIT            11
+#define TIMER_CCER_CC3NE_BIT            10
 #define TIMER_CCER_CC3P_BIT             9
 #define TIMER_CCER_CC3E_BIT             8
+#define TIMER_CCER_CC2NP_BIT            7
+#define TIMER_CCER_CC2NE_BIT            6
 #define TIMER_CCER_CC2P_BIT             5
 #define TIMER_CCER_CC2E_BIT             4
+#define TIMER_CCER_CC1NP_BIT            3
+#define TIMER_CCER_CC1NE_BIT            2
 #define TIMER_CCER_CC1P_BIT             1
 #define TIMER_CCER_CC1E_BIT             0
 
 #define TIMER_CCER_CC4P                 BIT(TIMER_CCER_CC4P_BIT)
 #define TIMER_CCER_CC4E                 BIT(TIMER_CCER_CC4E_BIT)
+#define TIMER_CCER_CC3NP                BIT(TIMER_CCER_CC3NP_BIT)
+#define TIMER_CCER_CC3NE                BIT(TIMER_CCER_CC3NE_BIT)
 #define TIMER_CCER_CC3P                 BIT(TIMER_CCER_CC3P_BIT)
 #define TIMER_CCER_CC3E                 BIT(TIMER_CCER_CC3E_BIT)
+#define TIMER_CCER_CC2NP                BIT(TIMER_CCER_CC2NP_BIT)
+#define TIMER_CCER_CC2NE                BIT(TIMER_CCER_CC2NE_BIT)
 #define TIMER_CCER_CC2P                 BIT(TIMER_CCER_CC2P_BIT)
 #define TIMER_CCER_CC2E                 BIT(TIMER_CCER_CC2E_BIT)
+#define TIMER_CCER_CC1NP                BIT(TIMER_CCER_CC1NP_BIT)
+#define TIMER_CCER_CC1NE                BIT(TIMER_CCER_CC1NE_BIT)
 #define TIMER_CCER_CC1P                 BIT(TIMER_CCER_CC1P_BIT)
 #define TIMER_CCER_CC1E                 BIT(TIMER_CCER_CC1E_BIT)
 
@@ -495,24 +521,24 @@ typedef enum {
 /* DMA control register (DCR) */
 
 #define TIMER_DCR_DBL                   (0x1F << 8)
-#define TIMER_DCR_DBL_1BYTE             (0x0 << 8)
-#define TIMER_DCR_DBL_2BYTE             (0x1 << 8)
-#define TIMER_DCR_DBL_3BYTE             (0x2 << 8)
-#define TIMER_DCR_DBL_4BYTE             (0x3 << 8)
-#define TIMER_DCR_DBL_5BYTE             (0x4 << 8)
-#define TIMER_DCR_DBL_6BYTE             (0x5 << 8)
-#define TIMER_DCR_DBL_7BYTE             (0x6 << 8)
-#define TIMER_DCR_DBL_8BYTE             (0x7 << 8)
-#define TIMER_DCR_DBL_9BYTE             (0x8 << 8)
-#define TIMER_DCR_DBL_10BYTE            (0x9 << 8)
-#define TIMER_DCR_DBL_11BYTE            (0xA << 8)
-#define TIMER_DCR_DBL_12BYTE            (0xB << 8)
-#define TIMER_DCR_DBL_13BYTE            (0xC << 8)
-#define TIMER_DCR_DBL_14BYTE            (0xD << 8)
-#define TIMER_DCR_DBL_15BYTE            (0xE << 8)
-#define TIMER_DCR_DBL_16BYTE            (0xF << 8)
-#define TIMER_DCR_DBL_17BYTE            (0x10 << 8)
-#define TIMER_DCR_DBL_18BYTE            (0x11 << 8)
+#define TIMER_DCR_DBL_1_XFER            (0x0 << 8)
+#define TIMER_DCR_DBL_2_XFER            (0x1 << 8)
+#define TIMER_DCR_DBL_3_XFER            (0x2 << 8)
+#define TIMER_DCR_DBL_4_XFER            (0x3 << 8)
+#define TIMER_DCR_DBL_5_XFER            (0x4 << 8)
+#define TIMER_DCR_DBL_6_XFER            (0x5 << 8)
+#define TIMER_DCR_DBL_7_XFER            (0x6 << 8)
+#define TIMER_DCR_DBL_8_XFER            (0x7 << 8)
+#define TIMER_DCR_DBL_9_XFER            (0x8 << 8)
+#define TIMER_DCR_DBL_10_XFER           (0x9 << 8)
+#define TIMER_DCR_DBL_11_XFER           (0xA << 8)
+#define TIMER_DCR_DBL_12_XFER           (0xB << 8)
+#define TIMER_DCR_DBL_13_XFER           (0xC << 8)
+#define TIMER_DCR_DBL_14_XFER           (0xD << 8)
+#define TIMER_DCR_DBL_15_XFER           (0xE << 8)
+#define TIMER_DCR_DBL_16_XFER           (0xF << 8)
+#define TIMER_DCR_DBL_17_XFER           (0x10 << 8)
+#define TIMER_DCR_DBL_18_XFER           (0x11 << 8)
 #define TIMER_DCR_DBA                   0x1F
 #define TIMER_DCR_DBA_CR1               0x0
 #define TIMER_DCR_DBA_CR2               0x1
@@ -540,27 +566,27 @@ typedef enum {
  */
 
 /**
- * Used to configure the behavior of a timer channel.  Note that not
- * all timers can be configured in every mode.
+ * @brief Used to configure the behavior of a timer channel.
+ *
+ * Be careful: not all timers can be configured in every mode.
  */
 /* TODO TIMER_PWM_CENTER_ALIGNED, TIMER_INPUT_CAPTURE, TIMER_ONE_PULSE */
-typedef enum timer_mode {
-    TIMER_DISABLED, /**< In this mode, the timer stops counting,
-                         channel interrupts are detached, and no state
-                         changes are output. */
+typedef enum timer_mode
+{
+    TIMER_DISABLED, /**< In this mode the timer stops counting,
+        channel interrupts are detached, and no state changes are output. */
     TIMER_PWM, /**< PWM output mode. This is the default mode for pins
                     after initialization. */
     /* TIMER_PWM_CENTER_ALIGNED, /\**< Center-aligned PWM output mode. *\/ */
-    TIMER_OUTPUT_COMPARE, /**< In this mode, the timer counts from 0
-                               to its reload value repeatedly; every
-                               time the counter value reaches one of
-                               the channel compare values, the
-                               corresponding interrupt is fired. */
-    /* TIMER_INPUT_CAPTURE, /\**< In this mode, the timer can measure the */
+    TIMER_OUTPUT_COMPARE, /**< In this mode the timer counts from 0 to its
+        reload value repeatedly; every time the counter value reaches one of
+        the channel compare values, the corresponding interrupt is fired. */
+    /* TIMER_INPUT_CAPTURE, /\**< In this mode the timer can measure the */
     /*                           pulse lengths of input signals. *\/ */
-    /* TIMER_ONE_PULSE /\**< In this mode, the timer can generate a single */
-    /*                      pulse on a GPIO pin for a specified amount of */
-    /*                      time. *\/ */
+    /* TIMER_ONE_PULSE /\**< In this mode the timer can generate a single */
+    /*             pulse on a GPIO pin for a specified amount of time. *\/ */
+    TIMER_ENCODER,  //CARLOS Change
+    TIMER_INPUT_CAPTURE // code from @cesco
 } timer_mode;
 
 /** Timer channel numbers */
@@ -585,6 +611,7 @@ void timer_init(timer_dev *dev);
 void timer_disable(timer_dev *dev);
 void timer_set_mode(timer_dev *dev, uint8 channel, timer_mode mode);
 void timer_foreach(void (*fn)(timer_dev*));
+int timer_has_cc_channel(timer_dev *dev, uint8 channel);
 
 /**
  * @brief Timer interrupt number.
@@ -612,6 +639,11 @@ void timer_attach_interrupt(timer_dev *dev,
                             uint8 interrupt,
                             voidFuncPtr handler);
 void timer_detach_interrupt(timer_dev *dev, uint8 interrupt);
+
+//CARLOS 
+uint8 get_direction(timer_dev *dev);
+
+
 
 /**
  * Initialize all timer devices on the chip.
@@ -647,6 +679,19 @@ static inline void timer_pause(timer_dev *dev) {
  */
 static inline void timer_resume(timer_dev *dev) {
     *bb_perip(&(dev->regs).bas->CR1, TIMER_CR1_CEN_BIT) = 1;
+}
+
+/**
+ * @brief Get the status register.
+ * @param dev Timer device
+ * @return Status register value (16bits).
+ */
+static inline uint16 timer_get_status(timer_dev *dev) {
+	return (dev->regs).gen->SR;
+}
+
+static inline void timer_reset_status_bit(timer_dev *dev, uint8 bit) {
+    (dev->regs).gen->SR = ~BIT(bit); // rc_w0
 }
 
 /**
@@ -778,6 +823,22 @@ static inline void timer_dma_disable_trg_req(timer_dev *dev) {
 }
 
 /**
+ * @brief Enable a timer's update DMA request
+ * @param dev Timer device, must have type TIMER_ADVANCED or TIMER_GENERAL
+ */
+static inline void timer_dma_enable_upd_req(timer_dev *dev) {
+    *bb_perip(&(dev->regs).gen->DIER, TIMER_DIER_UDE_BIT) = 1;
+}
+
+/**
+ * @brief Disable a timer's update DMA request
+ * @param dev Timer device, must have type TIMER_ADVANCED or TIMER_GENERAL
+ */
+static inline void timer_dma_disable_upd_req(timer_dev *dev) {
+    *bb_perip(&(dev->regs).gen->DIER, TIMER_DIER_UDE_BIT) = 0;
+}
+
+/**
  * @brief Enable a timer channel's DMA request.
  * @param dev Timer device, must have type TIMER_ADVANCED or TIMER_GENERAL
  * @param channel Channel whose DMA request to enable.
@@ -804,6 +865,8 @@ static inline void timer_dma_disable_req(timer_dev *dev, uint8 channel) {
  * @see timer_channel
  */
 static inline void timer_enable_irq(timer_dev *dev, uint8 interrupt) {
+    // clear interrupt flag, use different masks for reserved bits
+    *bb_perip(&(dev->regs).adv->SR, interrupt) = 0; // clear interrupt flag
     *bb_perip(&(dev->regs).adv->DIER, interrupt) = 1;
 }
 
@@ -879,18 +942,19 @@ static inline void timer_cc_set_pol(timer_dev *dev, uint8 channel, uint8 pol) {
 /**
  * @brief Get a timer's DMA burst length.
  * @param dev Timer device, must have type TIMER_ADVANCED or TIMER_GENERAL.
- * @return Number of bytes to be transferred per DMA request, from 1 to 18.
+ * @return Number of transfers per read or write to timer DMA register,
+ *         from 1 to 18.
  */
 static inline uint8 timer_dma_get_burst_len(timer_dev *dev) {
     uint32 dbl = ((dev->regs).gen->DCR & TIMER_DCR_DBL) >> 8;
-    return dbl + 1;             /* 0 means 1 byte, etc. */
+    return dbl + 1;             /* 0 means 1 transfer, etc. */
 }
 
 /**
  * @brief Set a timer's DMA burst length.
  * @param dev Timer device, must have type TIMER_ADVANCED or TIMER_GENERAL.
- * @param length DMA burst length; i.e., number of bytes to transfer
- *               per DMA request, from 1 to 18.
+ * @param length DMA burst length; i.e., number of DMA transfers per
+ *               read/write to timer DMA register, from 1 to 18.
  */
 static inline void timer_dma_set_burst_len(timer_dev *dev, uint8 length) {
     uint32 tmp = (dev->regs).gen->DCR;
@@ -904,48 +968,34 @@ static inline void timer_dma_set_burst_len(timer_dev *dev, uint8 length) {
  *
  * Defines the base address for DMA transfers.
  */
-typedef enum timer_dma_base_addr {
-    TIMER_DMA_BASE_CR1 = TIMER_DCR_DBA_CR1, /**< Base is control register 1 */
-    TIMER_DMA_BASE_CR2 = TIMER_DCR_DBA_CR2, /**< Base is control register 2 */
-    TIMER_DMA_BASE_SMCR = TIMER_DCR_DBA_SMCR, /**< Base is slave mode
-                                                   control register */
-    TIMER_DMA_BASE_DIER = TIMER_DCR_DBA_DIER, /**< Base is DMA interrupt enable
-                                                   register */
-    TIMER_DMA_BASE_SR = TIMER_DCR_DBA_SR, /**< Base is status register */
-    TIMER_DMA_BASE_EGR = TIMER_DCR_DBA_EGR, /**< Base is event generation
-                                                 register */
-    TIMER_DMA_BASE_CCMR1 = TIMER_DCR_DBA_CCMR1, /**< Base is capture/compare
-                                                     mode register 1 */
-    TIMER_DMA_BASE_CCMR2 = TIMER_DCR_DBA_CCMR2, /**< Base is capture/compare
-                                                     mode register 2 */
-    TIMER_DMA_BASE_CCER = TIMER_DCR_DBA_CCER,   /**< Base is capture/compare
-                                                     enable register */
+typedef enum timer_dma_base_addr
+{
+    TIMER_DMA_BASE_CR1 = TIMER_DCR_DBA_CR1,     /**< Base is control register 1 */
+    TIMER_DMA_BASE_CR2 = TIMER_DCR_DBA_CR2,     /**< Base is control register 2 */
+    TIMER_DMA_BASE_SMCR = TIMER_DCR_DBA_SMCR,   /**< Base is slave mode control register */
+    TIMER_DMA_BASE_DIER = TIMER_DCR_DBA_DIER,   /**< Base is DMA interrupt enable register */
+    TIMER_DMA_BASE_SR = TIMER_DCR_DBA_SR,       /**< Base is status register */
+    TIMER_DMA_BASE_EGR = TIMER_DCR_DBA_EGR,     /**< Base is event generation register */
+    TIMER_DMA_BASE_CCMR1 = TIMER_DCR_DBA_CCMR1, /**< Base is capture/compare mode register 1 */
+    TIMER_DMA_BASE_CCMR2 = TIMER_DCR_DBA_CCMR2, /**< Base is capture/compare mode register 2 */
+    TIMER_DMA_BASE_CCER = TIMER_DCR_DBA_CCER,   /**< Base is capture/compare enable register */
     TIMER_DMA_BASE_CNT = TIMER_DCR_DBA_CNT,     /**< Base is counter */
     TIMER_DMA_BASE_PSC = TIMER_DCR_DBA_PSC,     /**< Base is prescaler */
-    TIMER_DMA_BASE_ARR = TIMER_DCR_DBA_ARR,     /**< Base is auto-reload
-                                                     register */
-    TIMER_DMA_BASE_RCR = TIMER_DCR_DBA_RCR,     /**< Base is repetition
-                                                     counter register */
-    TIMER_DMA_BASE_CCR1 = TIMER_DCR_DBA_CCR1,   /**< Base is capture/compare
-                                                     register 1 */
-    TIMER_DMA_BASE_CCR2 = TIMER_DCR_DBA_CCR2,   /**< Base is capture/compare
-                                                     register 2 */
-    TIMER_DMA_BASE_CCR3 = TIMER_DCR_DBA_CCR3,   /**< Base is capture/compare
-                                                     register 3 */
-    TIMER_DMA_BASE_CCR4 = TIMER_DCR_DBA_CCR4,   /**< Base is capture/compare
-                                                     register 4 */
-    TIMER_DMA_BASE_BDTR = TIMER_DCR_DBA_BDTR,   /**< Base is break and
-                                                     dead-time register */
-    TIMER_DMA_BASE_DCR = TIMER_DCR_DBA_DCR,     /**< Base is DMA control
-                                                     register */
-    TIMER_DMA_BASE_DMAR = TIMER_DCR_DBA_DMAR    /**< Base is DMA address for
-                                                     full transfer */
+    TIMER_DMA_BASE_ARR = TIMER_DCR_DBA_ARR,     /**< Base is auto-reload register */
+    TIMER_DMA_BASE_RCR = TIMER_DCR_DBA_RCR,     /**< Base is repetition counter register */
+    TIMER_DMA_BASE_CCR1 = TIMER_DCR_DBA_CCR1,   /**< Base is capture/compare register 1 */
+    TIMER_DMA_BASE_CCR2 = TIMER_DCR_DBA_CCR2,   /**< Base is capture/compare register 2 */
+    TIMER_DMA_BASE_CCR3 = TIMER_DCR_DBA_CCR3,   /**< Base is capture/compare register 3 */
+    TIMER_DMA_BASE_CCR4 = TIMER_DCR_DBA_CCR4,   /**< Base is capture/compare register 4 */
+    TIMER_DMA_BASE_BDTR = TIMER_DCR_DBA_BDTR,   /**< Base is break and dead-time register */
+    TIMER_DMA_BASE_DCR = TIMER_DCR_DBA_DCR,     /**< Base is DMA control register */
+    TIMER_DMA_BASE_DMAR = TIMER_DCR_DBA_DMAR    /**< Base is DMA address for full transfer */
 } timer_dma_base_addr;
 
 /**
  * @brief Get the timer's DMA base address.
  *
- * Some restrictions apply; see ST RM0008.
+ * Some restrictions apply; see the reference manual for your chip.
  *
  * @param dev Timer device, must have type TIMER_ADVANCED or TIMER_GENERAL.
  * @return DMA base address
@@ -958,7 +1008,7 @@ static inline timer_dma_base_addr timer_dma_get_base_addr(timer_dev *dev) {
 /**
  * @brief Set the timer's DMA base address.
  *
- * Some restrictions apply; see ST RM0008.
+ * Some restrictions apply; see the reference manual for your chip.
  *
  * @param dev Timer device, must have type TIMER_ADVANCED or TIMER_GENERAL.
  * @param dma_base DMA base address.
@@ -976,34 +1026,23 @@ static inline void timer_dma_set_base_addr(timer_dev *dev,
  */
 typedef enum timer_oc_mode {
     TIMER_OC_MODE_FROZEN = 0 << 4, /**< Frozen: comparison between output
-                                      compare register and counter has no
-                                      effect on the outputs. */
+        compare register and counter has no effect on the outputs. */
     TIMER_OC_MODE_ACTIVE_ON_MATCH = 1 << 4, /**< OCxREF signal is forced
-                                               high when the count matches
-                                               the channel capture/compare
-                                               register. */
+        high when the count matches the channel capture/compare register. */
     TIMER_OC_MODE_INACTIVE_ON_MATCH = 2 << 4, /**< OCxREF signal is forced
-                                                 low when the counter matches
-                                                 the channel capture/compare
-                                                 register. */
+        low when the counter matches the channel capture/compare register. */
     TIMER_OC_MODE_TOGGLE = 3 << 4, /**< OCxREF toggles when counter
-                                      matches the cannel capture/compare
-                                      register. */
+        matches the cannel capture/compare register. */
     TIMER_OC_MODE_FORCE_INACTIVE = 4 << 4, /**< OCxREF is forced low. */
     TIMER_OC_MODE_FORCE_ACTIVE = 5 << 4, /**< OCxREF is forced high. */
     TIMER_OC_MODE_PWM_1 = 6 << 4, /**< PWM mode 1.  In upcounting, channel is
-                                     active as long as count is less than
-                                     channel capture/compare register, else
-                                     inactive.  In downcounting, channel is
-                                     inactive as long as count exceeds
-                                     capture/compare register, else
-                                     active. */
+        active as long as count is less than channel capture/compare register,
+        else inactive.  In downcounting, channel is inactive as long as count
+        exceeds capture/compare register, else active. */
     TIMER_OC_MODE_PWM_2 = 7 << 4  /**< PWM mode 2. In upcounting, channel is
-                                     inactive as long as count is less than
-                                     capture/compare register, else active.
-                                     In downcounting, channel is active as
-                                     long as count exceeds capture/compare
-                                     register, else inactive. */
+        inactive as long as count is less than capture/compare register,
+        else active. In downcounting, channel is active as long as count
+        exceeds capture/compare register, else inactive. */
 } timer_oc_mode;
 
 /**
@@ -1030,19 +1069,38 @@ static inline void timer_oc_set_mode(timer_dev *dev,
                                      uint8 channel,
                                      timer_oc_mode mode,
                                      uint8 flags) {
-    uint8 bit0 = channel & 1;
-    //uint8 bit1 = (channel >> 1) & 1;  // original
-    uint8 bit1 = ((channel-1) >> 1) & 1;  // fixed
     /* channel == 1,2 -> CCMR1; channel == 3,4 -> CCMR2 */
-    __IO uint32 *ccmr = &(dev->regs).gen->CCMR1 + bit1;
+    __IO uint32 *ccmr = &(dev->regs).gen->CCMR1 + (((channel - 1) >> 1) & 1);
     /* channel == 1,3 -> shift = 0, channel == 2,4 -> shift = 8 */
-    uint8 shift = 8 * (1 - bit0);
+    uint8 shift = 8 * (1 - (channel & 1));
 
     uint32 tmp = *ccmr;
     tmp &= ~(0xFF << shift);
     tmp |= (mode | flags) << shift;
     *ccmr = tmp;
 }
+
+static void timer_set_cc_mode(timer_dev *dev,
+                              timer_channel channel,
+                              uint8 cc_mode,
+                              uint8 flags)
+{
+    timer_oc_set_mode(dev, channel, (timer_oc_mode)cc_mode, flags);
+    timer_cc_enable(dev, channel);
+}
+
+
+/**
+ * Timer output compare modes.
+ */
+typedef enum timer_ic_input_select {
+    TIMER_IC_INPUT_DEFAULT = TIMER_CCMR_CCS_INPUT_TI1,
+    TIMER_IC_INPUT_SWITCH  = TIMER_CCMR_CCS_INPUT_TI2,
+    TIMER_IC_INPUT_TRC     = TIMER_CCMR_CCS_INPUT_TRC,
+} timer_ic_input_select;
+
+extern void input_capture_mode(timer_dev *dev, uint8 channel, timer_ic_input_select input);
+
 
 #ifdef __cplusplus
 } // extern "C"

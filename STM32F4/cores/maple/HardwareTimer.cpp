@@ -28,26 +28,30 @@
 #include "boards.h"             // for CYCLES_PER_MICROSECOND
 
 
-#define NR_TIMERS 14
-
 #define MAX_RELOAD ((1 << 16) - 1)
 
+#define NR_TIMERS 14
+
 static timer_dev * const devs[] = {
-	TIMER1,
-	TIMER2,
-	TIMER3,
-	TIMER4,
-	TIMER5,
-	TIMER6,
-	TIMER7,
-	TIMER8,
-	TIMER9,
-	TIMER10,
-	TIMER11,
-	TIMER12,
-	TIMER13,
-	TIMER14,
+    TIMER1,
+    TIMER2,
+    TIMER3,
+    TIMER4,
+    TIMER5,
+    TIMER6,
+    TIMER7,
+    TIMER8,
+    TIMER9,
+    TIMER10,
+    TIMER11,
+    TIMER12,
+    TIMER13,
+    TIMER14,
 };
+
+/*
+ * HardwareTimer routines
+ */
 
 HardwareTimer::HardwareTimer(uint8 timerNum)
 {
@@ -56,7 +60,6 @@ HardwareTimer::HardwareTimer(uint8 timerNum)
     }
     this->dev = devs[timerNum - 1];
 }
-
 
 uint16 HardwareTimer::setPeriod(uint32 microseconds)
 {
@@ -67,13 +70,20 @@ uint16 HardwareTimer::setPeriod(uint32 microseconds)
         return this->getOverflow();
     }
 
-    uint32 period_cyc = microseconds * CYCLES_PER_MICROSECOND / 2;
+    uint32 period_cyc = microseconds * (CYCLES_PER_MICROSECOND / 2);
     uint16 prescaler = (uint16)(period_cyc / MAX_RELOAD + 1);
     uint16 overflow = (uint16)round(period_cyc / prescaler);
     this->setPrescaleFactor(prescaler);
     this->setOverflow(overflow);
     return overflow;
 }
+
+void HardwareTimer::setMasterModeTrGo(uint32_t mode)
+{
+    this->dev->regs.bas->CR2 &= ~TIMER_CR2_MMS;
+    this->dev->regs.bas->CR2 |= mode;
+}
+
 
 // Predefined instances
 

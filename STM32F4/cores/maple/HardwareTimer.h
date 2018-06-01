@@ -39,8 +39,6 @@
 /** Timer mode. */
 typedef timer_mode TimerMode;
 
-/** @brief Deprecated; use TIMER_OUTPUT_COMPARE instead. */
-#define TIMER_OUTPUTCOMPARE TIMER_OUTPUT_COMPARE
 
 /**
  * @brief Interface to one of the 16-bit timer peripherals.
@@ -83,7 +81,7 @@ public:
      * @brief Get the timer's clock speed.
      * @return Timer input clock speed in Hz/second
      */
-	uint32 getClockSpeed(void) {
+    uint32 getClockSpeed(void) {
         return rcc_dev_timer_clk_speed(this->dev->clk_id);
     }
 
@@ -104,9 +102,7 @@ public:
      * @param factor The new prescale value to set, from 1 to 65,536.
      * @see HardwareTimer::refresh()
      */
-    void setPrescaleFactor(uint32 factor) {
-        timer_set_prescaler(this->dev, (uint16)(factor - 1));
-    }
+    void setPrescaleFactor(uint32 factor) { timer_set_prescaler(this->dev, (uint16)(factor - 1)); }
 
     /**
      * @brief Get the timer overflow value.
@@ -140,10 +136,7 @@ public:
      *            the timer's overflow value, it is truncated to the
      *            overflow value.
      */
-    void setCount(uint16 val) {
-        uint16 ovf = this->getOverflow();
-        timer_set_count(this->dev, min(val, ovf));
-    }
+    void setCount(uint16 val) { timer_set_count(this->dev, min(val, this->getOverflow())); }
 
     /**
      * @brief Set the timer's period in microseconds.
@@ -158,7 +151,7 @@ public:
      */
     uint16 setPeriod(uint32 microseconds);
 
-	void setMasterMode(timer_mms_t mode) {
+    void setMasterMode(timer_mms_t mode) {
         timer_set_master_mode(this->dev, mode);
     }
 
@@ -167,17 +160,13 @@ public:
      * @param channel Timer channel, from 1 to 4
      * @param mode Mode to set
      */
-    void setMode(uint8 channel, timer_mode mode) {
-        timer_set_mode(this->dev, channel, mode);
-    }
+    void setMode(int channel, timer_mode mode) { timer_set_mode(this->dev, channel, mode); }
 
     /**
      * @brief Get the compare value for the given channel.
      * @see HardwareTimer::setCompare()
      */
-    uint16 getCompare(uint8 channel) {
-        return timer_get_compare(this->dev, channel);
-    }
+    uint16 getCompare(int channel) { return timer_get_compare(this->dev, channel); }
 
     /**
      * @brief Set the compare value for the given channel.
@@ -192,8 +181,7 @@ public:
      * @see HardwareTimer::attachInterrupt()
      */
     void setCompare(uint8 channel, uint16 val) {
-        uint16 ovf = this->getOverflow();
-        timer_set_compare(this->dev, channel, min(val, ovf));
+        timer_set_compare(this->dev, channel, min(val, this->getOverflow()));
     }
 
     /**
@@ -202,13 +190,14 @@ public:
      * This interrupt handler will be called when the timer's counter
      * reaches the given channel compare value.
      *
-     * @param channel the channel to attach the ISR to, from 1 to 4.
+     * @param channel the channel to attach the ISR to, from 0 to 4.
+     *   Channel 0 is for overflow interrupt (update interrupt).
      * @param handler The ISR to attach to the given channel.
      * @see voidFuncPtr
      */
     void attachInterrupt(uint8 channel, voidFuncPtr handler) {
-		timer_attach_interrupt(this->dev, channel, handler);
-	}
+        timer_attach_interrupt(this->dev, channel, handler);
+    }
 
     /**
      * @brief Remove the interrupt handler attached to the given
@@ -216,7 +205,8 @@ public:
      *
      * The handler will no longer be called by this timer.
      *
-     * @param channel the channel whose interrupt to detach, from 1 to 4.
+     * @param channel the channel whose interrupt to detach, from 0 to 4.
+     *   Channel 0 is for overflow interrupt (update interrupt).
      * @see HardwareTimer::attachInterrupt()
      */
     void detachInterrupt(uint8 channel) {
@@ -236,15 +226,81 @@ public:
      * @see HardwareTimer::setPrescaleFactor()
      * @see HardwareTimer::setOverflow()
      */
-    void refresh(void) {
-        timer_generate_update(this->dev);
+    void refresh(void) { timer_generate_update(this->dev); }
+
+	// SYFRE
+    /**
+     * @brief Set the Master mode TRGO signal 
+     *        These bits allow to select the information to be sent in master mode to slave timers for 
+     *        synchronization (TRGO). 
+	 *	mode:
+	 * 		TIMER_CR2_MMS_RESET
+	 * 		TIMER_CR2_MMS_ENABLE
+	 * 		TIMER_CR2_MMS_UPDATE
+	 * 		TIMER_CR2_MMS_COMPARE_PULSE
+	 * 		TIMER_CR2_MMS_COMPARE_OC1REF
+	 * 		TIMER_CR2_MMS_COMPARE_OC2REF
+	 * 		TIMER_CR2_MMS_COMPARE_OC3REF
+	 * 		TIMER_CR2_MMS_COMPARE_OC4REF
+     */
+	void setMasterModeTrGo(uint32_t mode);
+
+    void setSlaveFlags(uint32 flags) { ((this->dev)->regs).gen->SMCR = flags; }
+
+//CARLOS.
+/*
+    added these functions to make sense for the encoder mode. 
+*/
+//direction of movement. (to be better described). 
+    uint8 getDirection() { return get_direction(this->dev); }
+
+//set if the encoder will count edges on one, which or both channels. 
+    void setEdgeCounting(uint32 counting) { setSlaveFlags(counting); }
+
+//set the polarity of counting... not sure how interesting this is.. 
+    void setPolarity(timer_channel channel, uint8 pol) {
+        timer_cc_set_pol(this->dev, channel, pol);
     }
+
+    uint8_t getPolarity(timer_channel channel) {
+        return timer_cc_get_pol(this->dev, channel);
+    }
+
+    void setInputCaptureMode(timer_channel channel, timer_ic_input_select input) {
+        input_capture_mode(this->dev, channel, input);
+    }
+
+    uint8_t getInputCaptureFlag(timer_channel channel) {
+        return ( timer_get_status(this->dev) >> channel ) & 0x1;
+    }
+
+    uint8_t getInputCaptureFlagOverflow(timer_channel channel) {
+		uint8 ret = ( timer_get_status(this->dev) >> (8+channel) ) & 0x1;
+		if ( ret ) timer_reset_status_bit(this->dev, (8+channel)); // clear flag
+        return ret;
+    }
+
+    /**
+     * @brief Enable/disable DMA request for the input channel.
+     */
+    void enableDMA(timer_channel channel) { timer_dma_enable_req(this->dev, channel); }
+
+    void disableDMA(timer_channel channel) { timer_dma_disable_req(this->dev, channel); }
+
+
+    /**
+     * @brief Get a pointer to the underlying libmaple timer_dev for
+     *        this HardwareTimer instance.
+     */
+    timer_dev* c_dev(void) { return this->dev; }
+
+
 };
 
-/* -- The rest of this file is deprecated. --------------------------------- */
 
 /**
  * @brief Deprecated.
+ *
  * Pre-instantiated timer instances.
  */
 extern HardwareTimer Timer1;
