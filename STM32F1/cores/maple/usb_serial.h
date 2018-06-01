@@ -31,6 +31,7 @@
 #ifndef _WIRISH_USB_SERIAL_H_
 #define _WIRISH_USB_SERIAL_H_
 
+#include <libmaple/usb_cdcacm.h>
 #include "Print.h"
 #include "boards.h"
 #include "Stream.h"
@@ -49,7 +50,8 @@ public:
     void begin(unsigned long, uint8_t);
     void end(void);
 
-    virtual int available(void);// Changed to virtual
+    virtual int available(void) { return usb_cdcacm_data_available(); }
+    int availableForWrite(void) { return usb_cdcacm_tx_available(); }
 
     size_t readBytes(char *buf, const size_t& len);
     uint32 read(uint8 * buf, uint32 len);
@@ -58,7 +60,6 @@ public:
     // Roger Clark. added functions to support Arduino 1.0 API
     virtual int peek(void);
     virtual int read(void);
-    int availableForWrite(void);
     virtual void flush(void);
 
 

@@ -170,10 +170,10 @@ int usb_cdcacm_get_n_data_bits(void); /* bDataBits */
 #define USB_CDCACM_HOOK_RX 0x1
 #define USB_CDCACM_HOOK_IFACE_SETUP 0x2
 
-void usb_cdcacm_set_hooks(unsigned hook_flags, void (*hook)(unsigned, void*));
+extern void usb_cdcacm_set_hooks(unsigned hook_flags, void (*hook)(unsigned));
 
 static inline __always_inline void usb_cdcacm_remove_hooks(unsigned hook_flags) {
-    usb_cdcacm_set_hooks(hook_flags, 0);
+    usb_cdcacm_set_hooks(hook_flags, NULL);
 }
 
 #ifdef __cplusplus

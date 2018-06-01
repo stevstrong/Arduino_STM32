@@ -363,10 +363,10 @@ __weak USER_STANDARD_REQUESTS User_Standard_Requests = {
  * User hooks
  */
 
-static void (*rx_hook)(unsigned, void*) = 0;
-static void (*iface_setup_hook)(unsigned, void*) = 0;
+static void (*rx_hook)(unsigned) = NULL;
+static void (*iface_setup_hook)(unsigned) = NULL;
 
-void usb_cdcacm_set_hooks(unsigned hook_flags, void (*hook)(unsigned, void*)) {
+void usb_cdcacm_set_hooks(unsigned hook_flags, void (*hook)(unsigned)) {
     if (hook_flags & USB_CDCACM_HOOK_RX) {
         rx_hook = hook;
     }
@@ -639,7 +639,7 @@ static void vcomDataRxCb(void)
 	}
 
     if (rx_hook) {
-        rx_hook(USB_CDCACM_HOOK_RX, 0);
+        rx_hook(0);
     }
 }
 
@@ -739,8 +739,7 @@ static RESULT usbDataSetup(uint8 request) {
 
         /* Call the user hook. */
         if (iface_setup_hook) {
-            uint8 req_copy = request;
-            iface_setup_hook(USB_CDCACM_HOOK_IFACE_SETUP, &req_copy);
+            iface_setup_hook(request);
         }
     }
 
@@ -774,8 +773,7 @@ static RESULT usbNoDataSetup(uint8 request) {
 
         /* Call the user hook. */
         if (iface_setup_hook) {
-            uint8 req_copy = request;
-            iface_setup_hook(USB_CDCACM_HOOK_IFACE_SETUP, &req_copy);
+            iface_setup_hook(request);
         }
     }
     return ret;
