@@ -342,6 +342,10 @@ static inline void dma_clear_isr_bits(const dma_dev *dev, dma_stream stream)
 	dma_clear_isr_bit(dev, stream, DMA_ISR_BIT_MASK);
 }
 
+static inline uint16 dma_get_count(const dma_dev *dev, dma_stream stream) {
+    return dev->regs->STREAM[stream].NDTR;
+}
+
 #ifdef __cplusplus
 } // extern "C"
 #endif
