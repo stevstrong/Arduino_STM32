@@ -237,7 +237,11 @@ void Adafruit_ILI9341_STM::pushColors(void * colorBuffer, uint16_t nr_pixels, ui
   cs_clear();
 
   if (async==0) {
-    mSPI.dmaSend(colorBuffer, nr_pixels, 1);
+    if (nr_pixels>DMA_ON_LIMIT) {
+      mSPI.dmaSend(colorBuffer, nr_pixels);
+    } else {
+      mSPI.write(colorBuffer, nr_pixels);
+    }
     cs_set();
   } else {
     mSPI.dmaSendAsync(colorBuffer, nr_pixels, 1);
@@ -269,8 +273,7 @@ void Adafruit_ILI9341_STM::drawFastVLine(int16_t x, int16_t y, int16_t h,
 
   cs_clear();
   if (h>DMA_ON_LIMIT) {
-    lineBuffer[0] = color;
-    mSPI.dmaSend(lineBuffer, h, 0);
+    mSPI.dmaSend(color, h);
   } else {
     mSPI.write(color, h);
   }
@@ -293,8 +296,7 @@ void Adafruit_ILI9341_STM::drawFastHLine(int16_t x, int16_t y, int16_t w,
 
   cs_clear();
   if (w>DMA_ON_LIMIT) {
-    lineBuffer[0] = color;
-    mSPI.dmaSend(lineBuffer, w, 0);
+    mSPI.dmaSend(color, w);
   } else {
     mSPI.write(color, w);
   }
@@ -303,15 +305,14 @@ void Adafruit_ILI9341_STM::drawFastHLine(int16_t x, int16_t y, int16_t w,
 
 void Adafruit_ILI9341_STM::fillScreen(uint16_t color)
 {
-  lineBuffer[0] = color;
   setAddrWindow(0, 0, _width - 1, _height - 1);
   cs_clear();
   uint32_t nr_bytes = _width * _height;
   while ( nr_bytes>65535 ) {
     nr_bytes -= 65535;
-    mSPI.dmaSend(lineBuffer, (65535), 0);
+    mSPI.dmaSend(color, (65535));
   }
-  mSPI.dmaSend(lineBuffer, nr_bytes, 0);
+  mSPI.dmaSend(color, nr_bytes);
   cs_set();
 }
 
@@ -319,7 +320,6 @@ void Adafruit_ILI9341_STM::fillScreen(uint16_t color)
 void Adafruit_ILI9341_STM::fillRect(int16_t x, int16_t y, int16_t w, int16_t h,
                                    uint16_t color)
 {
-  lineBuffer[0] = color;
   // rudimentary clipping (drawChar w/big text requires this)
   if ((x >= _width) || (y >= _height || h < 1 || w < 1)) return;
   if ((x + w - 1) >= _width)  w = _width  - x;
@@ -335,9 +335,9 @@ void Adafruit_ILI9341_STM::fillRect(int16_t x, int16_t y, int16_t w, int16_t h,
   if ( nr_bytes>DMA_ON_LIMIT ) {
     while ( nr_bytes>65535 ) {
       nr_bytes -= 65535;
-      mSPI.dmaSend(lineBuffer, (65535), 0);
+      mSPI.dmaSend(color, (65535));
     }
-    mSPI.dmaSend(lineBuffer, nr_bytes, 0);
+    mSPI.dmaSend(color, nr_bytes);
   } else {
     mSPI.write(color, nr_bytes);
   }

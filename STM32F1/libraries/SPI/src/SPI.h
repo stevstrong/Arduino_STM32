@@ -332,7 +332,7 @@ public:
         return dma_get_count(_currentSetting->spiDmaDev, _currentSetting->spiTxDmaChannel);
     }
 
-    #define dmaSendAsync(transmit, length, minc) ( dmaSend(transmit, length, (minc&BIT0)) )
+    #define dmaSendAsync(transmit, length, minc) dmaSend(transmit, length, (minc&BIT0))
 
     /*
      * Pin accessors
