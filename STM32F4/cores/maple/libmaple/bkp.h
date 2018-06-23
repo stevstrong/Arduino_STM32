@@ -93,7 +93,7 @@ typedef struct bkp_reg_map {
 } bkp_reg_map;
 
 /** Backup peripheral register map base pointer. */
-#define BKP_BASE                        ((struct bkp_reg_map*)0x40006C00)
+#define BKP_BASE                        ((struct bkp_reg_map*)0x40024000)
 
 /** Backup peripheral device type. */
 typedef struct bkp_dev {
