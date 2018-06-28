@@ -259,7 +259,7 @@ public:
     }
 
     void setInputCaptureMode(timer_channel channel, timer_ic_input_select input) {
-        input_capture_mode(this->dev, channel, input);
+        timer_input_capture_mode(this->dev, channel, input);
     }
 
     uint8_t getInputCaptureFlag(timer_channel channel) {

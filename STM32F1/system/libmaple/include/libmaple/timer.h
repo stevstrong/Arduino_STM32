@@ -1054,7 +1054,7 @@ typedef enum timer_ic_input_select {
     TIMER_IC_INPUT_TRC     = TIMER_CCMR_CCS_INPUT_TRC,
 } timer_ic_input_select;
 
-extern void input_capture_mode(timer_dev *dev, uint8 channel, timer_ic_input_select input);
+extern void timer_input_capture_mode(timer_dev *dev, uint8 channel, timer_ic_input_select input);
 
 
 #ifdef __cplusplus
