@@ -131,6 +131,19 @@ void dma_clear_isr_bit(const dma_dev *dev, dma_stream stream, uint8_t mask)
 	else				dev->regs->LIFCR = (uint32)mask << dma_isr_bits_shift[stream&0x03];
 }
 
+void dma_set_mem_addr(const dma_dev *dev, dma_stream stream, __IO void *addr)
+{
+    dma_disable(dev, stream);
+    dev->regs->STREAM[stream].M0AR = (uint32)addr;
+}
+
+void dma_set_per_addr(const dma_dev *dev, dma_stream stream, __IO void *addr)
+{
+    dma_disable(dev, stream);
+    dev->regs->STREAM[stream].PAR = (uint32)addr;
+}
+
+
 /*
  * IRQ handlers
  */

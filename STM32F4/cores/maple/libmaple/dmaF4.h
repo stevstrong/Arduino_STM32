@@ -346,6 +346,38 @@ static inline uint16 dma_get_count(const dma_dev *dev, dma_stream stream) {
     return dev->regs->STREAM[stream].NDTR;
 }
 
+/**
+ * @brief Set the base memory address where data will be read from or
+ *        written to.
+ *
+ * You must not call this function while the tube is enabled.
+ *
+ * If the DMA memory size is 16 bits, the address is automatically
+ * aligned to a half-word.  If the DMA memory size is 32 bits, the
+ * address is aligned to a word.
+ *
+ * @param dev DMA Device
+ * @param tube Tube whose base memory address to set.
+ * @param address Memory base address to use.
+ */
+extern void dma_set_mem_addr(const dma_dev *dev, dma_stream stream, __IO void *address);
+
+/**
+ * @brief Set the base peripheral address where data will be read from
+ *        or written to.
+ *
+ * You must not call this function while the channel is enabled.
+ *
+ * If the DMA peripheral size is 16 bits, the address is automatically
+ * aligned to a half-word. If the DMA peripheral size is 32 bits, the
+ * address is aligned to a word.
+ *
+ * @param dev DMA Device
+ * @param tube Tube whose peripheral data register base address to set.
+ * @param address Peripheral memory base address to use.
+ */
+extern void dma_set_per_addr(const dma_dev *dev, dma_stream stream, __IO void *address);
+
 #ifdef __cplusplus
 } // extern "C"
 #endif
