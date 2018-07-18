@@ -34,6 +34,7 @@
 #ifndef _GPIO_H_
 #define _GPIO_H_
 
+#include <libmaple/gpio_def.h>
 #include "libmaple.h"
 #include "boards.h"
 
@@ -41,17 +42,20 @@
 extern "C"{
 #endif
 
-
-#define digitalPinToPort(P)        ( PIN_MAP[P].gpio_device )
+	
+extern const gpio_dev * const gpio_devices[];
+//static inline const gpio_dev * digitalPinToPort(uint8_t pin) { return gpio_devices[pin/16]; }
+#define digitalPinToPort(P)        ( gpio_devices[P/16] )
 #define digitalPinToBit(P)         ( (P&0x0F) )
 #define digitalPinToBitMask(P)     ( BIT(P&0x0F) )
 #define portOutputRegister(port)   ( &(port->regs->ODR) )
 #define portInputRegister(port)    ( &(port->regs->IDR) )
 
-#define portSetRegister(pin)		( &(PIN_MAP[pin].gpio_device->regs->BSRR) )
-#define portClearRegister(pin)		( &(PIN_MAP[pin].gpio_device->regs->BSRR) )
+#define portSetRegister(pin)		( &(digitalPinToPort(pin)->regs->BSRR) )
+#define portClearRegister(pin)		( &(digitalPinToPort(pin)->regs->BSRR) )
 
-#define portConfigRegister(pin)		( &(PIN_MAP[pin].gpio_device->regs->CRL) )
+#define portConfigRegister(pin)		( &(digitalPinToPort(pin)->regs->CRL) )
+
 
 /**
  * @brief Get a GPIO port's corresponding afio_exti_port.
@@ -106,11 +110,11 @@ static inline void gpio_toggle_bit(gpio_dev *dev, uint8 bit) {
  * @param val If true, set the pin.  If false, reset the pin.
  */
 static inline void gpio_set_pin(uint8_t pin) {
-	(PIN_MAP[pin].gpio_device)->regs->BSRR = (uint32_t)BIT(pin&0x0F);
+	(digitalPinToPort(pin))->regs->BSRR = (uint32_t)BIT(pin&0x0F);
 }
 
 static inline void gpio_clear_pin(uint8_t pin) {
-	(PIN_MAP[pin].gpio_device)->regs->BSRR = (uint32_t)BIT(pin&0x0F)<<16;
+	(digitalPinToPort(pin))->regs->BSRR = (uint32_t)BIT(pin&0x0F)<<16;
 }
 
 static inline void gpio_write_pin(uint8_t pin, uint8 val) {
@@ -131,7 +135,7 @@ static inline void gpio_write_pin(uint8_t pin, uint8 val) {
  * @return True if the pin is set, false otherwise.
  */
 static inline uint32 gpio_read_pin(uint8_t pin) {
-    return (PIN_MAP[pin].gpio_device)->regs->IDR & BIT(pin&0x0F);
+    return (digitalPinToPort(pin))->regs->IDR & BIT(pin&0x0F);
 }
 
 /**
@@ -140,7 +144,7 @@ static inline uint32 gpio_read_pin(uint8_t pin) {
  * @param pin Pin on dev to toggle.
  */
 static inline void gpio_toggle_pin(uint8_t pin) {
-    (PIN_MAP[pin].gpio_device)->regs->ODR = (PIN_MAP[pin].gpio_device)->regs->ODR ^ BIT(pin&0x0F);
+    (digitalPinToPort(pin))->regs->ODR = (digitalPinToPort(pin))->regs->ODR ^ BIT(pin&0x0F);
 }
 
 /*

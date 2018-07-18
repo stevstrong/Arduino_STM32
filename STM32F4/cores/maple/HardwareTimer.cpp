@@ -32,22 +32,6 @@
 
 #define NR_TIMERS 14
 
-static timer_dev * const devs[] = {
-    TIMER1,
-    TIMER2,
-    TIMER3,
-    TIMER4,
-    TIMER5,
-    TIMER6,
-    TIMER7,
-    TIMER8,
-    TIMER9,
-    TIMER10,
-    TIMER11,
-    TIMER12,
-    TIMER13,
-    TIMER14,
-};
 
 /*
  * HardwareTimer routines
@@ -55,10 +39,10 @@ static timer_dev * const devs[] = {
 
 HardwareTimer::HardwareTimer(uint8 timerNum)
 {
-    if (timerNum > NR_TIMERS) {
+    if (timerNum > NR_TIMERS && timerNum==0) {
         ASSERT(0);
     }
-    this->dev = devs[timerNum - 1];
+    this->dev = timer_devices[timerNum];
 }
 
 uint16 HardwareTimer::setPeriod(uint32 microseconds)

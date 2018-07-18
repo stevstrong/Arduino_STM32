@@ -46,7 +46,7 @@ typedef timer_mode TimerMode;
 class HardwareTimer
 {
 private:
-    timer_dev *dev;
+    const timer_dev *dev;
 
 public:
     /**
@@ -292,7 +292,7 @@ public:
      * @brief Get a pointer to the underlying libmaple timer_dev for
      *        this HardwareTimer instance.
      */
-    timer_dev* c_dev(void) { return this->dev; }
+    const timer_dev* c_dev(void) { return this->dev; }
 
 
 };

@@ -32,7 +32,7 @@
 
 #include "generic_f407v.h"
 
-#include "wirish_types.h"
+#include <libmaple/libmaple_types.h>
 
 //static void initSRAMChip(void);
 /*****************************************************************************/
@@ -42,6 +42,25 @@ void boardInit(void) {
 
 	return;
 }
+
+/* to be defined
+const uint8 boardPWMPins[BOARD_NR_PWM_PINS] __FLASH__ = {
+    0, 1, 2, 3, 15, 16, 17, 19, 20, 21, 38, 39, 49, 41, 60, 61, 62, 63, 73, 75, 77, 78
+};
+*/
+const uint8 boardADCPins[BOARD_NR_ADC_PINS] = {
+    PA0, PA1, PA2, PA3, PA4, PA5, PA6, PA7, PB0, PB1, PC0, PC1, PC2, PC3, PC4, PC5
+};
+
+const uint8 boardUsedPins[BOARD_NR_USED_PINS] = {
+    BOARD_LED_PIN, BOARD_LED2_PIN, BOARD_BUTTON1_PIN, BOARD_BUTTON2_PIN, BOARD_BUTTON2_PIN,
+	BOARD_JTMS_SWDIO_PIN, BOARD_JTCK_SWCLK_PIN,
+	FLASH_CS_PIN, FLASH_CLK_PIN, FLASH_DO_PIN, FLASH_DI_PIN,
+	NRF24_CE_PIN, NRF24_CS_PIN, NRF24_IRQ_PIN,
+	BOARD_SDIO_D0, BOARD_SDIO_D1, BOARD_SDIO_D2, BOARD_SDIO_D3, BOARD_SDIO_CLK, BOARD_SDIO_CMD,
+	USB_DM_PIN, USB_DP_PIN
+};
+
 
 /*
 static void initSRAMChip(void) {

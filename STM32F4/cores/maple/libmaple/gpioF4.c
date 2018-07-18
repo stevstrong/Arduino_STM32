@@ -89,6 +89,13 @@ const gpio_dev gpiog = {
 
 syscfg_reg_map * const SYSCFG = SYSCFG_BASE;
 
+const gpio_dev * const gpio_devices[] = {
+	GPIOA, GPIOB, GPIOC, GPIOD, GPIOE,
+#ifdef PACKAGE_LQFP144 // not available on LQFP100 package
+	GPIOF, GPIOG
+#endif
+};
+
 /*
  * GPIO convenience routines
  */
@@ -129,7 +136,7 @@ void gpio_init_all(void) {
  * @see gpio_pin_mode
  */
 void gpio_set_mode(uint8_t io_pin, gpio_pin_mode mode) {
-    gpio_reg_map *regs = (PIN_MAP[io_pin].gpio_device)->regs;
+    gpio_reg_map *regs = digitalPinToPort(io_pin)->regs;
     uint8_t pin = io_pin&0x0f;
 
     regs->MODER      = (regs->MODER      & ~( 3 << (pin<<1)))     | (((mode >> 0) & 3)  << (pin<<1));
@@ -147,7 +154,7 @@ void gpio_set_mode(uint8_t io_pin, gpio_pin_mode mode) {
  * @see gpio_pin_mode
  */
 void gpio_set_af_mode(uint8_t io_pin, gpio_af_mode mode) {
-    gpio_reg_map *regs = (PIN_MAP[io_pin].gpio_device)->regs;
+    gpio_reg_map *regs = digitalPinToPort(io_pin)->regs;
     uint8_t pin = io_pin&0x0F;
 
     regs->AFR[pin>>3] = (regs->AFR[pin>>3] & ~(15 << ((pin&7)<<2))) | (((mode >> 0) & 15) << ((pin&7)<<2));

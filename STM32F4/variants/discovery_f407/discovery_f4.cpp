@@ -35,7 +35,7 @@
 #include <libmaple/gpio.h>
 #include <libmaple/rcc.h>
 
-#include "wirish_types.h"
+#include <libmaple/libmaple_types.h>
 
 //static void initSRAMChip(void);
 void boardInit(void) {

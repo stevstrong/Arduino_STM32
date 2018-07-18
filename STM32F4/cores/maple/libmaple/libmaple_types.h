@@ -62,5 +62,11 @@ typedef void (*voidFuncPtr)(void);
   #define NULL 0
 #endif
 
+// Variable attributes, instructs the linker to place the marked
+// variable in FLASH or CCRAM instead of RAM.
+#define __FLASH__ __attr_flash
+#define __CCMRAM__ __attr_ccmram
+
+
 #endif
 

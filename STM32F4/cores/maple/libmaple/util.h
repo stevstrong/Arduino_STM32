@@ -59,6 +59,10 @@ extern "C"{
 void __error(int num);
 void _fail(const char*, int, const char*);
 void throb(void);
+static void __empty() {
+	// Empty
+}
+void yield(void) __attribute__ ((weak, alias("__empty")));
 
 /*
  * Asserts and debug levels

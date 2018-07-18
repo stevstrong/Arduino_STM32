@@ -26,16 +26,15 @@
 
 #define USE_USB_OTG_FS
 #define     __IO    volatile
-typedef unsigned long		uint32_t;
-typedef unsigned int		u32;
+typedef unsigned long	uint32_t;
+typedef unsigned int	u32;
 typedef unsigned short	uint16_t;
 typedef unsigned short	u16;
-typedef unsigned char		uint8_t;
-typedef unsigned char		u8;
+typedef unsigned char	uint8_t;
+typedef unsigned char	u8;
 
 /* Includes ------------------------------------------------------------------*/
 //#include "stm32f4xx.h"
-#include <wirish_types.h>
 
 /** @addtogroup USB_OTG_DRIVER
   * @{

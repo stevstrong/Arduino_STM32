@@ -122,7 +122,7 @@ static void setupADC()
     adc_foreach(adcDefaultConfig);
 }
 
-static void timerDefaultConfig(timer_dev *dev)
+static void timerDefaultConfig(const timer_dev *dev)
 {
     timer_adv_reg_map *regs = (dev->regs).adv;
     const uint16 full_overflow = 0xFFFF;

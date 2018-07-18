@@ -101,9 +101,10 @@ static const spi_pins * dev_to_spi_pins(spi_dev *dev)
 
 static void disable_pwm(uint8_t pin)
 {
-    const stm32_pin_info * i = &PIN_MAP[pin];
-    if (i->timer_device) {
-        timer_set_mode(i->timer_device, i->timer_channel, TIMER_DISABLED);
+    const timer_info * i = &timer_map[pin];
+    const timer_dev * t_dev = timer_devices[i->index];
+    if (i->index && t_dev) {
+        timer_set_mode(t_dev, i->channel, TIMER_DISABLED);
     }
 }
 
@@ -171,7 +172,7 @@ SPISettings _settings[BOARD_NR_SPI];
 void spiEventCallback(uint32 spi_num)
 {
     SPISettings * crtSetting = &_settings[spi_num];
-    dma_channel dmaStream = (crtSetting->state==SPI_STATE_TRANSMIT) ? crtSetting->spiTxDmaStream :
+    dma_stream dmaStream = (crtSetting->state==SPI_STATE_TRANSMIT) ? crtSetting->spiTxDmaStream :
                             ( (crtSetting->state==SPI_STATE_RECEIVE) ? crtSetting->spiRxDmaStream : (dma_stream)-1);
 
     if ( dmaStream==(dma_stream)-1 )
@@ -660,7 +661,7 @@ void SPIClass::dmaTransferSet(void *receiveBuf, uint16 flags)
     dma_setup_transfer(_currentSetting->spiDmaDev, _currentSetting->spiTxDmaStream,
                        _currentSetting->spiDmaChannel, dma_bit_size,
                        &_currentSetting->spi_d->regs->DR,  // peripheral address
-                       transmitBuf,                        // memory bank 0 address
+                       _currentSetting->dmaTxBuffer,       // memory bank 0 address
                        NULL,                               // memory bank 1 address
                        (flags | DMA_FROM_MEM));
     dma_set_fifo_flags(_currentSetting->spiDmaDev, _currentSetting->spiTxDmaStream, 0);
@@ -704,7 +705,7 @@ void SPIClass::dmaTransfer(const void *transmitBuf, void *receiveBuf, uint16 len
     _currentSetting->dmaTxBuffer = transmitBuf;
     _currentSetting->dmaTrxLength = length;
     _currentSetting->dmaTrxAsync = (flags&DMA_ASYNC);
-    dmaTransferSet(receiveBuf, (flags&(DMA_CIRC_MODE|DMA_HALF_TRNS)) | DMA_MINC_MODE);
+    dmaTransferSet(receiveBuf, (flags&(DMA_CIRC_MODE|DMA_TRNS_HALF)) | DMA_MINC_MODE);
     dmaTransferRepeat();
     PRINTF("-dT>\n");
 }
@@ -717,7 +718,7 @@ void SPIClass::dmaTransfer(const uint16_t tx_data, void *receiveBuf, uint16 leng
     _currentSetting->dmaTxBuffer = &ff;
     _currentSetting->dmaTrxLength = length;
     _currentSetting->dmaTrxAsync = (flags&DMA_ASYNC);
-    dmaTransferSet(receiveBuf, (flags&(DMA_CIRC_MODE|DMA_HALF_TRNS)));
+    dmaTransferSet(receiveBuf, (flags&(DMA_CIRC_MODE|DMA_TRNS_HALF)));
     dmaTransferRepeat();
     PRINTF("-dT>\n");
 }
@@ -729,7 +730,7 @@ void SPIClass::dmaTransferInit(const void *transmitBuf, void *receiveBuf, uint16
     _currentSetting->dmaTxBuffer = transmitBuf;
     _currentSetting->dmaTrxLength = length;
     _currentSetting->dmaTrxAsync = (flags&DMA_ASYNC);
-    dmaTransferSet(receiveBuf, (flags&(DMA_CIRC_MODE|DMA_HALF_TRNS)) | DMA_MINC_MODE);
+    dmaTransferSet(receiveBuf, (flags&(DMA_CIRC_MODE|DMA_TRNS_HALF)) | DMA_MINC_MODE);
     PRINTF("-dTI>\n");
 }
 //-----------------------------------------------------------------------------
@@ -741,7 +742,7 @@ void SPIClass::dmaTransferInit(const uint16_t tx_data, void *receiveBuf, uint16 
     _currentSetting->dmaTxBuffer = &ff;
     _currentSetting->dmaTrxLength = length;
     _currentSetting->dmaTrxAsync = (flags&DMA_ASYNC);
-    dmaTransferSet(receiveBuf, (flags&(DMA_CIRC_MODE|DMA_HALF_TRNS)));
+    dmaTransferSet(receiveBuf, (flags&(DMA_CIRC_MODE|DMA_TRNS_HALF)));
     PRINTF("-dTI>\n");
 }
 
@@ -761,7 +762,7 @@ void SPIClass::dmaSendSet(uint16 flags)
     dma_setup_transfer(_currentSetting->spiDmaDev, _currentSetting->spiTxDmaStream,
                        _currentSetting->spiDmaChannel, dma_bit_size,
                        &_currentSetting->spi_d->regs->DR,  // peripheral address
-                       (volatile void*)&ff,                // memory bank 0 address
+                       _currentSetting->dmaTxBuffer,       // memory bank 0 address
                        NULL,                               // memory bank 1 address
                        (flags | (DMA_FROM_MEM | DMA_TRNS_CMPLT)));
     dma_set_fifo_flags(_currentSetting->spiDmaDev, _currentSetting->spiTxDmaStream, 0);
@@ -791,7 +792,7 @@ void SPIClass::dmaSend(const void * transmitBuf, uint16 length, uint16 flags)
     _currentSetting->dmaTxBuffer = transmitBuf;
     _currentSetting->dmaTrxLength = length;
     _currentSetting->dmaTrxAsync = (flags&DMA_ASYNC);
-    dmaSendSet((flags&(DMA_CIRC_MODE|DMA_HALF_TRNS)) | DMA_MINC_MODE);
+    dmaSendSet((flags&(DMA_CIRC_MODE|DMA_TRNS_HALF)) | DMA_MINC_MODE);
     dmaSendRepeat();
     PRINTF("-dS>\n");
 }
@@ -804,7 +805,7 @@ void SPIClass::dmaSend(const uint16_t tx_data, uint16 length, uint16 flags)
     _currentSetting->dmaTxBuffer = &ff;
     _currentSetting->dmaTrxLength = length;
     _currentSetting->dmaTrxAsync = (flags&DMA_ASYNC);
-    dmaSendSet(flags&(DMA_CIRC_MODE|DMA_HALF_TRNS));
+    dmaSendSet(flags&(DMA_CIRC_MODE|DMA_TRNS_HALF));
     dmaSendRepeat();
     PRINTF("-dS>\n");
 }
@@ -833,7 +834,7 @@ void SPIClass::dmaSendInit(const void * txBuf, uint16 length, uint16 flags)
     _currentSetting->dmaTxBuffer = txBuf;
     _currentSetting->dmaTrxLength = length;
     _currentSetting->dmaTrxAsync = (flags&DMA_ASYNC);
-    dmaSendSet((flags&(DMA_CIRC_MODE|DMA_HALF_TRNS)) | DMA_MINC_MODE);
+    dmaSendSet((flags&(DMA_CIRC_MODE|DMA_TRNS_HALF)) | DMA_MINC_MODE);
     PRINTF("-dSI>\n");
 }
 //-----------------------------------------------------------------------------
@@ -844,7 +845,7 @@ void SPIClass::dmaSendInit(const uint16_t tx_data, uint16 length, uint16 flags)
     _currentSetting->dmaTxBuffer = &ff;
     _currentSetting->dmaTrxLength = length;
     _currentSetting->dmaTrxAsync = (flags&DMA_ASYNC);
-    dmaSendSet((flags&(DMA_CIRC_MODE|DMA_HALF_TRNS)));
+    dmaSendSet((flags&(DMA_CIRC_MODE|DMA_TRNS_HALF)));
     PRINTF("-dSI>\n");
 }
 
