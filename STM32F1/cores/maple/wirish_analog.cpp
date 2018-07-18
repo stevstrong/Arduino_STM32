@@ -38,10 +38,10 @@
  * to INPUT_ANALOG. That's faster, but it does require some extra work
  * on the user's part. Not too much, we think ;). */
 uint16 analogRead(uint8 pin) {
-    adc_dev *dev = PIN_MAP[pin].adc_device;
-    if (dev == NULL) {
+    uint8 adc_chan = PIN_MAP[pin].adc_channel;
+    if (adc_chan == ADCx) {
         return 0;
     }
 
-    return adc_read(dev, PIN_MAP[pin].adc_channel);
+    return adc_read(ADC1, adc_chan);
 }

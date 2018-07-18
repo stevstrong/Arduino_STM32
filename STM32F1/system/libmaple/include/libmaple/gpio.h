@@ -70,8 +70,9 @@ typedef struct gpio_dev {
 void gpio_init(gpio_dev *dev);
 void gpio_init_all(void);
 /* TODO flags argument version? */
-void gpio_set_mode(gpio_dev *dev, uint8 pin, gpio_pin_mode mode);
-gpio_pin_mode gpio_get_mode(gpio_dev *dev, uint8 pin);
+void gpio_set_mode(gpio_dev *dev, uint8 bit, gpio_pin_mode mode);
+gpio_pin_mode gpio_get_mode(gpio_dev *dev, uint8 bit);
+void gpio_set_pin_mode(uint8 pin, gpio_pin_mode mode);
 /**
  * @brief Get a GPIO port's corresponding EXTI port configuration.
  * @param dev GPIO port whose exti_cfg to return.

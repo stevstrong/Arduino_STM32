@@ -38,6 +38,7 @@
 #include <wirish_types.h>
 #include <board/board.h>
 
+
 /* Set of all possible pin names; not all boards have all these (note
  * that we use the Dx convention since all of the Maple's pins are
  * "digital" pins (e.g. can be used with digitalRead() and
@@ -108,7 +109,7 @@ extern void boardInit(void);
  * @return true if the given pin is in boardUsedPins, and false otherwise.
  * @see boardUsedPins
  */
-bool boardUsesPin(uint8 pin);
+uint8 boardUsesPin(uint8 pin);
 
 /*
  * Derived and default board definitions

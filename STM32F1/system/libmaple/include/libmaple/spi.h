@@ -49,23 +49,6 @@ extern "C" {
 
 
 /*
- * Register maps
- */
-
-/** SPI register map type. */
-typedef struct spi_reg_map {
-    __IO uint32 CR1;            /**< Control register 1 */
-    __IO uint32 CR2;            /**< Control register 2 */
-    __IO uint32 SR;             /**< Status register */
-    __IO uint32 DR;             /**< Data register */
-    __IO uint32 CRCPR;          /**< CRC polynomial register */
-    __IO uint32 RXCRCR;         /**< RX CRC register */
-    __IO uint32 TXCRCR;         /**< TX CRC register */
-    __IO uint32 I2SCFGR;        /**< I2S configuration register */
-    __IO uint32 I2SPR;          /**< I2S prescaler register */
-} spi_reg_map;
-
-/*
  * Register bit definitions
  */
 
@@ -198,43 +181,12 @@ typedef struct spi_reg_map {
 #define SPI_I2SPR_I2SDIV                0xFF
 
 /*
- * Devices
- */
-
-/** SPI device type */
-typedef struct spi_dev {
-    spi_reg_map *regs;          /**< Register map */
-    rcc_clk_id clk_id;          /**< RCC clock information */
-    nvic_irq_num irq_num;       /**< NVIC interrupt number */
-} spi_dev;
-
-/*
  * SPI Convenience functions
  */
 
 void spi_init(spi_dev *dev);
 
 struct gpio_dev;
-/**
- * @brief Configure GPIO bit modes for use as a SPI port's pins.
- *
- * @param dev SPI device
- * @param as_master If true, configure as bus master; otherwise, as slave.
- * @param nss_dev NSS pin's GPIO device
- * @param nss_bit NSS pin's GPIO bit on nss_dev
- * @param comm_dev SCK, MISO, MOSI pins' GPIO device
- * @param sck_bit SCK pin's GPIO bit on comm_dev
- * @param miso_bit MISO pin's GPIO bit on comm_dev
- * @param mosi_bit MOSI pin's GPIO bit on comm_dev
- */
-extern void spi_config_gpios(spi_dev *dev,
-                             uint8 as_master,
-                             struct gpio_dev *nss_dev,
-                             uint8 nss_bit,
-                             struct gpio_dev *comm_dev,
-                             uint8 sck_bit,
-                             uint8 miso_bit,
-                             uint8 mosi_bit);
 
 /**
  * @brief SPI mode configuration.

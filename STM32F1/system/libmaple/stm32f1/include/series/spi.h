@@ -41,26 +41,57 @@ extern "C" {
 #endif
 
 /*
+ * Register maps
+ */
+
+/** SPI register map type. */
+typedef struct spi_reg_map {
+    __IO uint32 CR1;            /**< Control register 1 */
+    __IO uint32 CR2;            /**< Control register 2 */
+    __IO uint32 SR;             /**< Status register */
+    __IO uint32 DR;             /**< Data register */
+    __IO uint32 CRCPR;          /**< CRC polynomial register */
+    __IO uint32 RXCRCR;         /**< RX CRC register */
+    __IO uint32 TXCRCR;         /**< TX CRC register */
+    __IO uint32 I2SCFGR;        /**< I2S configuration register */
+    __IO uint32 I2SPR;          /**< I2S prescaler register */
+} spi_reg_map;
+
+/*
  * Register map base pointers
  */
 
-struct spi_reg_map;
-
-#define SPI1_BASE                       ((struct spi_reg_map*)0x40013000)
-#define SPI2_BASE                       ((struct spi_reg_map*)0x40003800)
-#define SPI3_BASE                       ((struct spi_reg_map*)0x40003C00)
+#define SPI1_BASE               ((spi_reg_map*)0x40013000)
+#define SPI2_BASE               ((spi_reg_map*)0x40003800)
+#define SPI3_BASE               ((spi_reg_map*)0x40003C00)
 
 /*
- * Device pointers
+ * Devices
  */
 
-struct spi_dev;
+/** SPI device type */
+typedef struct spi_dev {
+    spi_reg_map *regs;          /**< Register map */
+    rcc_clk_id clk_id;          /**< RCC clock information */
+    nvic_irq_num irq_num;       /**< NVIC interrupt number */
+} spi_dev;
 
-extern struct spi_dev *SPI1;
-extern struct spi_dev *SPI2;
+extern spi_dev spi1;
+extern spi_dev spi2;
+#define SPI1 (&spi1)
+#define SPI2 (&spi2)
+
 #if defined(STM32_HIGH_DENSITY) || defined(STM32_XL_DENSITY)
-extern struct spi_dev *SPI3;
+extern spi_dev spi3;
+#define SPI3 (&spi3)
 #endif
+
+typedef struct spi_pins {
+    uint8 nss;
+    uint8 sck;
+    uint8 miso;
+    uint8 mosi;
+} spi_pins;
 
 /*
  * Routines
@@ -68,28 +99,22 @@ extern struct spi_dev *SPI3;
 
 /* spi_gpio_cfg(): Backwards compatibility shim to spi_config_gpios() */
 struct gpio_dev;
-extern void spi_config_gpios(struct spi_dev*, uint8,
-                             struct gpio_dev*, uint8,
-                             struct gpio_dev*, uint8, uint8, uint8);
+extern void spi_config_gpios(uint8 as_master, const spi_pins * pins);
+extern void spi_release_gpios(uint8 as_master, const spi_pins * pins);
+
 /**
  * @brief Deprecated. Use spi_config_gpios() instead.
  * @see spi_config_gpios()
  */
-static inline __always_inline void spi_gpio_cfg(uint8 as_master,
-                                         struct gpio_dev *nss_dev,
-                                         uint8 nss_bit,
-                                         struct gpio_dev *comm_dev,
-                                         uint8 sck_bit,
-                                         uint8 miso_bit,
-                                         uint8 mosi_bit) {
+static inline void spi_gpio_cfg(uint8 as_master, const spi_pins * pins)
+{
     /* We switched style globally to foo_config_gpios() and always
      * taking a foo_dev* argument (that last bit is the important
      * part) after this function was written.
      *
      * However, spi_config_gpios() just ignores the spi_dev* on F1, so
      * we can still keep this around for older code. */
-    spi_config_gpios(NULL, as_master, nss_dev, nss_bit,
-                     comm_dev, sck_bit, miso_bit, mosi_bit);
+    spi_config_gpios(as_master, pins);
 }
 
 #ifdef __cplusplus

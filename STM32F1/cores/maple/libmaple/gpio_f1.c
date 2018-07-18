@@ -30,7 +30,7 @@
  */
 
 #include <libmaple/gpio.h>
-#include <libmaple/rcc.h>
+#include <libmaple/timer.h>
 
 /*
  * GPIO devices
@@ -121,10 +121,10 @@ void gpio_init_all(void) {
  * @param mode General purpose or alternate function mode to set the pin to.
  * @see gpio_pin_mode
  */
-void gpio_set_mode(gpio_dev *dev, uint8 pin, gpio_pin_mode mode) {
+void gpio_set_mode(gpio_dev *dev, uint8 bit, gpio_pin_mode mode) {
     gpio_reg_map *regs = dev->regs;
-    __IO uint32 *cr = &regs->CRL + (pin >> 3);
-    uint32 shift = (pin & 0x7) * 4;
+    __IO uint32 *cr = &regs->CRL + (bit >> 3);
+    uint32 shift = (bit & 0x7) * 4;
     uint32 tmp = *cr;
 
     tmp &= ~(0xF << shift);
@@ -132,10 +132,25 @@ void gpio_set_mode(gpio_dev *dev, uint8 pin, gpio_pin_mode mode) {
     *cr = tmp;
 
     if (mode == GPIO_INPUT_PD) {
-        regs->ODR &= ~(1U << pin);
+        regs->ODR &= ~(1U << bit);
     } else if (mode == GPIO_INPUT_PU) {
-        regs->ODR |= (1U << pin);
+        regs->ODR |= (1U << bit);
     }
+}
+
+typedef struct stm32_pin_info {
+    gpio_dev *gpio_device;      /**< Maple pin's GPIO device */
+    timer_dev *timer_device;    /**< Pin's timer device, if any. */
+    uint8 gpio_bit;             /**< Pin's GPIO port bit. */
+    uint8 timer_channel;        /**< Timer channel, or 0 if none. */
+    uint8 adc_channel;          /**< Pin ADC channel, or ADCx if none. */
+} stm32_pin_info;
+extern const stm32_pin_info PIN_MAP[];
+
+void gpio_set_pin_mode(uint8 pin, gpio_pin_mode mode)
+{
+    const stm32_pin_info *pin_info = &PIN_MAP[pin];
+	gpio_set_mode(pin_info->gpio_device, pin_info->gpio_bit, mode);
 }
 
 gpio_pin_mode gpio_get_mode(gpio_dev *dev, uint8 pin) {

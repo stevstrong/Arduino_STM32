@@ -50,13 +50,6 @@
 #warning "Unexpected clock speed; SPI frequency calculation will be incorrect"
 #endif
 
-struct spi_pins {
-    uint8 nss;
-    uint8 sck;
-    uint8 miso;
-    uint8 mosi;
-};
-
 #if (BOARD_NR_SPI >= 3) && !defined(STM32_HIGH_DENSITY)
 #error "The SPI library is misconfigured: 3 SPI ports only available on high density STM32 devices"
 #endif
@@ -102,8 +95,9 @@ static const spi_pins * dev_to_spi_pins(spi_dev *dev)
     }
 }
 
-static void disable_pwm(const stm32_pin_info *i)
+static void disable_pwm(uint8_t pin)
 {
+    const stm32_pin_info * i = &PIN_MAP[pin];
     if (i->timer_device) {
         timer_set_mode(i->timer_device, i->timer_channel, TIMER_DISABLED);
     }
@@ -117,19 +111,22 @@ static void configure_gpios(spi_dev *dev, bool as_master)
         return;
     }
 
-    const stm32_pin_info *nssi = &PIN_MAP[pins->nss];
-    const stm32_pin_info *scki = &PIN_MAP[pins->sck];
-    const stm32_pin_info *misoi = &PIN_MAP[pins->miso];
-    const stm32_pin_info *mosii = &PIN_MAP[pins->mosi];
+    disable_pwm(pins->nss);
+    disable_pwm(pins->sck);
+    disable_pwm(pins->miso);
+    disable_pwm(pins->mosi);
 
-    disable_pwm(nssi);
-    disable_pwm(scki);
-    disable_pwm(misoi);
-    disable_pwm(mosii);
+    spi_config_gpios(as_master, pins);
+}
 
-    spi_config_gpios(dev, as_master, nssi->gpio_device, nssi->gpio_bit,
-    scki->gpio_device, scki->gpio_bit, misoi->gpio_bit,
-    mosii->gpio_bit);
+static void release_gpios(spi_dev *dev, bool as_master)
+{
+    const spi_pins *pins = dev_to_spi_pins(dev);
+
+    if (!pins)
+        return;
+
+    spi_release_gpios(as_master, pins);
 }
 
 static const spi_baud_rate baud_rates[8] __FLASH__ = {
@@ -298,7 +295,7 @@ void SPIClass::end(void)
     // full duplex mode.
     while (spi_is_rx_nonempty(_currentSetting->spi_d)) {
         // FIXME [0.1.0] remove this once you have an interrupt based driver
-        volatile uint16 rx __attribute__((unused)) = spi_rx_reg(_currentSetting->spi_d);
+        (void)spi_rx_reg(_currentSetting->spi_d);
     }
     while (!spi_is_tx_empty(_currentSetting->spi_d));
     while (spi_is_busy(_currentSetting->spi_d));
@@ -392,20 +389,8 @@ void SPIClass::beginTransactionSlave(SPISettings settings)
 
 void SPIClass::endTransaction(void)
 {
-#if false
-// code from SAM core
-    uint8_t mode = interruptMode;
-    if (mode > 0) {
-        if (mode < 16) {
-            if (mode & 1) PIOA->PIO_IER = interruptMask[0];
-            if (mode & 2) PIOB->PIO_IER = interruptMask[1];
-            if (mode & 4) PIOC->PIO_IER = interruptMask[2];
-            if (mode & 8) PIOD->PIO_IER = interruptMask[3];
-        } else {
-            if (interruptSave) interrupts();
-        }
-    }
-#endif
+    end();
+    release_gpios(_currentSetting->spi_d, 1);
 }
 
 //-----------------------------------------------------------------------------
@@ -662,7 +647,7 @@ void SPIClass::dmaTransferSet(void *receiveBuf, uint16 flags)
     // TX
     dma_setup_transfer(_currentSetting->spiDmaDev, _currentSetting->spiTxDmaChannel,
                        &_currentSetting->spi_d->regs->DR, dma_bit_size,
-                       (volatile void*)&ff, dma_bit_size,
+                       _currentSetting->dmaTxBuffer, dma_bit_size,
                        (flags | DMA_FROM_MEM));
     dma_set_priority(_currentSetting->spiDmaDev, _currentSetting->spiTxDmaChannel, DMA_PRIORITY_LOW);
     PRINTF("-dTS>");
@@ -761,7 +746,7 @@ void SPIClass::dmaSendSet(uint16 flags)
     dma_xfer_size dma_bit_size = (_currentSetting->dataSize==SPI_DATA_SIZE_16BIT) ? DMA_SIZE_16BITS : DMA_SIZE_8BITS;
     dma_setup_transfer(_currentSetting->spiDmaDev, _currentSetting->spiTxDmaChannel,
                        &_currentSetting->spi_d->regs->DR, dma_bit_size,
-                       (volatile void*)&ff, dma_bit_size,
+                       _currentSetting->dmaTxBuffer, dma_bit_size,
                        (flags | (DMA_FROM_MEM | DMA_TRNS_CMPLT)));
     dma_set_priority(_currentSetting->spiDmaDev, _currentSetting->spiTxDmaChannel, DMA_PRIORITY_LOW);
     dma_attach_interrupt(_currentSetting->spiDmaDev, _currentSetting->spiTxDmaChannel, _currentSetting->dmaIsr);

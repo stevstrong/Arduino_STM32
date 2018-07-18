@@ -2,7 +2,8 @@
 #define _VARIANT_ARDUINO_STM32_
 
 #define digitalPinToPort(P)        ( PIN_MAP[P].gpio_device )
-#define digitalPinToBitMask(P)     ( BIT(PIN_MAP[P].gpio_bit) )
+#define digitalPinToBit(P)         ( PIN_MAP[P].gpio_bit )
+#define digitalPinToBitMask(P)     ( BIT(digitalPinToBit(P)) )
 #define portOutputRegister(port)   ( &(port->regs->ODR) )
 #define portInputRegister(port)    ( &(port->regs->IDR) )
 
