@@ -647,7 +647,7 @@ void SPIClass::dmaTransferSet(void *receiveBuf, uint16 flags)
     // TX
     dma_setup_transfer(_currentSetting->spiDmaDev, _currentSetting->spiTxDmaChannel,
                        &_currentSetting->spi_d->regs->DR, dma_bit_size,
-                       _currentSetting->dmaTxBuffer, dma_bit_size,
+                       (void *)_currentSetting->dmaTxBuffer, dma_bit_size,
                        (flags | DMA_FROM_MEM));
     dma_set_priority(_currentSetting->spiDmaDev, _currentSetting->spiTxDmaChannel, DMA_PRIORITY_LOW);
     PRINTF("-dTS>");
@@ -746,7 +746,7 @@ void SPIClass::dmaSendSet(uint16 flags)
     dma_xfer_size dma_bit_size = (_currentSetting->dataSize==SPI_DATA_SIZE_16BIT) ? DMA_SIZE_16BITS : DMA_SIZE_8BITS;
     dma_setup_transfer(_currentSetting->spiDmaDev, _currentSetting->spiTxDmaChannel,
                        &_currentSetting->spi_d->regs->DR, dma_bit_size,
-                       _currentSetting->dmaTxBuffer, dma_bit_size,
+                       (void *)_currentSetting->dmaTxBuffer, dma_bit_size,
                        (flags | (DMA_FROM_MEM | DMA_TRNS_CMPLT)));
     dma_set_priority(_currentSetting->spiDmaDev, _currentSetting->spiTxDmaChannel, DMA_PRIORITY_LOW);
     dma_attach_interrupt(_currentSetting->spiDmaDev, _currentSetting->spiTxDmaChannel, _currentSetting->dmaIsr);

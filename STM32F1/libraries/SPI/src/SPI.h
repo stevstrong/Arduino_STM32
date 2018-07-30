@@ -280,7 +280,9 @@ public:
     void transfer(const uint8_t tx_data, uint8_t * rx_buf, uint32 len);
     void transfer(const uint16_t * tx_buf, uint16_t * rx_buf, uint32 len);
     void transfer(const uint16_t tx_data, uint16_t * rx_buf, uint32 len);
-
+	void transfer(uint8_t * trx_buf, uint32 len) { transfer(trx_buf, trx_buf, len); }
+	void transfer(uint16_t * trx_buf, uint32 len) { transfer(trx_buf, trx_buf, len); }
+	
     /**
      * @brief Sets up a DMA Transfer for "length" bytes.
      * The transfer mode (8 or 16 bit mode) is evaluated from the SPI peripheral setting.
