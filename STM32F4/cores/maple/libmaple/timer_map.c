@@ -27,12 +27,12 @@ const timer_info timer_map[] =
 {TIM5, 4}, // PA3  | 26 | USART2_RX  | TIM5_CH4       | TIM9_CH2         | TIM2_CH4       | OTG_HS_ULPI_D0 | ETH_MII_COL                   | ADC123_IN3
 {NULL, 0}, // PA4  | 29 | SPI1_NSS   | SPI3_NSS       | USART2_CK        | DCMI_HSYNC     | OTG_HS_SOF     | I2S3_WS                       | ADC12_IN4 / DAC_OUT1
 {NULL, 0}, // PA5  | 30 | SPI1_SCK   | OTG_HS_ULPI_CK | TIM2_CH1_ETR     | TIM8_CH1N                                                       | ADC12_IN5 / DAC_OUT2
-{NULL, 0}, // PA6  | 31 | SPI1_MISO  | TIM8_BKIN      | TIM13_CH1        | DCMI_PIXCLK    | TIM3_CH1       | TIM1_BKIN                     | ADC12_IN6
-{NULL, 0}, // PA7  | 32 | SPI1_MOSI  | TIM8_CH1N      | TIM14_CH1        | TIM3_CH2       | ETH_MII_RX_DV  | TIM1_CH1N   / ETH_RMII_CRS_DV | ADC12_IN7
+{TIM3, 1}, // PA6  | 31 | SPI1_MISO  | TIM8_BKIN      | TIM13_CH1        | DCMI_PIXCLK    | TIM3_CH1       | TIM1_BKIN                     | ADC12_IN6
+{TIM3, 2}, // PA7  | 32 | SPI1_MOSI  | TIM8_CH1N      | TIM14_CH1        | TIM3_CH2       | ETH_MII_RX_DV  | TIM1_CH1N   / ETH_RMII_CRS_DV | ADC12_IN7
 {TIM1, 1}, // PA8  | 67 | MCO1       | USART1_CK      | TIM1_CH1         | I2C3_SCL       | OTG_FS_SOF
 {TIM1, 2}, // PA9  | 68 | USART1_TX  | TIM1_CH2       | I2C3_SMBA        | DCMI_D0
 {TIM1, 3}, // PA10 | 69 | USART1_RX  | TIM1_CH3       | OTG_FS_ID        | DCMI_D1
-{NULL, 0}, // PA11 | 70 | USART1_CTS | CAN1_RX        | TIM1_CH4         | OTG_FS_DM
+{TIM1, 4}, // PA11 | 70 | USART1_CTS | CAN1_RX        | TIM1_CH4         | OTG_FS_DM
 {NULL, 0}, // PA12 | 71 | USART1_RTS | CAN1_TX        | TIM1_ETR         | OTG_FS_DP
 {NULL, 0}, // PA13 | 72 | JTMS-SWDIO
 {NULL, 0}, // PA14 | 76 | JTCK-SWCLK
@@ -44,10 +44,10 @@ const timer_info timer_map[] =
 {TIM2, 2}, // PB3  | 89 | JTDO       | TRACESWO  | SPI3_SCK       | I2S3_CK        | TIM2_CH2       | SPI1_SCK
 {TIM3, 1}, // PB4  | 90 | NJTRST     | SPI3_MISO | TIM3_CH1       | SPI1_MISO      | I2S3ext_SD
 {TIM3, 2}, // PB5  | 91 | I2C1_SMBA  | CAN2_RX   | OTG_HS_ULPI_D7 | ETH_PPS_OUT    | TIM3_CH2       | SPI1_MOSI      | SPI3_MOSI      | DCMI_D10      | I2S3_SD
-{NULL, 0}, // PB6  | 92 | I2C1_SCL   | TIM4_CH1  | CAN2_TX        | DCMI_D5        | USART1_TX
-{NULL, 0}, // PB7  | 93 | I2C1_SDA   | FSMC_NL   | DCMI_VSYNC     | USART1_RX      | TIM4_CH2
-{NULL, 0}, // PB8  | 95 | TIM4_CH3   | SDIO_D4   | TIM10_CH1      | DCMI_D6        | ETH_MII_TXD3   | I2C1_SCL       | CAN1_RX
-{NULL, 0}, // PB9  | 96 | SPI2_NSS   | I2S2_WS   | TIM4_CH4       | TIM11_CH1      | SDIO_D5        | DCMI_D7        | I2C1_SDA       | CAN1_TX
+{TIM4, 1}, // PB6  | 92 | I2C1_SCL   | TIM4_CH1  | CAN2_TX        | DCMI_D5        | USART1_TX
+{TIM4, 2}, // PB7  | 93 | I2C1_SDA   | FSMC_NL   | DCMI_VSYNC     | USART1_RX      | TIM4_CH2
+{TIM4, 3}, // PB8  | 95 | TIM4_CH3   | SDIO_D4   | TIM10_CH1      | DCMI_D6        | ETH_MII_TXD3   | I2C1_SCL       | CAN1_RX
+{TIM4, 4}, // PB9  | 96 | SPI2_NSS   | I2S2_WS   | TIM4_CH4       | TIM11_CH1      | SDIO_D5        | DCMI_D7        | I2C1_SDA       | CAN1_TX
 {NULL, 0}, // PB10 | 47 | SPI2_SCK   | I2S2_CK   | I2C2_SCL       | USART3_TX      | OTG_HS_ULPI_D3 | ETH_MII_RX_ER  | TIM2_CH3
 {NULL, 0}, // PB11 | 48 | I2C2_SDA   | USART3_RX | OTG_HS_ULPI_D4 | ETH_RMII_TX_EN | ETH_MII_TX_EN  | TIM2_CH4
 {NULL, 0}, // PB12 | 51 | SPI2_NSS   | I2S2_WS   | I2C2_SMBA      | USART3_CK      | TIM1_BKIN      | CAN2_RX        | OTG_HS_ULPI_D5 | ETH_RMII_TXD0 | ETH_MII_TXD0 | OTG_HS_ID

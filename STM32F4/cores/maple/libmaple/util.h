@@ -52,6 +52,9 @@ extern "C"{
 /** True if v is a power of two (1, 2, 4, 8, ...) */
 #define IS_POWER_OF_TWO(v)  ((v) && !((v) & ((v) - 1)))
 
+#define __weak __attribute__((weak))
+
+
 /*
  * Failure routines
  */
@@ -59,10 +62,7 @@ extern "C"{
 void __error(int num);
 void _fail(const char*, int, const char*);
 void throb(void);
-static void __empty() {
-	// Empty
-}
-void yield(void) __attribute__ ((weak, alias("__empty")));
+void yield();
 
 /*
  * Asserts and debug levels

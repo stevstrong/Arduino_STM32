@@ -44,7 +44,6 @@ extern "C"{
 #endif
 
 
-
 /*
  * Register maps and devices
  */
@@ -222,6 +221,9 @@ typedef struct timer_info {
 
 extern const timer_info timer_map[];
 
+#define digitalPinToTimerIndex(P)     ( timer_map[P].index )
+#define digitalPinToTimerDevice(P)    ( timer_devices[digitalPinToTimerIndex(P)] )
+
 
 /*
  * Register bit definitions
@@ -305,7 +307,7 @@ typedef enum {
 #define TIMER_SMCR_ETPS_DIV2            (0x1 << 12)
 #define TIMER_SMCR_ETPS_DIV4            (0x2 << 12)
 #define TIMER_SMCR_ETPS_DIV8            (0x3 << 12)
-#define TIMER_SMCR_ETF                  (0xF << 12)
+#define TIMER_SMCR_ETF                  (0xF << 8)
 #define TIMER_SMCR_MSM                  BIT(TIMER_SMCR_MSM_BIT)
 #define TIMER_SMCR_TS                   (0x7 << 4)
 #define TIMER_SMCR_TS_ITR0              (0x0 << 4)

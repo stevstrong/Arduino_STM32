@@ -122,6 +122,8 @@ void pinMode(uint8 pin, WiringPinMode mode);
  * @see pinMode()
  */
 void digitalWrite(uint8 pin, uint8 value);
+void digitalSet(uint8 pin);
+void digitalClear(uint8 pin);
 
 /**
  * Read a digital value from a pin.  The pin must have its mode set to

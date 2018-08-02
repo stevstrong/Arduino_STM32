@@ -151,3 +151,6 @@ void throb(void) {
         ;
 #endif
 }
+
+static void __empty() { }
+__weak void yield() { __empty(); };

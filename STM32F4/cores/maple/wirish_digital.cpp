@@ -104,6 +104,24 @@ void digitalWrite(uint8 pin, uint8 val)
     gpio_write_pin(pin, val);
 }
 
+void digitalSet(uint8 pin)
+{
+    if (pin >= BOARD_NR_GPIO_PINS) {
+        return;
+    }
+
+    gpio_set_pin(pin);
+}
+
+void digitalClear(uint8 pin)
+{
+    if (pin >= BOARD_NR_GPIO_PINS) {
+        return;
+    }
+
+    gpio_clear_pin(pin);
+}
+
 void togglePin(uint8 pin)
 {
     if (pin >= BOARD_NR_GPIO_PINS) {
