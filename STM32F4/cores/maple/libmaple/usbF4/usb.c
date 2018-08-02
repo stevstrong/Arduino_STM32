@@ -40,8 +40,7 @@ extern uint32_t VCPGetBytes(uint8_t * rxBuf, uint32_t len);
 
 uint32_t usbSendBytes(const uint8_t* sendBuf, uint32_t len)
 {
-	VCP_DataTx((uint8_t*)sendBuf, len);
-	return len;
+	return ( VCP_DataTx((uint8_t*)sendBuf, len)==USBD_BUSY ) ? 0 : len;
 }
 
 uint32_t usbReceiveBytes(uint8_t* recvBuf, uint32_t len)
