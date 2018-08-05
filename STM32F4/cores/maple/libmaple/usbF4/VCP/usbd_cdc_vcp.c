@@ -43,13 +43,13 @@ LINE_CODING linecoding =
 
 /* These are external variables imported from CDC core to be used for IN
    transfer management. */
-extern uint8_t  APP_Rx_Buffer []; /* Write CDC received data in this buffer.
+extern uint8_t  APP_Tx_Buffer []; /* Write CDC received data in this buffer.
                                      These data will be sent over USB IN endpoint
                                      in the CDC core functions. */
-extern volatile int APP_Rx_ptr_in;    /* Increment this pointer or roll it back to
+extern volatile uint16_t APP_Tx_ptr_in;    /* Increment this pointer or roll it back to
                                      start address when writing received data
-                                     in the buffer APP_Rx_Buffer. */
-extern volatile int APP_Rx_ptr_out;
+                                     in the buffer APP_Tx_Buffer. */
+extern volatile uint16_t APP_Tx_ptr_out;
 
 #define UsbRecBufferSize 2048
 #define UsbRecBufferSizeMask (UsbRecBufferSize-1)
@@ -100,7 +100,7 @@ uint32_t VCPGetBytes(uint8_t * rxBuf, uint32_t len)
 static uint16_t VCP_Init  (void *pdev);
 static uint16_t VCP_DeInit(void);
 static uint16_t VCP_Ctrl  (uint32_t Cmd, uint8_t* Buf, uint32_t Len);
-uint16_t VCP_DataTx   (const uint8_t* Buf, uint32_t Len);
+uint32_t VCP_DataTx   (const uint8_t* Buf, uint32_t Len);
 static uint16_t VCP_DataRx(uint8_t* Buf, uint32_t Len);
 
 static uint16_t VCP_COMConfig(uint8_t Conf);
@@ -227,26 +227,39 @@ static uint16_t VCP_Ctrl (uint32_t Cmd, uint8_t* Buf, uint32_t Len)
   *         this function.
   * @param  Buf: Buffer of data to be sent
   * @param  Len: Number of data to be sent (in bytes)
-  * @retval Result of the operation: USBD_OK if all operations are OK else VCP_FAIL
+  * @retval cnt: number of bytes sent
   */
-uint16_t VCP_DataTx (const uint8_t* Buf, uint32_t Len)
+uint32_t VCP_DataTx (const uint8_t* Buf, uint32_t Len)
 {
-	int ptrIn = APP_Rx_ptr_in; // get volatile
-	while(Len-- > 0)
+	uint32_t ptrIn = APP_Tx_ptr_in; // get volatile
+	uint32_t cnt = 0;
+	uint16_t cdc_buf_cnt = 0;
+	while ( cnt<Len )
 	{
-		while ( ((ptrIn+1)&APP_RX_DATA_SIZE_MASK)==APP_Rx_ptr_out )
+		while ( ((ptrIn+1)&APP_TX_DATA_SIZE_MASK)==APP_Tx_ptr_out )
 		{
 			if( !UsbTXBlock || !VCP_DTRHIGH )
 			{
-				APP_Rx_ptr_in = ptrIn; // store volatile
-				return USBD_BUSY;
+				goto tx_exit;
 			}
 		}
-		APP_Rx_Buffer[ptrIn++] = *Buf++;
-		ptrIn &= APP_RX_DATA_SIZE_MASK; // To avoid buffer overflow
+		APP_Tx_Buffer[ptrIn++] = *Buf++;
+		ptrIn &= APP_TX_DATA_SIZE_MASK;
+		// update volatile pointer if the nr of bytes can fill up the CDC_DATA buffer
+		if ( cdc_buf_cnt==CDC_DATA_MAX_PACKET_SIZE )
+		{
+			cdc_buf_cnt = 0;
+			APP_Tx_ptr_in = ptrIn; // update volatile
+		}
+		else
+		{
+			cdc_buf_cnt ++;
+		}
+		cnt ++;
 	}
-	APP_Rx_ptr_in = ptrIn; // store volatile
-	return USBD_OK;
+tx_exit:
+	APP_Tx_ptr_in = ptrIn; // update volatile
+	return cnt;
 }
 
 typedef volatile unsigned long      vu32;

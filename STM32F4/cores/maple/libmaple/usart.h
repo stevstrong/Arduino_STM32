@@ -309,9 +309,8 @@ static inline void usart_putc(usart_dev* dev, uint8 byte) {
  * @param str String to send
  */
 static inline void usart_putstr(usart_dev *dev, const char* str) {
-    uint32 i = 0;
-    while (str[i] != '\0') {
-        usart_putc(dev, str[i++]);
+    while (*str != '\0') {
+        usart_putc(dev, *str++);
     }
 }
 

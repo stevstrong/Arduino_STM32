@@ -34,7 +34,7 @@
 
 #ifdef SERIAL_USB
 
-#define USB_TIMEOUT 50
+#define USB_TIMEOUT 500
 bool USBSerial::_hasBegun = false;
 
 USBSerial::USBSerial(void) {
@@ -65,6 +65,7 @@ size_t USBSerial::write(const char *str) {
     return this->write(str, strlen(str));
 }
 
+uint32 usb_tx_cnt = 0; // global Tx byte counter
 size_t USBSerial::write(const void *buf, uint32 len)
 {
     if (!(usbOK()) || !buf) {
@@ -75,13 +76,14 @@ size_t USBSerial::write(const void *buf, uint32 len)
     uint32 old_txed = 0;
     uint32 start = millis();
 
-    while (txed < len && (millis() - start < USB_TIMEOUT)) {
+    while ( (txed < len) && ((millis() - start) < USB_TIMEOUT) ) {
         txed += usbSendBytes((const uint8*)buf + txed, len - txed);
         if (old_txed != txed) {
             start = millis();
         }
         old_txed = txed;
     }
+	usb_tx_cnt += txed;
     return txed;
 }
 
