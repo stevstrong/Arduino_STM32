@@ -12,6 +12,7 @@ extern "C" {
 #include <libmaple/rcc.h>
 #include <libmaple/bkp.h>
 #include <libmaple/exti.h>
+#include <libmaple/nvic.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

@@ -177,8 +177,6 @@ void i2c_init(i2c_dev *dev) {
 void i2c_master_enable(i2c_dev *dev, uint32 flags) {
     /* PE must be disabled to configure the device */
     i2c_disable(dev);
-    /* If the device is already enabled, don't do it again */
-    //if(dev->regs->CR1 & I2C_CR1_PE) return;
 
     /* Ugh */
     _i2c_handle_remap(dev, flags);
@@ -195,9 +193,10 @@ void i2c_master_enable(i2c_dev *dev, uint32 flags) {
     /* Configure clock and rise time */
     set_ccr_trise(dev, flags);
 
-    /* Enable event and buffer interrupts */
+    /* Enable event and buffer interrupts
     nvic_irq_enable(dev->ev_nvic_line);
-    nvic_irq_enable(dev->er_nvic_line);
+    nvic_irq_enable(dev->er_nvic_line); */
+    //i2c_enable_irq(dev, I2C_IRQ_EVENT);
 
     /* Make it go! */
     i2c_peripheral_enable(dev);
@@ -234,9 +233,126 @@ int32 i2c_master_xfer(i2c_dev *dev,
     dev->timestamp = systick_uptime();
     dev->state = I2C_STATE_BUSY;
 
-    i2c_enable_irq(dev, I2C_IRQ_EVENT | I2C_IRQ_BUFFER | I2C_IRQ_ERROR);
+    //i2c_enable_irq(dev, I2C_IRQ_EVENT | I2C_IRQ_BUFFER | I2C_IRQ_ERROR);
     i2c_start_condition(dev);
     
+
+#if 1
+    i2c_msg * msg = msgs;
+    uint8 read = msg->flags & I2C_MSG_READ;
+	dev->error_flags = 0;
+	uint32_t sr1 = 0;
+    while ( !(sr1 & I2C_SR1_SB) )
+		sr1 = dev->regs->SR1;
+
+        msg->xferred = 0;
+        //i2c_enable_irq(dev, I2C_IRQ_BUFFER);
+
+        /*
+         * Master receiver
+         */
+        if (read) {
+            i2c_enable_ack(dev);
+        }
+
+        i2c_send_slave_addr(dev, msg->addr, read);
+
+extern void yield(void);
+
+    /*
+     * EV6: Slave address sent
+     */
+    //if (sr1 & I2C_SR1_ADDR) {
+	sr1 = 0;
+	uint32_t sr2 = 0;
+    while ( !(sr1 & (I2C_SR1_ADDR|I2C_SR1_ADD10)) )
+	{
+		sr1 = dev->regs->SR1;
+		if ( (sr1 & I2C_SR1_AF) ) break;
+		//if ( (sr1 & I2C_SR1_TXE) ) break;
+		//sr2 = dev->regs->SR2;
+		//if ( (sr2 & I2C_SR2_TRA) ) break;
+
+		//yield();
+	}
+
+	if ( !(sr1 & I2C_SR1_AF) ) // ACK received
+	{
+		i2c_disable_ack(dev);
+		sr1 = dev->regs->SR1;
+		uint32_t sr2 = dev->regs->SR2; // clear ADDR bit
+
+//while(1) yield();
+
+//		while ( !(sr2 & I2C_SR2_TRA) )
+//		{	sr2 = dev->regs->SR2;
+//			yield();
+//		}
+
+		rc = 0;
+	} else {
+		rc = -1;
+		dev->error_flags = dev->regs->SR1 &
+		    (I2C_SR1_BERR | I2C_SR1_ARLO | I2C_SR1_AF | I2C_SR1_OVR);
+
+	}
+	/* Clear flags */
+	dev->regs->SR1 = 0;
+	dev->regs->SR2 = 0;
+
+	i2c_stop_condition(dev);
+
+    dev->state = I2C_STATE_IDLE;
+
+return rc;
+	
+#if 0
+        /*
+         * Special case event EV6_1 for master receiver.
+         * Generate NACK and restart/stop condition after ADDR
+         * is cleared.
+         */
+        if (read) {
+            if (msg->length == 1) {
+                i2c_disable_ack(dev);
+                if (dev->msgs_left > 1) {
+                    i2c_start_condition(dev);
+                    I2C_CRUMB(RX_ADDR_START, 0, 0);
+                } else {
+                    i2c_stop_condition(dev);
+                    I2C_CRUMB(RX_ADDR_STOP, 0, 0);
+                }
+            }
+        } else {
+            /*
+             * Master transmitter: write first byte to fill shift
+             * register.  We should get another TXE interrupt
+             * immediately to fill DR again.
+             */
+            if (msg->length > 1) {
+                i2c_write(dev, msg->data[msg->xferred++]);
+            } else if (msg->length == 0) { /* We're just sending an address */
+                i2c_stop_condition(dev);
+              /*
+               * Turn off event interrupts to keep BTF from firing until
+               * the end of the stop condition. Why on earth they didn't
+               * have a start/stop condition request clear BTF is beyond
+               * me.
+               */
+              i2c_disable_irq(dev, I2C_IRQ_EVENT);
+              I2C_CRUMB(STOP_SENT, 0, 0);
+              dev->state = I2C_STATE_XFER_DONE;
+            } /* else we're just sending one byte */
+        }
+        sr1 = sr2 = 0;
+    }
+#endif
+
+#endif
+
+
+
+
     rc = wait_for_state_change(dev, I2C_STATE_XFER_DONE, timeout);
     if (rc < 0) {
         goto out;

@@ -40,7 +40,7 @@ void delay(unsigned long ms)
     while (ms > 0)
     {
         yield();
-        while ( ms > 0 && (micros() - start) >= 1000)
+        while ( (ms > 0) && ((micros() - start) >= 1000) )
         {
             ms--;
             start += 1000;

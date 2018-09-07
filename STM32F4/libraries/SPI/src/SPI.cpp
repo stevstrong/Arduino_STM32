@@ -45,7 +45,7 @@
 #define PRINTF(...)
 //#define PRINTF(...) Serial.print(__VA_ARGS__)
 
-//#define SPI1_ALTERNATE_CONFIG 1 // use alternate SPI1 on SPI3 pins
+#define SPI1_ALTERNATE_CONFIG 1 // use alternate SPI1 on SPI3 pins
 
 #if CYCLES_PER_MICROSECOND != 168
 /* TODO [0.2.0?] something smarter than this */

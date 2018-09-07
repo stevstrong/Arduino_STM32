@@ -18,7 +18,14 @@
 #include <Streaming.h>
 
 // Use hardware SPI
-Adafruit_ILI9341_STM tft(PA4, PA3, PA2); // input chip select, DC and reset pins
+// spi2
+#define TFT_CS        PB12
+#define TFT_DC        PB11
+#define TFT_RST       PB10
+
+//SPIClass SPI_2(2); // use SPI2
+Adafruit_ILI9341_STM tft(TFT_CS, TFT_DC, TFT_RST);
+//Adafruit_ILI9341_STM tft(PA4, PA3, PA2); // input chip select, DC and reset pins
 
 // For using software SPI, define pins as desired, MISO is optional, needed for reading only
 //Adafruit_ILI9341_STM tft(TFT_CS, TFT_DC, TFT_RST, TFT_MOSI, TFT_CLK, [TFT_MISO]);
@@ -27,16 +34,17 @@ void setup()
 {
   Serial.begin(9600);
   while ( !Serial );
-  delay(1000);
+  delay(10);
 
   Serial.println("ILI9341 Test!"); 
-#if true
+#if 0
   // use standard SPI port
   tft.begin();
 #else
   // use alternative SPI port
-static SPIClass _spi(2);
-  tft.begin(_spi);
+//static SPIClass _spi(2);
+  SPI.setModule(2);
+  tft.begin(SPI, 9000000);
 #endif
   // read diagnostics (optional but can help debug problems)
   uint8_t x = tft.readcommand8(ILI9341_RDMODE);
@@ -59,13 +67,14 @@ static SPIClass _spi(2);
   // read back
   Serial << "Read pixel: 0x" << _HEX(tft.readPixel(100,100)) << endl;
   // write pixels
+  delay(100);
   Serial << "\nRead multiple pixel test\n------------------------------\n";
-  Serial << "Write pixels: 0x1234, 0x5678, 0x9012, 0x3456\n";
-  tft.setAddrWindow(100,100,101,101);
+  //Serial << "Write pixels: " << _HEX(pixels[0]) << ", 0x" << _HEX(pixels[1]) << ", 0x" << _HEX(pixels[2]) << ", 0x" << _HEX(pixels[3]) << endl;
+  tft.setAddrWindow(100,100,102,102);
   tft.pushColors(pixels,4);
   memset(pixels, 4, 0); // clear before read back
   // read back
-  uint16_t nr=tft.readPixels(100,100,101,101, pixels);
+  uint16_t nr=tft.readPixels16(100,100,101,101, pixels);
   Serial << "Read " << nr << " pixels: 0x" << _HEX(pixels[0]) << ", 0x" << _HEX(pixels[1]) << ", 0x" << _HEX(pixels[2]) << ", 0x" << _HEX(pixels[3]) << endl;
 }
 

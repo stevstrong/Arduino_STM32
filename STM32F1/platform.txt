@@ -44,6 +44,8 @@ build.error_led_pin=1
 build.cpu_flags=
 build.hs_flag=
 build.upload_flags=
+build.flags.optimize=-Os
+build.flags.ldspecs=
 build.extra_flags= {build.upload_flags} {build.cpu_flags} {build.hs_flag} {build.common_flags}
 
 
@@ -163,7 +165,7 @@ tools.jlink_upload.upload.params.verbose=-d
 tools.jlink_upload.upload.params.quiet=n
 tools.jlink_upload.upload.pattern="{path}/{cmd}" "{build.path}/{build.project_name}.bin"
 
-# HID upload
+# HID upload 2.0
 tools.hid_upload.cmd=hid_upload
 tools.hid_upload.cmd.windows=hid-flash.exe
 tools.hid_upload.cmd.macosx=hid_flash
