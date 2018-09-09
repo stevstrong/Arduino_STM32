@@ -307,7 +307,7 @@ static inline void dma_disable(const dma_dev *dev, dma_stream stream)
  * @param dev DMA device
  * @param stream Stream whose enabled bit to check.
  */
-static inline uint8 dma_is_stream_enabled(const dma_dev *dev, dma_stream stream)
+static inline uint8 dma_is_enabled(const dma_dev *dev, dma_stream stream)
 {
     return (uint8)(dev->regs->STREAM[stream].CR & DMA_CR_EN);
 }

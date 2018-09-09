@@ -171,15 +171,21 @@ SPISettings _settings[BOARD_NR_SPI];
 //-----------------------------------------------------------------------------
 void spiEventCallback(uint32 spi_num)
 {
-    SPISettings * crtSetting = &_settings[spi_num];
-    dma_stream dmaStream = (crtSetting->state==SPI_STATE_TRANSMIT) ? crtSetting->spiTxDmaStream :
-                            ( (crtSetting->state==SPI_STATE_RECEIVE) ? crtSetting->spiRxDmaStream : (dma_stream)-1);
-
-    if ( dmaStream==(dma_stream)-1 )
-    {
-        PRINTF("SPI event: wrong state="); PRINTF(crtSetting->state);
-        return;
-    }
+    //Serial.write('+');
+	SPISettings * crtSetting = &_settings[spi_num];
+	spi_mode_t state = crtSetting->state;
+	dma_stream dmaStream;
+	if ( state==SPI_STATE_RECEIVE )
+	{
+		dmaStream = crtSetting->spiRxDmaStream;
+	}
+	else if ( state==SPI_STATE_TRANSMIT)
+	{
+		dmaStream = crtSetting->spiTxDmaStream;
+	} else {
+		PRINTF("# "); PRINTF(spi_num); PRINTF(" * state="); PRINTF(state); PRINTF(" #");
+		return;
+	}
 
 	uint32_t cr = (crtSetting->spiDmaDev)->regs->STREAM[dmaStream].CR;
 	// check for half transfer IRQ
@@ -197,8 +203,7 @@ void spiEventCallback(uint32 spi_num)
 		//while (spi_is_rx_nonempty(crtSetting->spi_d));
 		spi_tx_dma_disable(crtSetting->spi_d);
 		spi_rx_dma_disable(crtSetting->spi_d);
-		//dma_disable(crtSetting->spiDmaDev, crtSetting->spiRxDmaChannel);
-		//dma_disable(crtSetting->spiDmaDev, crtSetting->spiTxDmaChannel);
+		dma_disable(crtSetting->spiDmaDev, dmaStream);
 		crtSetting->state = SPI_STATE_READY;
 	}
     if (crtSetting->trxCallback)
@@ -275,6 +280,16 @@ void SPIClass::begin(void)
     updateSettings();
     // added for DMA callbacks.
     _currentSetting->state = SPI_STATE_READY;
+	if (_currentSetting->dmaIsr)
+    {
+        dma_init(_currentSetting->spiDmaDev);
+        dma_clear_isr_bits(_currentSetting->spiDmaDev, _currentSetting->spiRxDmaStream); // avoid IRQ at NVIC enable 
+        dma_attach_interrupt(_currentSetting->spiDmaDev, _currentSetting->spiRxDmaStream, _currentSetting->dmaIsr);
+        dma_set_fifo_flags(_currentSetting->spiDmaDev, _currentSetting->spiRxDmaStream, 0);
+        dma_clear_isr_bits(_currentSetting->spiDmaDev, _currentSetting->spiTxDmaStream); // avoid IRQ at NVIC enable
+        dma_attach_interrupt(_currentSetting->spiDmaDev, _currentSetting->spiTxDmaStream, _currentSetting->dmaIsr);
+        dma_set_fifo_flags(_currentSetting->spiDmaDev, _currentSetting->spiTxDmaStream, 0);
+    }
     PRINTF("-b>");
 }
 
@@ -419,26 +434,6 @@ uint16 SPIClass::read(void)
     return (uint16)spi_rx_reg(_currentSetting->spi_d);
 }
 
-void SPIClass::read(uint8 *buf, uint32 len)
-{
-    if ( len == 0 ) return;
-    spi_rx_reg(_currentSetting->spi_d);      // clear the RX buffer in case a byte is waiting on it.
-    spi_reg_map * regs = _currentSetting->spi_d->regs;
-    // start sequence: write byte 0
-    regs->DR = 0x00FF;                       // write the first byte
-    // main loop
-    while ( (--len) ) {
-        while( !(regs->SR & SPI_SR_TXE) );   // wait for TXE flag
-        noInterrupts();                      // go atomic level - avoid interrupts to surely get the previously received data
-        regs->DR = 0x00FF;                   // write the next data item to be transmitted into the SPI_DR register. This clears the TXE flag.
-        while ( !(regs->SR & SPI_SR_RXNE) ); // wait till data is available in the DR register
-        *buf++ = (uint8)(regs->DR);          // read and store the received byte. This clears the RXNE flag.
-        interrupts();                        // let systick do its job
-    }
-    // read remaining last byte
-    while ( !(regs->SR & SPI_SR_RXNE) );     // wait till data is available in the Rx register
-    *buf++ = (uint8)(regs->DR);              // read and store the received byte
-}
 //-----------------------------------------------------------------------------
 //  Added for 16bit data Victor Perez. Roger Clark 
 //  Improved speed by just directly writing the single byte to the SPI data reg and wait for completion,
@@ -513,6 +508,7 @@ uint16_t SPIClass::transfer16(const uint16_t data) const
 
 void SPIClass::transfer(const uint8_t * tx_buf, uint8_t * rx_buf, uint32 len)
 {
+PRINTF("<Tb-");
     if ( len == 0 ) return;
     spi_rx_reg(_currentSetting->spi_d);      // clear the RX buffer in case a byte is waiting on it.
     spi_reg_map * regs = _currentSetting->spi_d->regs;
@@ -530,10 +526,12 @@ void SPIClass::transfer(const uint8_t * tx_buf, uint8_t * rx_buf, uint32 len)
     // read remaining last byte
     while ( !(regs->SR & SPI_SR_RXNE) );     // wait till data is available in the Rx register
     *rx_buf++ = (uint8)(regs->DR);           // read and store the received byte
+PRINTF("-Tb>\n");
 }
 
 void SPIClass::transfer(const uint8_t tx_data, uint8_t * rx_buf, uint32 len)
 {
+PRINTF("<Tc-");
     if ( len == 0 ) return;
     spi_rx_reg(_currentSetting->spi_d);      // clear the RX buffer in case a byte is waiting on it.
     spi_reg_map * regs = _currentSetting->spi_d->regs;
@@ -551,10 +549,12 @@ void SPIClass::transfer(const uint8_t tx_data, uint8_t * rx_buf, uint32 len)
     // read remaining last byte
     while ( !(regs->SR & SPI_SR_RXNE) );     // wait till data is available in the Rx register
     *rx_buf++ = (uint8)(regs->DR);           // read and store the received byte
+PRINTF("-Tc>\n");
 }
 
 void SPIClass::transfer(const uint16_t * tx_buf, uint16_t * rx_buf, uint32 len)
 {
+PRINTF("<Tb2-");
     if ( len == 0 ) return;
     spi_rx_reg(_currentSetting->spi_d);      // clear the RX buffer in case a byte is waiting on it.
     spi_reg_map * regs = _currentSetting->spi_d->regs;
@@ -572,10 +572,12 @@ void SPIClass::transfer(const uint16_t * tx_buf, uint16_t * rx_buf, uint32 len)
     // read remaining last byte
     while ( !(regs->SR & SPI_SR_RXNE) );     // wait till data is available in the Rx register
     *rx_buf++ = regs->DR;                    // read and store the received byte
+PRINTF("-Tb2>\n");
 }
 
 void SPIClass::transfer(const uint16_t tx_data, uint16_t * rx_buf, uint32 len)
 {
+PRINTF("<Tc2-");
     if ( len == 0 ) return;
     spi_rx_reg(_currentSetting->spi_d);      // clear the RX buffer in case a byte is waiting on it.
     spi_reg_map * regs = _currentSetting->spi_d->regs;
@@ -593,6 +595,7 @@ void SPIClass::transfer(const uint16_t tx_data, uint16_t * rx_buf, uint32 len)
     // read remaining last byte
     while ( !(regs->SR & SPI_SR_RXNE) );     // wait till data is available in the Rx register
     *rx_buf++ = regs->DR;                    // read and store the received byte
+PRINTF("-Tc2>\n");
 }
 
 //-----------------------------------------------------------------------------
@@ -621,10 +624,13 @@ void SPIClass::dmaWaitCompletion(void)
 
             if ((millis()-m)>DMA_TIMEOUT)
             {
-                PRINTF("DMA timeout: "); PRINTF(_currentSetting->dmaTimeout);
-                PRINTF("DMA2(STR3,CH3)->CR: "); PRINTF(DMA2->regs->STREAM[DMA_STREAM3].CR, HEX);
-                PRINTF(", ->NDTR: "); PRINTF(DMA2->regs->STREAM[DMA_STREAM3].NDTR);
-                PRINTF(", ->LISR: "); PRINTF(DMA2->regs->LISR, HEX);
+                PRINTF("DMA timeout: state="); PRINTF( (_currentSetting->state==SPI_STATE_RECEIVE)? "Rx":"Tx");
+                PRINTF("\nDMA[Tx] CR: "); PRINTF((_currentSetting->spiDmaDev)->regs->STREAM[_currentSetting->spiTxDmaStream].CR, HEX);
+                PRINTF(", NDTR: "); PRINTF((_currentSetting->spiDmaDev)->regs->STREAM[_currentSetting->spiTxDmaStream].NDTR);
+                PRINTF(", LISR: "); PRINTF((_currentSetting->spiDmaDev)->regs->LISR, HEX);
+                PRINTF("\nDMA[Rx] CR: "); PRINTF((_currentSetting->spiDmaDev)->regs->STREAM[_currentSetting->spiRxDmaStream].CR, HEX);
+                PRINTF(", NDTR: "); PRINTF((_currentSetting->spiDmaDev)->regs->STREAM[_currentSetting->spiRxDmaStream].NDTR);
+                PRINTF(", LISR: "); PRINTF((_currentSetting->spiDmaDev)->regs->LISR, HEX);
                 PRINTF("\n");
                 // disable DMA
                 while (spi_is_tx_empty(_currentSetting->spi_d) == 0); // "5. Wait until TXE=1 ..."
@@ -646,7 +652,6 @@ void SPIClass::dmaTransferSet(void *receiveBuf, uint16 flags)
 {
     PRINTF("<dTS-");
     dmaWaitCompletion();
-    dma_init(_currentSetting->spiDmaDev);
     dma_xfer_size dma_bit_size = (_currentSetting->dataSize==SPI_DATA_SIZE_16BIT) ? DMA_SIZE_16BITS : DMA_SIZE_8BITS;
     // RX
     dma_setup_transfer(_currentSetting->spiDmaDev, _currentSetting->spiRxDmaStream,
@@ -655,8 +660,6 @@ void SPIClass::dmaTransferSet(void *receiveBuf, uint16 flags)
                        receiveBuf,                         // memory bank 0 address
                        NULL,                               // memory bank 1 address
                        (flags | (DMA_MINC_MODE|DMA_FROM_PER|DMA_TRNS_CMPLT|DMA_PRIO_VERY_HIGH)));
-    dma_set_fifo_flags(_currentSetting->spiDmaDev, _currentSetting->spiRxDmaStream, 0);
-    dma_attach_interrupt(_currentSetting->spiDmaDev, _currentSetting->spiRxDmaStream, _currentSetting->dmaIsr);
     // TX
     dma_setup_transfer(_currentSetting->spiDmaDev, _currentSetting->spiTxDmaStream,
                        _currentSetting->spiDmaChannel, dma_bit_size,
@@ -664,7 +667,6 @@ void SPIClass::dmaTransferSet(void *receiveBuf, uint16 flags)
                        _currentSetting->dmaTxBuffer,       // memory bank 0 address
                        NULL,                               // memory bank 1 address
                        (flags | DMA_FROM_MEM));
-    dma_set_fifo_flags(_currentSetting->spiDmaDev, _currentSetting->spiTxDmaStream, 0);
     PRINTF("-dTS>");
 }
 //-----------------------------------------------------------------------------
@@ -700,19 +702,19 @@ void SPIClass::dmaTransferRepeat()
 //-----------------------------------------------------------------------------
 void SPIClass::dmaTransfer(const void *transmitBuf, void *receiveBuf, uint16 length, uint16 flags)
 {
-    PRINTF("<dT-");
+    PRINTF("<dTb-");
     dmaWaitCompletion();
     _currentSetting->dmaTxBuffer = transmitBuf;
     _currentSetting->dmaTrxLength = length;
     _currentSetting->dmaTrxAsync = (flags&DMA_ASYNC);
     dmaTransferSet(receiveBuf, (flags&(DMA_CIRC_MODE|DMA_TRNS_HALF)) | DMA_MINC_MODE);
     dmaTransferRepeat();
-    PRINTF("-dT>\n");
+    PRINTF("-dTb>\n");
 }
 //-----------------------------------------------------------------------------
 void SPIClass::dmaTransfer(const uint16_t tx_data, void *receiveBuf, uint16 length, uint16 flags)
 {
-    PRINTF("<dT-");
+    PRINTF("<dTc-");
     dmaWaitCompletion();
     ff = tx_data;
     _currentSetting->dmaTxBuffer = &ff;
@@ -720,7 +722,7 @@ void SPIClass::dmaTransfer(const uint16_t tx_data, void *receiveBuf, uint16 leng
     _currentSetting->dmaTrxAsync = (flags&DMA_ASYNC);
     dmaTransferSet(receiveBuf, (flags&(DMA_CIRC_MODE|DMA_TRNS_HALF)));
     dmaTransferRepeat();
-    PRINTF("-dT>\n");
+    PRINTF("-dTc>\n");
 }
 //-----------------------------------------------------------------------------
 void SPIClass::dmaTransferInit(const void *transmitBuf, void *receiveBuf, uint16 length, uint16 flags)
@@ -757,7 +759,6 @@ void SPIClass::dmaSendSet(uint16 flags)
 {
     PRINTF("<dSS-");
     dmaWaitCompletion();
-    dma_init(_currentSetting->spiDmaDev);
     dma_xfer_size dma_bit_size = (_currentSetting->dataSize==SPI_DATA_SIZE_16BIT) ? DMA_SIZE_16BITS : DMA_SIZE_8BITS;
     dma_setup_transfer(_currentSetting->spiDmaDev, _currentSetting->spiTxDmaStream,
                        _currentSetting->spiDmaChannel, dma_bit_size,
@@ -765,8 +766,6 @@ void SPIClass::dmaSendSet(uint16 flags)
                        _currentSetting->dmaTxBuffer,       // memory bank 0 address
                        NULL,                               // memory bank 1 address
                        (flags | (DMA_FROM_MEM | DMA_TRNS_CMPLT)));
-    dma_set_fifo_flags(_currentSetting->spiDmaDev, _currentSetting->spiTxDmaStream, 0);
-    dma_attach_interrupt(_currentSetting->spiDmaDev, _currentSetting->spiTxDmaStream, _currentSetting->dmaIsr);
     PRINTF("-dSS>");
 }
 //-----------------------------------------------------------------------------

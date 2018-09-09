@@ -84,7 +84,7 @@
 typedef void (*u32FuncPtr)(uint32_t);
 
 typedef enum {
-    SPI_STATE_IDLE,
+    SPI_STATE_IDLE = 0,
     SPI_STATE_READY,
     SPI_STATE_RECEIVE,
     SPI_STATE_TRANSMIT,
@@ -245,7 +245,9 @@ public:
      *               function will block until the desired number of
      *               bytes have been read.
      */
-    void read(uint8 *buffer, uint32 length);
+    void read(uint8 *buffer, uint32 length) {
+        return transfer((uint8_t)0xFF, buffer, length);
+    }
 
     /**
      * @brief Transmit one byte/word.
