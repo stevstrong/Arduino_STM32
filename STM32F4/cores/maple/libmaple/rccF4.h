@@ -601,6 +601,8 @@ typedef enum rcc_clk_id {
 	RCC_I2C1,
 	RCC_I2C2,
 	RCC_I2C3,
+	RCC_CAN1,
+	RCC_CAN2,
 	RCC_PWR,
 	RCC_DAC,
 

@@ -112,6 +112,8 @@ static const struct rcc_dev_info rcc_dev_table[] = {
     [RCC_I2C1]    = { .clk_domain = APB1, .line_num = 21 }, //unchanged
     [RCC_I2C2]    = { .clk_domain = APB1, .line_num = 22 }, //unchanged
     [RCC_I2C3]    = { .clk_domain = APB1, .line_num = 23 }, //?
+    [RCC_CAN1]    = { .clk_domain = APB1, .line_num = 25 }, //?
+    [RCC_CAN2]    = { .clk_domain = APB1, .line_num = 26 }, //?
     [RCC_PWR]     = { .clk_domain = APB1, .line_num = 28 }, //unchanged
     [RCC_DAC]     = { .clk_domain = APB1, .line_num = 29 }, //unchanged
 };
