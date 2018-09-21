@@ -25,6 +25,7 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "usbd_cdc_vcp.h"
+#include <libmaple/bkp.h>
 
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
@@ -321,7 +322,12 @@ static uint16_t VCP_DataRx(uint8_t* Buf, uint32_t Len)
 	if (Len >= 4) {
 		if(Buf[0] == '1' && Buf[1] == 'E' && Buf[2] == 'A' && Buf[3] == 'F') {
 			Len = 0;
-			*(int*)0x20000BFC = 0x4AFC6BB2;
+
+			bkp_init();
+			bkp_enable_writes();
+			*(__IO uint32_t *)(BKP_BASE) = 0x424C;
+			bkp_disable_writes();
+
 			systemHardReset();
 		}
 	}
