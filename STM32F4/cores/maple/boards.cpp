@@ -89,7 +89,7 @@ bool boardUsesPin(uint8 pin)
  */
 static void setupClocks()
 {
-    rcc_clk_init(RCC_CLKSRC_PLL, RCC_PLLSRC_HSE, RCC_PLLMUL_9);
+    rcc_clk_init();
     rcc_set_prescaler(RCC_PRESCALER_AHB, RCC_AHB_SYSCLK_DIV_1);
     rcc_set_prescaler(RCC_PRESCALER_APB1, RCC_APB1_HCLK_DIV_2);
     rcc_set_prescaler(RCC_PRESCALER_APB2, RCC_APB2_HCLK_DIV_1);
@@ -97,12 +97,10 @@ static void setupClocks()
 
 static void setupNVIC()
 {
-#ifdef VECT_TAB_FLASH
-    nvic_init(USER_ADDR_ROM, 0);
-#elif defined VECT_TAB_RAM
+#ifdef USER_ADDR_RAM
     nvic_init(USER_ADDR_RAM, 0);
-#elif defined VECT_TAB_BASE
-    nvic_init((uint32)0x08000000, 0);
+#elif defined USER_ADDR_ROM
+    nvic_init(USER_ADDR_ROM, 0);
 #else
 #error "You must select a base address for the vector table."
 #endif

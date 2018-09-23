@@ -26,7 +26,7 @@ discovery_f407.build.variant=discovery_f407
 discovery_f407.build.variant_system_lib=lib_f407.a
 discovery_f407.build.error_led_pin=PD14
 discovery_f407.build.board=discovery_f4
-discovery_f407.build.vect_flags=-DVECT_TAB_FLASH -DUSER_ADDR_ROM=(uint32)0x08000000
+discovery_f407.build.vect_flags=-DUSER_ADDR_ROM=0x08000000
 
 discovery_f407.menu.usb_cfg.usb_serial=USB serial (CDC)
 discovery_f407.menu.usb_cfg.usb_serial.build.cpu_flags=-DSERIAL_USB
@@ -74,7 +74,6 @@ generic_f407v.upload.maximum_data_size=131072
 
 generic_f407v.build.core=maple
 generic_f407v.build.extra_flags= -DCRYSTAL_FREQ=8 -DLED_BUILTIN=PA6
-generic_f407v.build.ldscript=ld/jtag.ld
 generic_f407v.build.variant=generic_f407v
 generic_f407v.build.variant_system_lib=lib_f407.a
 generic_f407v.build.error_led_pin=PA7
@@ -92,17 +91,19 @@ generic_f407v.menu.upload_method.STLinkMethod=STLink
 generic_f407v.menu.upload_method.STLinkMethod.upload.protocol=STLink
 generic_f407v.menu.upload_method.STLinkMethod.upload.tool=stlink_upload
 generic_f407v.menu.upload_method.STLinkMethod.upload.dfuse_addr=0x08004000
-generic_f407v.menu.upload_method.STLinkMethod.build.vect_flags=-DVECT_TAB_FLASH -DUSER_ADDR_ROM=(uint32)0x08000000
+generic_f407v.menu.upload_method.STLinkMethod.build.vect_flags=-DUSER_ADDR_ROM=0x08000000
+generic_f407v.menu.upload_method.STLinkMethod.build.ldscript=ld/jtag.ld
 
 generic_f407v.menu.upload_method.HIDUploadMethod=HID bootloader 2.0
+generic_f407v.menu.upload_method.HIDUploadMethod.upload.protocol=hid_boot
 generic_f407v.menu.upload_method.HIDUploadMethod.upload.tool=hid_upload
-generic_f407v.menu.upload_method.HIDUploadMethod.build.vect_flags=-DVECT_TAB_FLASH -DUSER_ADDR_ROM=(uint32)0x08004000
+generic_f407v.menu.upload_method.HIDUploadMethod.build.vect_flags=-DUSER_ADDR_ROM=0x08004000
 generic_f407v.menu.upload_method.HIDUploadMethod.build.ldscript=ld/bootloader_8004000.ld
 
 generic_f407v.menu.upload_method.DFUUploadMethod=STM32duino bootloader
 generic_f407v.menu.upload_method.DFUUploadMethod.upload.protocol=maple_dfu
 generic_f407v.menu.upload_method.DFUUploadMethod.upload.tool=maple_upload
-generic_f407v.menu.upload_method.DFUUploadMethod.build.vect_flags=-DVECT_TAB_FLASH -DUSER_ADDR_ROM=(uint32)0x08004000
+generic_f407v.menu.upload_method.DFUUploadMethod.build.vect_flags=-DUSER_ADDR_ROM=0x08004000
 generic_f407v.menu.upload_method.DFUUploadMethod.build.ldscript=ld/bootloader_8004000.ld
 generic_f407v.menu.upload_method.DFUUploadMethod.upload.usbID=1EAF:0003
 generic_f407v.menu.upload_method.DFUUploadMethod.upload.altID=2
@@ -164,17 +165,17 @@ generic_f407v_mini.menu.upload_method.STLinkMethod=STLink
 generic_f407v_mini.menu.upload_method.STLinkMethod.upload.protocol=STLink
 generic_f407v_mini.menu.upload_method.STLinkMethod.upload.tool=stlink_upload
 generic_f407v_mini.menu.upload_method.STLinkMethod.upload.dfuse_addr=0x08004000
-generic_f407v_mini.menu.upload_method.STLinkMethod.build.vect_flags=-DVECT_TAB_FLASH -DUSER_ADDR_ROM=(uint32)0x08000000
+generic_f407v_mini.menu.upload_method.STLinkMethod.build.vect_flags=-DUSER_ADDR_ROM=0x08000000
 
 generic_f407v_mini.menu.upload_method.HIDUploadMethod=HID bootloader 2.0
 generic_f407v_mini.menu.upload_method.HIDUploadMethod.upload.tool=hid_upload
-generic_f407v_mini.menu.upload_method.HIDUploadMethod.build.vect_flags=-DVECT_TAB_FLASH -DUSER_ADDR_ROM=(uint32)0x08004000
+generic_f407v_mini.menu.upload_method.HIDUploadMethod.build.vect_flags=-DUSER_ADDR_ROM=0x08004000
 generic_f407v_mini.menu.upload_method.HIDUploadMethod.build.ldscript=ld/bootloader_8004000.ld
 
 generic_f407v_mini.menu.upload_method.DFUUploadMethod=STM32duino bootloader
 generic_f407v_mini.menu.upload_method.DFUUploadMethod.upload.protocol=maple_dfu
 generic_f407v_mini.menu.upload_method.DFUUploadMethod.upload.tool=maple_upload
-generic_f407v_mini.menu.upload_method.DFUUploadMethod.build.vect_flags=-DVECT_TAB_FLASH -DUSER_ADDR_ROM=(uint32)0x08004000
+generic_f407v_mini.menu.upload_method.DFUUploadMethod.build.vect_flags=-DUSER_ADDR_ROM=0x08004000
 generic_f407v_mini.menu.upload_method.DFUUploadMethod.build.ldscript=ld/bootloader_8004000.ld
 generic_f407v_mini.menu.upload_method.DFUUploadMethod.upload.usbID=1EAF:0003
 generic_f407v_mini.menu.upload_method.DFUUploadMethod.upload.altID=2
@@ -230,7 +231,7 @@ stm32f4stamp.build.variant=discovery_f407
 stm32f4stamp.build.variant_system_lib=lib_f407.a
 stm32f4stamp.build.error_led_pin=PD14
 stm32f4stamp.build.board=STM32F4StampF405
-stm32f4stamp.build.vect_flags=-DVECT_TAB_FLASH -DUSER_ADDR_ROM=(uint32)0x08000000
+stm32f4stamp.build.vect_flags=-DUSER_ADDR_ROM=0x08000000
 
 stm32f4stamp.menu.usb_cfg.usb_serial=USB serial (CDC)
 stm32f4stamp.menu.usb_cfg.usb_serial.build.cpu_flags=-DSERIAL_USB

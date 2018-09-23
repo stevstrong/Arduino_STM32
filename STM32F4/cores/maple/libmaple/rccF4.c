@@ -457,11 +457,8 @@ void SetupClock168MHz()
 }
 
 
-void rcc_clk_init(rcc_sysclk_src sysclk_src,
-                  rcc_pllsrc pll_src,
-                  rcc_pll_multiplier pll_mul) {
-
-  //SetupClock72MHz();
+void rcc_clk_init(void)
+{
 #if STM32_TICKS_PER_US == 168
 	  SetupClock168MHz();
 #endif
@@ -474,7 +471,7 @@ void rcc_clk_init(rcc_sysclk_src sysclk_src,
 }
 
 
-
+#if 0
 
 #define PLL_M      8
 #define PLL_N      240
@@ -579,6 +576,8 @@ void rcc_clk_init2(rcc_sysclk_src sysclk_src,
     while ((RCC->CFGR & RCC_CFGR_SWS) != RCC_CFGR_SWS_PLL);
 #endif
 }
+
+#endif
 
 /**
  * @brief Turn on the clock line on a peripheral
