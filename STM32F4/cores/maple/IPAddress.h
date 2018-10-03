@@ -24,14 +24,20 @@
 #include <WString.h>
 #include <Printable.h>
 
-// A class to make it easier to handle and pass around IP addresses
 
+typedef union {
+	uint32_t dword;
+	uint8_t bytes[4];  // IPv4 address
+} ip_addr;
+// Utility functions to handle IP addresses as chars
+char * ip2chr(ip_addr);
+char * mac2chr(uint8_t * mac);
+
+
+// A class to make it easier to handle and pass around IP addresses
 class IPAddress : public Printable {
 private:
-    union {
-	uint8_t bytes[4];  // IPv4 address
-	uint32_t dword;
-    } _address;
+    ip_addr _address;
 
     // Access the raw byte array containing the address.  Because this returns a pointer
     // to the internal structure rather than a copy of the address this function should only
@@ -65,6 +71,7 @@ public:
 
     virtual size_t printTo(Print& p) const;
     String toString();
+	char * toChars();
 
     friend class EthernetClass;
     friend class UDP;

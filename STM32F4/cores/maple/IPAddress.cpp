@@ -115,6 +115,11 @@ size_t IPAddress::printTo(Print& p) const
     return n;
 }
 
+char * IPAddress::toChars()
+{
+    return ip2chr(_address);
+}
+
 String IPAddress::toString()
 {
     String str = String(_address.bytes[0]);
@@ -125,5 +130,20 @@ String IPAddress::toString()
     str += ".";
     str += String(_address.bytes[3]);
     return str;
+}
+
+//-----------------------------------------------------------------------------
+static char addr_str[18];
+//-----------------------------------------------------------------------------
+char * ip2chr(ip_addr addr)
+{
+    sprintf(addr_str, "%d.%d.%d.%d", addr.bytes[0], addr.bytes[1], addr.bytes[2], addr.bytes[3]);
+    return (char *)&addr_str;
+}
+//-----------------------------------------------------------------------------
+char * mac2chr(uint8_t * mac)
+{
+    sprintf(addr_str, "%02X:%02X:%02X:%02X:%02X:%02X", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
+    return (char *)&addr_str;
 }
 
