@@ -2,6 +2,7 @@
 #ifndef _RTCLOCK_H_
 #define _RTCLOCK_H_
 
+#include <usb_serial.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -14,22 +15,13 @@ extern "C" {
 #include <libmaple/exti.h>
 #include <libmaple/nvic.h>
 #include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 
-//#define RTC_DEBUG
+//#define RTC_DEBUG 1
 
 
 #if !defined(__time_t_defined) // avoid conflict with newlib or other posix libc
   #warning "Using private time_t definintion"
   typedef uint32_t time_t;
-#endif
-
-#ifdef RTC_DEBUG
-        extern void dbg_printf(const char *fmt, ... );
-        #define rtc_debug_printf(fmt, ...) dbg_printf(fmt, ##__VA_ARGS__);
-#else
-        #define rtc_debug_printf(...) 
 #endif
 
 
@@ -67,23 +59,12 @@ typedef struct rtc_reg_map {
 	__IO uint32 ALRMBSSR;		/**< Alarm B subSecond register */
 	__IO uint32 BKPxR;		/**< Backup registers */
 } rtc_reg_map;
-		
+
 /** RTC register map base pointer */
-#define RTC_BASE        ((struct rtc_reg_map*)0x40002800)
+#define RTC        ((struct rtc_reg_map*)0x40002800)
 
-/** rtc device type */
-typedef struct rtc_dev {
-	rtc_reg_map *regs;			/**< Register map */
-	voidFuncPtr handlers[];     /**< User IRQ handlers */
-} rtc_dev;
-
-extern rtc_dev *RTC;
-
-#define NR_RTC_HANDLERS                 4
-
-#define EXTI_RTC_ALARM_BIT		17
-#define EXTI_RTC_WAKEUP_BIT		22
-#define EXTI_RTC_TAMPSTAMP_BIT		21
+//#define NR_RTC_HANDLERS         4
+//voidFuncPtr rtc_handlers[NR_RTC_HANDLERS];     /**< User IRQ handlers */
 
 
 /**
@@ -122,29 +103,31 @@ typedef enum rtc_clk_src {
 
 
 /* Control Register */
-#define RTC_CR_TSIE_BIT 	15
-#define RTC_CR_WUTIE_BIT 	14
-#define RTC_CR_ALRBIE_BIT	13
-#define RTC_CR_ALRAIE_BIT 	12
-#define RTC_CR_TSE_BIT 		11
-#define RTC_CR_WUTE_BIT 	10
-#define RTC_CR_ALRBE_BIT	9
-#define RTC_CR_ALRAE_BIT 	8
+#define RTC_CR_TSIE 	    (1<<15)
+#define RTC_CR_WUTIE 	    (1<<14)
+#define RTC_CR_ALRBIE	    (1<<13)
+#define RTC_CR_ALRAIE 	    (1<<12)
+#define RTC_CR_TSE 		    (1<<11)
+#define RTC_CR_WUTE 	    (1<<10)
+#define RTC_CR_ALRBE	    (1<<9)
+#define RTC_CR_ALRAE 	    (1<<8)
+#define RTC_CR_FMT          (1<<6)
+#define RTC_CR_BYPSHAD      (1<<5)
 
 /* Initialization and Status Register */
-#define RTC_ISR_TSOVF_BIT 	12
-#define RTC_ISR_TSF_BIT 	11
-#define RTC_ISR_WUTF_BIT 	10
-#define RTC_ISR_ALRBF_BIT 	9
-#define RTC_ISR_ALRAF_BIT 	8
-#define RTC_ISR_INIT_BIT 	7
-#define RTC_ISR_INITF_BIT 	6
-#define RTC_ISR_RSF_BIT 	5
-#define RTC_ISR_INITS_BIT 	4
-#define RTC_ISR_SHPF_BIT 	3
-#define RTC_ISR_WUTWF_BIT 	2
-#define RTC_ISR_ALRBWF_BIT 	1
-#define RTC_ISR_ALRAWF_BIT 	0
+#define RTC_ISR_TSOVF       (1<<12)
+#define RTC_ISR_TSF         (1<<11)
+#define RTC_ISR_WUTF        (1<<10)
+#define RTC_ISR_ALRBF       (1<<9)
+#define RTC_ISR_ALRAF       (1<<8)
+#define RTC_ISR_INIT        (1<<7)
+#define RTC_ISR_INITF       (1<<6)
+#define RTC_ISR_RSF         (1<<5)
+#define RTC_ISR_INITS       (1<<4)
+#define RTC_ISR_SHPF        (1<<3)
+#define RTC_ISR_WUTWF       (1<<2)
+#define RTC_ISR_ALRBWF      (1<<1)
+#define RTC_ISR_ALRAWF      (1<<0)
 
 
 #define BUILD_TIME_REGISTER(h, m, s) ( ( bin2bcd((h&RTC_TR_HOUR_MASK)) << RTC_TR_HOUR_BIT ) | \
@@ -173,8 +156,9 @@ static inline uint8_t bin2bcd(uint8_t b) { return ( ((b/10)<<4) + (b%10) ); }
 class RTClock {
   public:
  	RTClock() { RTClock(RTCSEL_LSE, 0, 0); }
-    RTClock(rtc_clk_src src ) { RTClock(src, 0, 0);	} 
-	RTClock(rtc_clk_src src, uint16 sync_prescaler, uint16 async_prescaler);
+    RTClock(rtc_clk_src _src ) { RTClock(_src, 0, 0);	} 
+	RTClock(rtc_clk_src _src, uint16 _sync_prescaler, uint16 _async_prescaler);
+	void begin();
 	//~RTClock(); //to implement
 	
 	void breakTime(time_t epoch_time, tm_t & tm);
@@ -196,7 +180,7 @@ class RTClock {
 	uint8_t hour(void)    { getTime(tm); return tm.hour; }
 	uint8_t minute(void)  { getTime(tm); return tm.minute; }
 	uint8_t second(void)  { getTime(tm); return tm.second; }
-	//uint8_t pm(void)      { return _pm(RTC_BASE->TR); }
+	//uint8_t pm(void)      { return _pm(RTC->TR); }
 	uint8_t isPM(void)    { return ( hour()>=12 ); }
 	
 	uint8_t year(time_t t)    { breakTime(t, tm); return tm.year; }
@@ -228,6 +212,8 @@ class RTClock {
 	void detachAlarmBInterrupt();
 
   private:
+	rtc_clk_src src;
+	uint16_t sync_prescaler, async_prescaler;
 	inline uint8_t _year(uint32_t dr)    { return bcd2bin( (dr>>RTC_DR_YEAR_BIT) & RTC_DR_YEAR_MASK ); }
 	inline uint8_t _month(uint32_t dr)   { return bcd2bin( (dr>>RTC_DR_MONTH_BIT) & RTC_DR_MONTH_MASK ); }
 	inline uint8_t _day(uint32_t dr)     { return bcd2bin( (dr>>RTC_DR_DAY_BIT) & RTC_DR_DAY_MASK ); }
@@ -240,99 +226,10 @@ class RTClock {
 	tm_t tm;
 };
 
-inline uint32_t getTReg(void) { return (uint32_t)(RTC_BASE->TR); }
-inline uint32_t getDReg(void) { return (uint32_t)(RTC_BASE->DR); }
-
-/**
- * @brief Clear the register synchronized flag. The flag is then set by hardware after a write to PRL/DIV or CNT.
- */
-static inline void rtc_clear_sync() {
-	*bb_perip(&(RTC->regs)->ISR, RTC_ISR_RSF_BIT) = 0;
-}
-
-/**
- * @brief Check (wait if necessary) to see RTC registers are synchronized.
- */
-static inline void rtc_wait_sync() {
-        uint32 t = 0;
-	rtc_debug_printf("entering rtc_wait_sync\r\n");
-	while (*bb_perip(&(RTC->regs)->ISR, RTC_ISR_RSF_BIT) == 0) {
-	    if (++t > 1000000) {
-                rtc_debug_printf("RTC_BASE->ISR.RSF Timeout !\r\n");
-                rtc_debug_printf("RTC_BASE->ISR = %08X\r\n", RTC_BASE->ISR);
-                return;
-            }
-	}
-	rtc_debug_printf("finished rtc_wait_sync\r\n");
-}
-
-/**
- * @brief Enter configuration mode.
- */
-static inline void rtc_enter_config_mode() {
-        uint32 t = 0;
-	// Unlock Write Protect
-        RTC_BASE->WPR = 0xCA;
-        RTC_BASE->WPR = 0x53;
-	*bb_perip(&(RTC->regs)->ISR, RTC_ISR_INIT_BIT) = 1;
-	rtc_debug_printf("RTC_BASE->ISR = %08X\r\n", RTC_BASE->ISR);
-	while (!(RTC_BASE->ISR & 0x00000040)) {
-	    if (++t > 1000000) {
-                rtc_debug_printf("RTC_BASE->ISR.INITF Timeout !\r\n");
-                rtc_debug_printf("RTC_BASE->ISR = %08X\r\n", RTC_BASE->ISR);
-                return;
-            }
-	}
-	rtc_debug_printf("rtc_enter_config_mode done !\r\n");
-}
-
-/**
- * @brief Exit configuration mode.
- */
-static inline void rtc_exit_config_mode() {
-	*bb_perip(&(RTC->regs)->ISR, RTC_ISR_INIT_BIT) = 0;
-	rtc_debug_printf("rtc_exit_config_mode done !\r\n");
-}
+inline uint32_t getTReg(void) { return (uint32_t)(RTC->TR); }
+inline uint32_t getDReg(void) { return (uint32_t)(RTC->DR); }
 
 
-/**
- * @brief Enable an RTC alarm event. Enabling this event allows waking up from deep sleep via WFE.
- * @see rtc_interrupt_id
- */
-static inline void rtc_enable_alarm_event() {
-        *bb_perip(&EXTI_BASE->IMR, EXTI_RTC_ALARM_BIT) = 1;
-	*bb_perip(&EXTI_BASE->EMR, EXTI_RTC_ALARM_BIT) = 1;
-	*bb_perip(&EXTI_BASE->RTSR, EXTI_RTC_ALARM_BIT) = 1;
-}
-
-/**
- * @brief Disable the RTC alarm event.
- * @see rtc_interrupt_id
- */
-static inline void rtc_disable_alarm_event() {
-	*bb_perip(&EXTI_BASE->EMR, EXTI_RTC_ALARM_BIT) = 0;
-	*bb_perip(&EXTI_BASE->RTSR, EXTI_RTC_ALARM_BIT) = 0;
-}
-
-
-/**
- * @brief Enable an RTC Wakeup event. 
- * @see rtc_interrupt_id
- */
-static inline void rtc_enable_wakeup_event() {
-        *bb_perip(&EXTI_BASE->IMR, EXTI_RTC_WAKEUP_BIT) = 1;
-	*bb_perip(&EXTI_BASE->EMR, EXTI_RTC_WAKEUP_BIT) = 1;
-	*bb_perip(&EXTI_BASE->RTSR, EXTI_RTC_WAKEUP_BIT) = 1;
-}
-
-/**
- * @brief Disable the RTC alarm event.
- * @see rtc_interrupt_id
- */
-static inline void rtc_disable_wakeup_event() {
-	*bb_perip(&EXTI_BASE->EMR, EXTI_RTC_WAKEUP_BIT) = 0;
-	*bb_perip(&EXTI_BASE->RTSR, EXTI_RTC_WAKEUP_BIT) = 0;
-}
 
 #ifdef __cplusplus
 }

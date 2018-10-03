@@ -35,6 +35,7 @@
 #include "gpio.h"
 #include "rcc.h"
 #include "bitband.h"
+#include "pwr.h"
 
 #define APB1                            RCC_APB1
 #define APB2                            RCC_APB2
@@ -149,16 +150,6 @@ static const struct rcc_dev_info rcc_dev_table[] = {
 
 typedef struct
 {
-  __IO uint32 CR;   /*!< PWR power control register,        Address offset: 0x00 */
-  __IO uint32 CSR;  /*!< PWR power control/status register, Address offset: 0x04 */
-} PWR_TypeDef;
-
-#define PWR_BASE                             (0x40007000)
-#define PWR                                  ((PWR_TypeDef *) PWR_BASE)
-#define PWR_CR_VOS                           ((uint16)0x4000)     /*!< Regulator voltage scaling output selection */
-
-typedef struct
-{
   __IO uint32 ACR;      /*!< FLASH access control register, Address offset: 0x00 */
   __IO uint32 KEYR;     /*!< FLASH key register,            Address offset: 0x04 */
   __IO uint32 OPTKEYR;  /*!< FLASH option key register,     Address offset: 0x08 */
@@ -205,7 +196,7 @@ void SetupClock72MHz()
 	uint32 StartUpCounter = 0, HSEStatus = 0;
 
 	/* Enable HSE */
-	RCC->CR |= ((uint32_t)RCC_CR_HSEON);
+	RCC->CR |= (uint32_t)(RCC_CR_HSEON);
 
 	/* Wait till HSE is ready and if Time out is reached exit */
 	do
@@ -230,13 +221,13 @@ void SetupClock72MHz()
 		PWR->CR &= (uint32_t)~(PWR_CR_VOS);
 
 		/* HCLK = SYSCLK / 1*/
-		RCC->CFGR |= RCC_CFGR_HPRE_DIV1;
+		rcc_set_prescaler(RCC_PRESCALER_AHB, RCC_AHB_SYSCLK_DIV_1);
 
 		/* PCLK2 = HCLK / 1*/
-		RCC->CFGR |= RCC_CFGR_PPRE2_DIV1;
+		rcc_set_prescaler(RCC_PRESCALER_APB2, RCC_APB2_HCLK_DIV_1);
 
 		/* PCLK1 = HCLK / 2*/
-		RCC->CFGR |= RCC_CFGR_PPRE1_DIV2;
+		rcc_set_prescaler(RCC_PRESCALER_APB1, RCC_APB1_HCLK_DIV_2);
 
 		// save bus clock values
 		rcc_dev_clk_speed_table[RCC_AHB1] = (SystemCoreClock/1);
@@ -318,13 +309,13 @@ void SetupClock120MHz()
 		PWR->CR &= (uint32_t)~(PWR_CR_VOS);
 
 		/* HCLK = SYSCLK / 1*/
-		RCC->CFGR |= RCC_CFGR_HPRE_DIV1;
+		rcc_set_prescaler(RCC_PRESCALER_AHB, RCC_AHB_SYSCLK_DIV_1);
 
 		/* PCLK2 = HCLK / 2*/
-		RCC->CFGR |= RCC_CFGR_PPRE2_DIV2;
+		rcc_set_prescaler(RCC_PRESCALER_APB2, RCC_APB2_HCLK_DIV_2);
 
 		/* PCLK1 = HCLK / 4*/
-		RCC->CFGR |= RCC_CFGR_PPRE1_DIV4;
+		rcc_set_prescaler(RCC_PRESCALER_APB1, RCC_APB1_HCLK_DIV_4);
 
 		// save bus clock values
 		rcc_dev_clk_speed_table[RCC_AHB1] = (SystemCoreClock/1);
@@ -416,13 +407,13 @@ void SetupClock168MHz()
 		PWR->CR |= PWR_CR_VOS;
 
 		/* HCLK = SYSCLK / 1*/
-		RCC->CFGR |= RCC_CFGR_HPRE_DIV1;
+		rcc_set_prescaler(RCC_PRESCALER_AHB, RCC_AHB_SYSCLK_DIV_1);
 
 		/* PCLK2 = HCLK / 2*/
-		RCC->CFGR |= RCC_CFGR_PPRE2_DIV2;
+		rcc_set_prescaler(RCC_PRESCALER_APB2, RCC_APB2_HCLK_DIV_2);
 
 		/* PCLK1 = HCLK / 4*/
-		RCC->CFGR |= RCC_CFGR_PPRE1_DIV4;
+		rcc_set_prescaler(RCC_PRESCALER_APB1, RCC_APB1_HCLK_DIV_4);
 
 		// save bus clock values
 		rcc_dev_clk_speed_table[RCC_AHB1] = (SystemCoreClock/1);
@@ -461,12 +452,12 @@ void rcc_clk_init(void)
 {
 #if STM32_TICKS_PER_US == 168
 	  SetupClock168MHz();
-#endif
-#if STM32_TICKS_PER_US == 120
+#elif STM32_TICKS_PER_US == 120
 	  SetupClock120MHz();
-#endif
-#if STM32_TICKS_PER_US == 72
+#elif STM32_TICKS_PER_US == 72
 	  SetupClock72MHz();
+#elif
+	#error Wrong TICKS_PER_US!
 #endif
 }
 
@@ -667,24 +658,26 @@ uint32 rcc_dev_timer_clk_speed(rcc_clk_id id) {
     return 2*rcc_dev_clk_speed(id);
 }
 
+static const uint32 masks[] = {
+	[RCC_PRESCALER_AHB] = RCC_CFGR_HPRE,
+	[RCC_PRESCALER_APB1] = RCC_CFGR_PPRE1,
+	[RCC_PRESCALER_APB2] = RCC_CFGR_PPRE2,
+};
 /**
  * @brief Set the divider on a peripheral prescaler
  * @param prescaler prescaler to set
  * @param divider prescaler divider
  */
-void rcc_set_prescaler(rcc_prescaler prescaler, uint32 divider) {
-#if 0
-    static const uint32 masks[] = {
-        [RCC_PRESCALER_AHB] = RCC_CFGR_HPRE,
-        [RCC_PRESCALER_APB1] = RCC_CFGR_PPRE1,
-        [RCC_PRESCALER_APB2] = RCC_CFGR_PPRE2,
-        [RCC_PRESCALER_USB] = RCC_CFGR_USBPRE,
-        [RCC_PRESCALER_ADC] = RCC_CFGR_ADCPRE,
-    };
-
+void rcc_set_prescaler(rcc_prescaler prescaler, uint32 divider)
+{
     uint32 cfgr = RCC->CFGR;
     cfgr &= ~masks[prescaler];
     cfgr |= divider;
     RCC->CFGR = cfgr;
-#endif
+}
+
+void rcc_set_rtc_prescaler(uint8_t divider)
+{
+    uint32 cfgr = RCC->CFGR & ~(RCC_CFGR_RTCPRE);
+    RCC->CFGR = cfgr | (divider<<RCC_CFGR_RTCPRE_BIT);
 }

@@ -172,13 +172,8 @@ extern rcc_reg_map * const RCC;
 #define RCC_CFGR_MCO1                   (0x3 << RCC_CFGR_MCO1_BIT)
 #define RCC_CFGR_RTCPRE                 (0x1F << RCC_CFGR_RTCPRE_BIT)
 #define RCC_CFGR_PPRE2                  (0x7 << RCC_CFGR_PPRE2_BIT)
-#define RCC_CFGR_PPRE2_DIV1             (0x0 << RCC_CFGR_PPRE2_BIT)
-#define RCC_CFGR_PPRE2_DIV2             (0x4 << RCC_CFGR_PPRE2_BIT)
 #define RCC_CFGR_PPRE1                  (0x7 << RCC_CFGR_PPRE1_BIT)
-#define RCC_CFGR_PPRE1_DIV2             (0x0 << RCC_CFGR_PPRE1_BIT)
-#define RCC_CFGR_PPRE1_DIV4             (0x5 << RCC_CFGR_PPRE1_BIT)
 #define RCC_CFGR_HPRE                   (0xF << RCC_CFGR_HPRE_BIT)
-#define RCC_CFGR_HPRE_DIV1              (0x0 << RCC_CFGR_HPRE_BIT)
 #define RCC_CFGR_SWS                    (0x3 << 2)
 #define RCC_CFGR_SWS_PLL                (0x2 << 2)
 #define RCC_CFGR_SWS_HSE                (0x1 << 2)
@@ -437,17 +432,18 @@ extern rcc_reg_map * const RCC;
 
 #define RCC_BDCR_BDRST_BIT              16
 #define RCC_BDCR_RTCEN_BIT              15
+#define RCC_BDCR_RTCSEL_BIT             8
 #define RCC_BDCR_LSEBYP_BIT             2
 #define RCC_BDCR_LSERDY_BIT             1
 #define RCC_BDCR_LSEON_BIT              0
 
 #define RCC_BDCR_BDRST                  BIT(RCC_BDCR_BDRST_BIT)
-#define RCC_BDCR_RTCEN                  BIT(RCC_BDCR_RTC_BIT)
-#define RCC_BDCR_RTCSEL                 (0x3 << 8)
-#define RCC_BDCR_RTCSEL_NONE            (0x0 << 8)
-#define RCC_BDCR_RTCSEL_LSE             (0x1 << 8)
-#define RCC_BDCR_RTCSEL_LSI             (0x2 << 8)
-#define RCC_BDCR_RTCSEL_HSE             (0x3 << 8)
+#define RCC_BDCR_RTCEN                  BIT(RCC_BDCR_RTCEN_BIT)
+#define RCC_BDCR_RTCSEL_MASK            (0x3 << RCC_BDCR_RTCSEL_BIT)
+#define RCC_BDCR_RTCSEL_NONE            (0x0 << RCC_BDCR_RTCSEL_BIT)
+#define RCC_BDCR_RTCSEL_LSE             (0x1 << RCC_BDCR_RTCSEL_BIT)
+#define RCC_BDCR_RTCSEL_LSI             (0x2 << RCC_BDCR_RTCSEL_BIT)
+#define RCC_BDCR_RTCSEL_HSE             (0x3 << RCC_BDCR_RTCSEL_BIT)
 #define RCC_BDCR_LSEBYP                 BIT(RCC_BDCR_LSEBYP_BIT)
 #define RCC_BDCR_LSERDY                 BIT(RCC_BDCR_LSERDY_BIT)
 #define RCC_BDCR_LSEON                  BIT(RCC_BDCR_LSEON_BIT)
@@ -638,31 +634,19 @@ typedef enum rcc_prescaler {
     RCC_PRESCALER_AHB,
     RCC_PRESCALER_APB1,
     RCC_PRESCALER_APB2,
-    RCC_PRESCALER_USB,
-    RCC_PRESCALER_ADC
 } rcc_prescaler;
 
-/**
- * ADC prescaler dividers
- * @see rcc_set_prescaler()
- */
-typedef enum rcc_adc_divider {
-    RCC_ADCPRE_PCLK_DIV_2 = 0x0 << 14,
-    RCC_ADCPRE_PCLK_DIV_4 = 0x1 << 14,
-    RCC_ADCPRE_PCLK_DIV_6 = 0x2 << 14,
-    RCC_ADCPRE_PCLK_DIV_8 = 0x3 << 14,
-} rcc_adc_divider;
 
 /**
  * APB1 prescaler dividers
  * @see rcc_set_prescaler()
  */
 typedef enum rcc_apb1_divider {
-    RCC_APB1_HCLK_DIV_1 = 0x0 << 8,
-    RCC_APB1_HCLK_DIV_2 = 0x4 << 8,
-    RCC_APB1_HCLK_DIV_4 = 0x5 << 8,
-    RCC_APB1_HCLK_DIV_8 = 0x6 << 8,
-    RCC_APB1_HCLK_DIV_16 = 0x7 << 8,
+    RCC_APB1_HCLK_DIV_1  = (0x0 << RCC_CFGR_PPRE1_BIT),
+    RCC_APB1_HCLK_DIV_2  = (0x4 << RCC_CFGR_PPRE1_BIT),
+    RCC_APB1_HCLK_DIV_4  = (0x5 << RCC_CFGR_PPRE1_BIT),
+    RCC_APB1_HCLK_DIV_8  = (0x6 << RCC_CFGR_PPRE1_BIT),
+    RCC_APB1_HCLK_DIV_16 = (0x7 << RCC_CFGR_PPRE1_BIT),
 } rcc_apb1_divider;
 
 /**
@@ -670,11 +654,11 @@ typedef enum rcc_apb1_divider {
  * @see rcc_set_prescaler()
  */
 typedef enum rcc_apb2_divider {
-    RCC_APB2_HCLK_DIV_1 = 0x0 << 11,
-    RCC_APB2_HCLK_DIV_2 = 0x4 << 11,
-    RCC_APB2_HCLK_DIV_4 = 0x5 << 11,
-    RCC_APB2_HCLK_DIV_8 = 0x6 << 11,
-    RCC_APB2_HCLK_DIV_16 = 0x7 << 11,
+    RCC_APB2_HCLK_DIV_1  = (0x0 << RCC_CFGR_PPRE2_BIT),
+    RCC_APB2_HCLK_DIV_2  = (0x4 << RCC_CFGR_PPRE2_BIT),
+    RCC_APB2_HCLK_DIV_4  = (0x5 << RCC_CFGR_PPRE2_BIT),
+    RCC_APB2_HCLK_DIV_8  = (0x6 << RCC_CFGR_PPRE2_BIT),
+    RCC_APB2_HCLK_DIV_16 = (0x7 << RCC_CFGR_PPRE2_BIT),
 } rcc_apb2_divider;
 
 /**
@@ -682,21 +666,22 @@ typedef enum rcc_apb2_divider {
  * @see rcc_set_prescaler()
  */
 typedef enum rcc_ahb_divider {
-    RCC_AHB_SYSCLK_DIV_1 = 0x0 << 4,
-    RCC_AHB_SYSCLK_DIV_2 = 0x8 << 4,
-    RCC_AHB_SYSCLK_DIV_4 = 0x9 << 4,
-    RCC_AHB_SYSCLK_DIV_8 = 0xA << 4,
-    RCC_AHB_SYSCLK_DIV_16 = 0xB << 4,
-    RCC_AHB_SYSCLK_DIV_32 = 0xC << 4,
-    RCC_AHB_SYSCLK_DIV_64 = 0xD << 4,
-    RCC_AHB_SYSCLK_DIV_128 = 0xD << 4,
-    RCC_AHB_SYSCLK_DIV_256 = 0xE << 4,
-    RCC_AHB_SYSCLK_DIV_512 = 0xF << 4,
+    RCC_AHB_SYSCLK_DIV_1   = (0x0 << RCC_CFGR_HPRE_BIT),
+    RCC_AHB_SYSCLK_DIV_2   = (0x8 << RCC_CFGR_HPRE_BIT),
+    RCC_AHB_SYSCLK_DIV_4   = (0x9 << RCC_CFGR_HPRE_BIT),
+    RCC_AHB_SYSCLK_DIV_8   = (0xA << RCC_CFGR_HPRE_BIT),
+    RCC_AHB_SYSCLK_DIV_16  = (0xB << RCC_CFGR_HPRE_BIT),
+    RCC_AHB_SYSCLK_DIV_32  = (0xC << RCC_CFGR_HPRE_BIT),
+    RCC_AHB_SYSCLK_DIV_64  = (0xD << RCC_CFGR_HPRE_BIT),
+    RCC_AHB_SYSCLK_DIV_128 = (0xD << RCC_CFGR_HPRE_BIT),
+    RCC_AHB_SYSCLK_DIV_256 = (0xE << RCC_CFGR_HPRE_BIT),
+    RCC_AHB_SYSCLK_DIV_512 = (0xF << RCC_CFGR_HPRE_BIT),
 } rcc_ahb_divider;
 
 void rcc_set_prescaler(rcc_prescaler prescaler, uint32 divider);
+void rcc_set_rtc_prescaler(uint8_t divider);
 
-
+#if 0 // unused functions
 /**
  * @brief Start the low speed internal oscillatior
  */
@@ -722,7 +707,7 @@ static inline void rcc_start_hse(void) {				// Added to support RTClock
 //	*bb_perip(&RCC->CR, RCC_CR_HSEON_BIT) = 1;
 	while (bb_peri_get_bit(&RCC->CR, RCC_CR_HSERDY_BIT) == 0);
 }
-
+#endif
 
 
 #ifdef __cplusplus

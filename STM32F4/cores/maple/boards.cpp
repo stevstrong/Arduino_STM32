@@ -90,9 +90,6 @@ bool boardUsesPin(uint8 pin)
 static void setupClocks()
 {
     rcc_clk_init();
-    rcc_set_prescaler(RCC_PRESCALER_AHB, RCC_AHB_SYSCLK_DIV_1);
-    rcc_set_prescaler(RCC_PRESCALER_APB1, RCC_APB1_HCLK_DIV_2);
-    rcc_set_prescaler(RCC_PRESCALER_APB2, RCC_APB2_HCLK_DIV_1);
 }
 
 static void setupNVIC()

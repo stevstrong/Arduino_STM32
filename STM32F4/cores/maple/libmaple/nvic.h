@@ -97,7 +97,7 @@ typedef enum nvic_irq_num {
     NVIC_SYSTICK        = -1,   /**< System tick timer */
     NVIC_WWDG           = 0,    /**< Window watchdog interrupt */
     NVIC_PVD            = 1,    /**< PVD through EXTI line detection */
-    NVIC_TAMPER         = 2,    /**< Tamper */
+    NVIC_TAMPSTAMP      = 2,    /**< Tamper and TimeStamp */
     NVIC_RTC            = 3,    /**< Real-time clock */
     NVIC_FLASH          = 4,    /**< Flash */
     NVIC_RCC            = 5,    /**< Reset and clock control */
