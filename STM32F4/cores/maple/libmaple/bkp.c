@@ -34,13 +34,28 @@
 #include "rcc.h"
 #include "bitband.h"
 
-static inline __IO uint32* data_register(uint8 reg);
 
-bkp_dev bkp = {
-    .regs = BKP_BASE,
-};
-/** Backup device. */
-const bkp_dev *BKP = &bkp;
+/*
+ * Data register memory layout is not contiguous. It's split up from
+ * 1--NR_LOW_DRS, beginning at BKP->DR1, through to
+ * (NR_LOW_DRS+1)--BKP_NR_DATA_REGS, beginning at BKP->DR11.
+ */
+static __IO uint32* data_register(uint8 reg)
+{
+    if ( reg==0 || reg > BKP_NR_DATA_REGS) {
+        return 0;
+    }
+
+#if BKP_NR_DATA_REGS == NR_LOW_DRS
+    return (uint32*)BKP + reg;
+#else
+    if (reg <= NR_LOW_DRS) {
+        return (uint32*)BKP + reg;
+    } else {
+        return (uint32*)&(BKP->DR11) + (reg - NR_LOW_DRS - 1);
+    }
+#endif
+}
 
 /**
  * @brief Initialize backup interface.
@@ -49,8 +64,8 @@ const bkp_dev *BKP = &bkp;
  * backup device.
  */
 void bkp_init(void) {
-    /* Don't call pwr_init(), or you'll reset the device.  We just
-     * need the clock. */
+    /* Don't call pwr_init(), or you'll reset the device.
+	 * We just need the clock. */
     rcc_clk_enable(RCC_PWR);
     //rcc_clk_enable(RCC_BKP);
     //rcc_reset_dev(RCC_BKP);
@@ -62,14 +77,14 @@ void bkp_init(void) {
  * @see bkp_init()
  */
 void bkp_enable_writes(void) {
-    *bb_perip(&PWR->CR, PWR_CR_DBP) = 1;
+    *bb_perip(&PWR->CR, PWR_CR_DBP_BIT) = 1;
 }
 
 /**
  * Disable write access to the backup registers.
  */
 void bkp_disable_writes(void) {
-    *bb_perip(&PWR->CR, PWR_CR_DBP) = 0;
+    *bb_perip(&PWR->CR, PWR_CR_DBP_BIT) = 0;
 }
 
 /**
@@ -103,27 +118,4 @@ void bkp_write(uint8 reg, uint16 val) {
         return;
     }
     *dr = (uint32)val;
-}
-
-/*
- * Data register memory layout is not contiguous. It's split up from
- * 1--NR_LOW_DRS, beginning at BKP_BASE->DR1, through to
- * (NR_LOW_DRS+1)--BKP_NR_DATA_REGS, beginning at BKP_BASE->DR11.
- */
-#define NR_LOW_DRS 10
-
-static inline __IO uint32* data_register(uint8 reg) {
-    if (reg < 1 || reg > BKP_NR_DATA_REGS) {
-        return 0;
-    }
-
-#if BKP_NR_DATA_REGS == NR_LOW_DRS
-    return (uint32*)BKP_BASE + reg;
-#else
-    if (reg <= NR_LOW_DRS) {
-        return (uint32*)BKP_BASE + reg;
-    } else {
-        return (uint32*)&(BKP_BASE->DR11) + (reg - NR_LOW_DRS - 1);
-    }
-#endif
 }

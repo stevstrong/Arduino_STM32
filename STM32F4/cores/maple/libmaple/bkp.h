@@ -38,11 +38,13 @@
 extern "C" {
 #endif
 
+
+#define NR_LOW_DRS 10
 #define BKP_NR_DATA_REGS 42
 
 /** Backup peripheral register map type. */
 typedef struct bkp_reg_map {
-    const uint32 RESERVED1;     ///< Reserved
+    __IO uint32 RESERVED1;      ///< Reserved
     __IO uint32 DR1;            ///< Data register 1
     __IO uint32 DR2;            ///< Data register 2
     __IO uint32 DR3;            ///< Data register 3
@@ -56,8 +58,8 @@ typedef struct bkp_reg_map {
     __IO uint32 RTCCR;          ///< RTC control register
     __IO uint32 CR;             ///< Control register
     __IO uint32 CSR;            ///< Control and status register
-    const uint32 RESERVED2;     ///< Reserved
-    const uint32 RESERVED3;     ///< Reserved
+    __IO uint32 RESERVED2;     ///< Reserved
+    __IO uint32 RESERVED3;     ///< Reserved
     __IO uint32 DR11;           ///< Data register 11
     __IO uint32 DR12;           ///< Data register 12
     __IO uint32 DR13;           ///< Data register 13
@@ -93,14 +95,8 @@ typedef struct bkp_reg_map {
 } bkp_reg_map;
 
 /** Backup peripheral register map base pointer. */
-#define BKP_BASE                        ((struct bkp_reg_map*)0x40024000)
+#define BKP                        ((struct bkp_reg_map*)0x40024000)
 
-/** Backup peripheral device type. */
-typedef struct bkp_dev {
-    bkp_reg_map *regs; /**< Register map */
-} bkp_dev;
-
-extern const bkp_dev *BKP;
 
 /*
  * Register bit definitions

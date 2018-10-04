@@ -75,9 +75,9 @@ typedef struct
 } rcc_reg_map;
 
 /** RCC register map base pointer */
-#define RCC_BASE              ((rcc_reg_map*)0x40023800)
+#define RCC              ((rcc_reg_map*)0x40023800)
 
-extern rcc_reg_map * const RCC;
+//extern rcc_reg_map * const RCC;
 
 /*
  * Register bit definitions
@@ -154,32 +154,36 @@ extern rcc_reg_map * const RCC;
 #define RCC_CFGR_PPRE2_BIT              13
 #define RCC_CFGR_PPRE1_BIT              10
 #define RCC_CFGR_HPRE_BIT               4
+#define RCC_CFGR_SWS_BIT                2
+#define RCC_CFGR_SW_BIT                 0
 
 #define RCC_CFGR_MCO2                   (0x3 << RCC_CFGR_MCO2_BIT)
-#define RCC_CFGR_MCO2PRE                (0x7 << RCC_CFGR_MCO2PRE_BIT)
+#define RCC_CFGR_MCO2PRE_MASK           (0x7 << RCC_CFGR_MCO2PRE_BIT)
 #define RCC_CFGR_MCO2PRE_DIV1           (0x0 << RCC_CFGR_MCO2PRE_BIT)
 #define RCC_CFGR_MCO2PRE_DIV2           (0x4 << RCC_CFGR_MCO2PRE_BIT)
 #define RCC_CFGR_MCO2PRE_DIV3           (0x5 << RCC_CFGR_MCO2PRE_BIT)
 #define RCC_CFGR_MCO2PRE_DIV4           (0x6 << RCC_CFGR_MCO2PRE_BIT)
 #define RCC_CFGR_MCO2PRE_DIV5           (0x7 << RCC_CFGR_MCO2PRE_BIT)
-#define RCC_CFGR_MCO1PRE                (0x7 << RCC_CFGR_MCO1PRE_BIT)
+#define RCC_CFGR_MCO1PRE_MASK           (0x7 << RCC_CFGR_MCO1PRE_BIT)
 #define RCC_CFGR_MCO1PRE_DIV1           (0x0 << RCC_CFGR_MCO1PRE_BIT)
 #define RCC_CFGR_MCO1PRE_DIV2           (0x4 << RCC_CFGR_MCO1PRE_BIT)
 #define RCC_CFGR_MCO1PRE_DIV3           (0x5 << RCC_CFGR_MCO1PRE_BIT)
 #define RCC_CFGR_MCO1PRE_DIV4           (0x6 << RCC_CFGR_MCO1PRE_BIT)
 #define RCC_CFGR_MCO1PRE_DIV5           (0x7 << RCC_CFGR_MCO1PRE_BIT)
 #define RCC_CFGR_I2SSC                  (0x1 << RCC_CFGR_I2SSC_BIT)
-#define RCC_CFGR_MCO1                   (0x3 << RCC_CFGR_MCO1_BIT)
-#define RCC_CFGR_RTCPRE                 (0x1F << RCC_CFGR_RTCPRE_BIT)
-#define RCC_CFGR_PPRE2                  (0x7 << RCC_CFGR_PPRE2_BIT)
-#define RCC_CFGR_PPRE1                  (0x7 << RCC_CFGR_PPRE1_BIT)
-#define RCC_CFGR_HPRE                   (0xF << RCC_CFGR_HPRE_BIT)
-#define RCC_CFGR_SWS                    (0x3 << 2)
-#define RCC_CFGR_SWS_PLL                (0x2 << 2)
-#define RCC_CFGR_SWS_HSE                (0x1 << 2)
-#define RCC_CFGR_SW                     0x3
-#define RCC_CFGR_SW_PLL                 0x2
-#define RCC_CFGR_SW_HSE                 0x1
+#define RCC_CFGR_MCO1_MASK              (0x3 << RCC_CFGR_MCO1_BIT)
+#define RCC_CFGR_RTCPRE_MASK            (0x1F << RCC_CFGR_RTCPRE_BIT)
+#define RCC_CFGR_PPRE2_MASK             (0x7 << RCC_CFGR_PPRE2_BIT)
+#define RCC_CFGR_PPRE1_MASK             (0x7 << RCC_CFGR_PPRE1_BIT)
+#define RCC_CFGR_HPRE_MASK              (0xF << RCC_CFGR_HPRE_BIT)
+#define RCC_CFGR_SWS_MASK               (0x3 << RCC_CFGR_SWS_BIT)
+#define RCC_CFGR_SWS_PLL                (0x2 << RCC_CFGR_SWS_BIT)
+#define RCC_CFGR_SWS_HSE                (0x1 << RCC_CFGR_SWS_BIT)
+#define RCC_CFGR_SWS_HSI                (0x0 << RCC_CFGR_SWS_BIT)
+#define RCC_CFGR_SW_MASK                (0x3 << RCC_CFGR_SW_BIT)
+#define RCC_CFGR_SW_PLL                 (0x2 << RCC_CFGR_SW_BIT)
+#define RCC_CFGR_SW_HSE                 (0x1 << RCC_CFGR_SW_BIT)
+#define RCC_CFGR_SW_HSI                 (0x0 << RCC_CFGR_SW_BIT)
 
 #define  RCC_CFGR_MCO1Source_HSI             ((uint32_t)0x00000000)
 #define  RCC_CFGR_MCO1Source_LSE             ((uint32_t)0x00200000)

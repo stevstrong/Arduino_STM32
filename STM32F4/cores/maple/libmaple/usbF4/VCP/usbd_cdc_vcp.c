@@ -325,7 +325,7 @@ static uint16_t VCP_DataRx(uint8_t* Buf, uint32_t Len)
 
 			bkp_init();
 			bkp_enable_writes();
-			*(__IO uint32_t *)(BKP_BASE) = 0x424C;
+			*(__IO uint32_t *)(BKP) = 0x424C;
 			bkp_disable_writes();
 
 			systemHardReset();

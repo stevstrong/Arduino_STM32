@@ -43,7 +43,6 @@
 #define AHB2                            RCC_AHB2
 #define AHB3                            RCC_AHB3
 
-rcc_reg_map * const RCC = RCC_BASE;
 
 struct rcc_dev_info {
     const rcc_clk_domain clk_domain;
@@ -218,7 +217,7 @@ void SetupClock72MHz()
 	{
 		/* Select regulator voltage output Scale 2 mode, System frequency up to 144 MHz */
 		RCC->APB1ENR |= RCC_APB1ENR_PWREN;
-		PWR->CR &= (uint32_t)~(PWR_CR_VOS);
+		*bb_perip(&PWR->CR, PWR_CR_VOS_BIT) = 0;
 
 		/* HCLK = SYSCLK / 1*/
 		rcc_set_prescaler(RCC_PRESCALER_AHB, RCC_AHB_SYSCLK_DIV_1);
@@ -248,11 +247,11 @@ void SetupClock72MHz()
 		FLASH->ACR = FLASH_ACR_ICEN |FLASH_ACR_DCEN |FLASH_ACR_LATENCY_2WS;
 
 		/* Select the main PLL as system clock source */
-		RCC->CFGR &= (uint32_t)((uint32_t)~(RCC_CFGR_SW));
+		RCC->CFGR &= ~(RCC_CFGR_SW_MASK);
 		RCC->CFGR |= RCC_CFGR_SW_PLL;
 
 		/* Wait till the main PLL is used as system clock source */
-		while ((RCC->CFGR & (uint32_t)RCC_CFGR_SWS ) != RCC_CFGR_SWS_PLL);
+		while ((RCC->CFGR & RCC_CFGR_SWS_MASK ) != RCC_CFGR_SWS_PLL);
 
 	}
 	else
@@ -306,7 +305,7 @@ void SetupClock120MHz()
 	{
 		/* Select regulator voltage output Scale 2 mode, System frequency up to 144 MHz */
 		RCC->APB1ENR |= RCC_APB1ENR_PWREN;
-		PWR->CR &= (uint32_t)~(PWR_CR_VOS);
+		*bb_perip(&PWR->CR, PWR_CR_VOS_BIT) = 0;
 
 		/* HCLK = SYSCLK / 1*/
 		rcc_set_prescaler(RCC_PRESCALER_AHB, RCC_AHB_SYSCLK_DIV_1);
@@ -336,11 +335,11 @@ void SetupClock120MHz()
 		FLASH->ACR = FLASH_ACR_ICEN |FLASH_ACR_DCEN |FLASH_ACR_LATENCY_3WS;
 
 		/* Select the main PLL as system clock source */
-		RCC->CFGR &= (uint32_t)((uint32_t)~(RCC_CFGR_SW));
+		RCC->CFGR &= (uint32_t)~(RCC_CFGR_SW_MASK);
 		RCC->CFGR |= RCC_CFGR_SW_PLL;
 
 		/* Wait till the main PLL is used as system clock source */
-		while ((RCC->CFGR & (uint32_t)RCC_CFGR_SWS ) != RCC_CFGR_SWS_PLL);
+		while ((RCC->CFGR & RCC_CFGR_SWS_MASK ) != RCC_CFGR_SWS_PLL);
 
 	}
 	else
@@ -404,7 +403,7 @@ void SetupClock168MHz()
 	{
 		/* Select regulator voltage output Scale 1 mode, System frequency up to 168 MHz */
 		RCC->APB1ENR |= RCC_APB1ENR_PWREN;
-		PWR->CR |= PWR_CR_VOS;
+		*bb_perip(&PWR->CR, PWR_CR_VOS_BIT) = 0;
 
 		/* HCLK = SYSCLK / 1*/
 		rcc_set_prescaler(RCC_PRESCALER_AHB, RCC_AHB_SYSCLK_DIV_1);
@@ -434,11 +433,11 @@ void SetupClock168MHz()
 		FLASH->ACR = FLASH_ACR_ICEN |FLASH_ACR_DCEN |FLASH_ACR_LATENCY_5WS;
 
 		/* Select the main PLL as system clock source */
-		RCC->CFGR &= (uint32_t)((uint32_t)~(RCC_CFGR_SW));
+		RCC->CFGR &= (uint32_t)~(RCC_CFGR_SW_MASK);
 		RCC->CFGR |= RCC_CFGR_SW_PLL;
 
 		/* Wait till the main PLL is used as system clock source */
-		while ((RCC->CFGR & (uint32_t)RCC_CFGR_SWS ) != RCC_CFGR_SWS_PLL);
+		while ((RCC->CFGR & RCC_CFGR_SWS_MASK ) != RCC_CFGR_SWS_PLL);
 
 	}
 	else
@@ -570,19 +569,19 @@ void rcc_clk_init2(rcc_sysclk_src sysclk_src,
 
 #endif
 
+static const __IO uint32* enable_regs[] = {
+	[APB1] = &RCC->APB1ENR,
+	[APB2] = &RCC->APB2ENR,
+	[AHB1] = &RCC->AHB1ENR,
+	[AHB2] = &RCC->AHB2ENR,
+	[AHB3] = &RCC->AHB3ENR,
+};
 /**
  * @brief Turn on the clock line on a peripheral
  * @param id Clock ID of the peripheral to turn on.
  */
-void rcc_clk_enable(rcc_clk_id id) {
-    static const __IO uint32* enable_regs[] = {
-        [APB1] = &RCC->APB1ENR,
-        [APB2] = &RCC->APB2ENR,
-        [AHB1] = &RCC->AHB1ENR,
-        [AHB2] = &RCC->AHB2ENR,
-        [AHB3] = &RCC->AHB3ENR,
-    };
-
+void rcc_clk_enable(rcc_clk_id id)
+{
     rcc_clk_domain clk_domain = rcc_dev_clk(id);
     __IO uint32* enr = (__IO uint32*)enable_regs[clk_domain];
     uint8 lnum = rcc_dev_table[id].line_num;
@@ -594,15 +593,8 @@ void rcc_clk_enable(rcc_clk_id id) {
  * @brief Turn on the clock line on a peripheral
  * @param id Clock ID of the peripheral to turn on.
  */
-void rcc_clk_disable(rcc_clk_id id) {
-    static const __IO uint32* enable_regs[] = {
-        [APB1] = &RCC->APB1ENR,
-        [APB2] = &RCC->APB2ENR,
-        [AHB1] = &RCC->AHB1ENR,
-        [AHB2] = &RCC->AHB2ENR,
-        [AHB3] = &RCC->AHB3ENR,
-    };
-
+void rcc_clk_disable(rcc_clk_id id)
+{
     rcc_clk_domain clk_domain = rcc_dev_clk(id);
     __IO uint32* enr = (__IO uint32*)enable_regs[clk_domain];
     uint8 lnum = rcc_dev_table[id].line_num;
@@ -610,19 +602,19 @@ void rcc_clk_disable(rcc_clk_id id) {
     bb_peri_set_bit(enr, lnum, 0);
 }
 
+static const __IO uint32* reset_regs[] = {
+	[APB1] = &RCC->APB1RSTR,
+	[APB2] = &RCC->APB2RSTR,
+	[AHB1] = &RCC->AHB1RSTR,
+	[AHB2] = &RCC->AHB2RSTR,
+	[AHB3] = &RCC->AHB3RSTR,
+};
 /**
  * @brief Reset a peripheral.
  * @param id Clock ID of the peripheral to reset.
  */
-void rcc_reset_dev(rcc_clk_id id) {
-    static const __IO uint32* reset_regs[] = {
-        [APB1] = &RCC->APB1RSTR,
-        [APB2] = &RCC->APB2RSTR,
-        [AHB1] = &RCC->AHB1RSTR,
-        [AHB2] = &RCC->AHB2RSTR,
-        [AHB3] = &RCC->AHB3RSTR,
-    };
-
+void rcc_reset_dev(rcc_clk_id id)
+{
     rcc_clk_domain clk_domain = rcc_dev_clk(id);
     __IO void* addr = (__IO void*)reset_regs[clk_domain];
     uint8 lnum = rcc_dev_table[id].line_num;
@@ -659,9 +651,9 @@ uint32 rcc_dev_timer_clk_speed(rcc_clk_id id) {
 }
 
 static const uint32 masks[] = {
-	[RCC_PRESCALER_AHB] = RCC_CFGR_HPRE,
-	[RCC_PRESCALER_APB1] = RCC_CFGR_PPRE1,
-	[RCC_PRESCALER_APB2] = RCC_CFGR_PPRE2,
+	[RCC_PRESCALER_AHB] = RCC_CFGR_HPRE_MASK,
+	[RCC_PRESCALER_APB1] = RCC_CFGR_PPRE1_MASK,
+	[RCC_PRESCALER_APB2] = RCC_CFGR_PPRE2_MASK,
 };
 /**
  * @brief Set the divider on a peripheral prescaler
@@ -670,14 +662,12 @@ static const uint32 masks[] = {
  */
 void rcc_set_prescaler(rcc_prescaler prescaler, uint32 divider)
 {
-    uint32 cfgr = RCC->CFGR;
-    cfgr &= ~masks[prescaler];
-    cfgr |= divider;
-    RCC->CFGR = cfgr;
+    uint32 cfgr = RCC->CFGR & ~masks[prescaler];
+    RCC->CFGR = cfgr | divider;
 }
 
 void rcc_set_rtc_prescaler(uint8_t divider)
 {
-    uint32 cfgr = RCC->CFGR & ~(RCC_CFGR_RTCPRE);
+    uint32 cfgr = RCC->CFGR & ~(RCC_CFGR_RTCPRE_MASK);
     RCC->CFGR = cfgr | (divider<<RCC_CFGR_RTCPRE_BIT);
 }

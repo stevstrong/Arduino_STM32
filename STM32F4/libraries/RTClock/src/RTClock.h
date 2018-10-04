@@ -15,6 +15,8 @@ extern "C" {
 #include <libmaple/exti.h>
 #include <libmaple/nvic.h>
 #include <stdio.h>
+#include <libmaple/pwr.h>
+
 
 //#define RTC_DEBUG 1
 
@@ -115,19 +117,21 @@ typedef enum rtc_clk_src {
 #define RTC_CR_BYPSHAD      (1<<5)
 
 /* Initialization and Status Register */
-#define RTC_ISR_TSOVF       (1<<12)
-#define RTC_ISR_TSF         (1<<11)
-#define RTC_ISR_WUTF        (1<<10)
-#define RTC_ISR_ALRBF       (1<<9)
-#define RTC_ISR_ALRAF       (1<<8)
-#define RTC_ISR_INIT        (1<<7)
-#define RTC_ISR_INITF       (1<<6)
-#define RTC_ISR_RSF         (1<<5)
-#define RTC_ISR_INITS       (1<<4)
-#define RTC_ISR_SHPF        (1<<3)
-#define RTC_ISR_WUTWF       (1<<2)
-#define RTC_ISR_ALRBWF      (1<<1)
-#define RTC_ISR_ALRAWF      (1<<0)
+#define RTC_ISR_TAMP2F_BIT     14
+#define RTC_ISR_TAMP1F_BIT     13
+#define RTC_ISR_TSOVF_BIT      12
+#define RTC_ISR_TSF_BIT        11
+#define RTC_ISR_WUTF_BIT       10
+#define RTC_ISR_ALRBF_BIT       9
+#define RTC_ISR_ALRAF_BIT       8
+#define RTC_ISR_INIT_BIT        7
+#define RTC_ISR_INITF       BIT(6)
+#define RTC_ISR_RSF_BIT         5
+#define RTC_ISR_INITS       BIT(4)
+#define RTC_ISR_SHPF        BIT(3)
+#define RTC_ISR_WUTWF       BIT(2)
+#define RTC_ISR_ALRBWF      BIT(1)
+#define RTC_ISR_ALRAWF      BIT(0)
 
 
 #define BUILD_TIME_REGISTER(h, m, s) ( ( bin2bcd((h&RTC_TR_HOUR_MASK)) << RTC_TR_HOUR_BIT ) | \

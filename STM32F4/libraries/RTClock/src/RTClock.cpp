@@ -47,7 +47,7 @@ voidFuncPtr handlerPeriodicWakeup = NULL;
 // Clear the register synchronized flag. The flag is then set by hardware after a write to PRL/DIV or CNT.
 //-----------------------------------------------------------------------------
 static inline void rtc_clear_sync() {
-	RTC->ISR = ~(RTC_ISR_RSF);
+	*bb_perip(&RTC->ISR, RTC_ISR_RSF_BIT) = 0;
 }
 
 //-----------------------------------------------------------------------------
@@ -77,7 +77,7 @@ static void rtc_enter_config_mode()
 	RTC->WPR = 0xCA;
 	RTC->WPR = 0x53;
 	PRINTF("RTC->ISR(1) = %08X\n", RTC->ISR);
-	RTC->ISR = (RTC_ISR_INIT);
+	*bb_perip(&RTC->ISR, RTC_ISR_INIT_BIT) = 1;
 	PRINTF("RTC->ISR(2) = %08X\n", RTC->ISR);
 	uint32 t = 0;
 	while (!(RTC->ISR & RTC_ISR_INITF))
@@ -94,7 +94,7 @@ static void rtc_enter_config_mode()
 // Exit configuration mode.
 //-----------------------------------------------------------------------------
 static inline void rtc_exit_config_mode() {
-	RTC->ISR = ~(RTC_ISR_INIT);
+	*bb_perip(&RTC->ISR, RTC_ISR_INIT_BIT) = 0;
 //	PRINTF("rtc_exit_config_mode done !\r\n");
 }
 
@@ -154,14 +154,16 @@ void RTClock::begin(void)
     bkp_disable_writes();
     PRINTF("bkp_enable_writes\n");
     bkp_enable_writes();	// enable writes to the backup registers and the RTC registers via the DBP bit in the PWR control register
+    PRINTF("PWR->CR = %08X\n", PWR->CR);
     rcc_set_rtc_prescaler(CRYSTAL_FREQ); // Set the RTCPRE to HSE / 8.
     PRINTF("RCC->CFGR = %08X\n", RCC->CFGR);
 
+	rtc_enter_config_mode();
     switch (src)
 	{	
 	case RTCSEL_LSE:
 	{	
-		PRINTF("Preparing RTC for LSE mode\n");
+		PRINTF("Preparing RTC for LSE mode, RCC->BDCR = %08X\n", RCC->BDCR);
 	    if ((RCC->BDCR & RCC_BDCR_RTCSEL_MASK) != RCC_BDCR_RTCSEL_LSE) {
             RCC->BDCR = RCC_BDCR_BDRST; // Reset the entire Backup domain
 			PRINTF("BCKP domain reset\n");
@@ -176,7 +178,6 @@ void RTClock::begin(void)
 			}
 		}
 		PRINTF("RCC->BDCR = %08X\r\n", RCC->BDCR);
-		rtc_enter_config_mode();
 		if (sync_prescaler == 0 && async_prescaler == 0)
 			RTC->PRER = 255 | (127 << 16);
 		else
@@ -200,7 +201,6 @@ void RTClock::begin(void)
 			}
 		}
 		PRINTF("RCC->CSR = %08X\n", RCC->CSR);
-		rtc_enter_config_mode();
 		if (sync_prescaler == 0 && async_prescaler == 0)
 			RTC->PRER = 249 | (127 << 16);
 		else
@@ -208,14 +208,13 @@ void RTClock::begin(void)
 	}   break;
 	case RTCSEL_DEFAULT: 
 	case RTCSEL_HSE : 
-	    PRINTF("Preparing RTC for HSE mode\n");
+	    PRINTF("Preparing RTC for HSE mode, RCC->BDCR = %08X\n", RCC->BDCR);
 	    if ((RCC->BDCR & RCC_BDCR_RTCSEL_MASK) != RCC_BDCR_RTCSEL_HSE) {
             RCC->BDCR = RCC_BDCR_BDRST; // Reset the entire Backup domain
 			PRINTF("BCKP domain reset\n");
 		}
 		RCC->BDCR = (RCC_BDCR_RTCEN | RCC_BDCR_RTCSEL_HSE | RCC_BDCR_LSEBYP);
 		PRINTF("RCC->BDCR = %08X\n", RCC->BDCR);
-		rtc_enter_config_mode();
 		if (sync_prescaler == 0 && async_prescaler == 0)
 			RTC->PRER = 7999 | (124 << 16);
 		else
@@ -223,13 +222,13 @@ void RTClock::begin(void)
 	    break;
 	case RTCSEL_NONE:
 	    PRINTF("Preparing RTC for NONE mode\n");
-	    if ((RCC->BDCR & 0x00000300) != 0x0000)
-            RCC->BDCR = 0x00010000; // Reset the entire Backup domain
+	    if ((RCC->BDCR & RCC_BDCR_RTCSEL_MASK) != RCC_BDCR_RTCSEL_NONE)
+            RCC->BDCR = RCC_BDCR_BDRST; // Reset the entire Backup domain
 	    RCC->BDCR = RCC_BDCR_RTCSEL_NONE;
 	    //do nothing. Have a look at the clocks to see the diff between NONE and DEFAULT
 	    break;
     }
-    RCC->CR = (RTC_CR_FMT);// | RTC_CR_BYPSHAD); // 24hrs mode +  bypass shadow regs
+    RCC->CR = (RTC_CR_FMT | RTC_CR_BYPSHAD); // 24hrs mode +  bypass shadow regs
 
 end0:
     rtc_exit_config_mode();
@@ -473,7 +472,7 @@ void RTClock::setPeriodicWakeup(uint16 period)
     PRINTF("RTC->WUTR = %08X\r\n", RTC->WUTR);
     PRINTF("before setting RTC->CR.WUCKSEL\r\n");    
     RTC->CR &= ~(3); RTC->CR |= 4; // Set the WUCKSEL to 1Hz (0x00000004)
-    RTC->ISR &= ~(RTC_ISR_WUTF);
+	*bb_perip(&RTC->ISR, RTC_ISR_WUTF_BIT) = 0;
     RTC->CR |= RTC_CR_WUTE;
     if (period == 0)
         RTC->CR &= ~(RTC_CR_WUTIE); // if period is 0, turn off periodic wakeup interrupt.
@@ -521,7 +520,7 @@ void __irq_rtc(void)
 {
 	PRINTF("<<__irq_rtc>>\n");
 	rtc_enter_config_mode();
-	RTC->ISR = ~(RTC_ISR_WUTF);
+	*bb_perip(&RTC->ISR, RTC_ISR_WUTF_BIT) = 0;
 	rtc_exit_config_mode();
 	EXTI_BASE->PR = EXTI_RTC_WAKEUP;
 	if (handlerPeriodicWakeup != NULL) {
@@ -536,15 +535,15 @@ void __irq_rtcalarm(void)
 	bool isAlarmB = false;
 	PRINTF("<<__irq_rtcalarm>>\n");
 	rtc_enter_config_mode();
-	if (RTC->ISR & RTC_ISR_ALRAF) {
+	if (RTC->ISR & BIT(RTC_ISR_ALRAF_BIT)) {
 		isAlarmA = true;
 		PRINTF(">>AlarmA\n");
-		RTC->ISR = ~(RTC_ISR_ALRAF);
+		*bb_perip(&RTC->ISR, RTC_ISR_ALRAF_BIT) = 0;
 	}
-	if (RTC->ISR & RTC_ISR_ALRBF) {
+	if (RTC->ISR & BIT(RTC_ISR_ALRBF_BIT)) {
 		isAlarmB = true;
 		PRINTF(">>AlarmB\n");
-		RTC->ISR = ~(RTC_ISR_ALRBF);
+		*bb_perip(&RTC->ISR, RTC_ISR_ALRBF_BIT) = 0;
 	}
 	rtc_exit_config_mode();
 	EXTI_BASE->PR = EXTI_RTC_ALARM;
