@@ -247,10 +247,15 @@ uint8 get_direction(timer_dev *dev){
 /*
  * Utilities
  */
-
 static void disable_channel(timer_dev *dev, uint8 channel) {
     timer_detach_interrupt(dev, channel);
     timer_cc_disable(dev, channel);
+}
+
+void timer_set_cc_mode(timer_dev *dev, timer_channel channel, uint8 cc_mode, uint8 flags)
+{
+    timer_oc_set_mode(dev, channel, (timer_oc_mode)cc_mode, flags);
+    timer_cc_enable(dev, channel);
 }
 
 //added by CARLOS.

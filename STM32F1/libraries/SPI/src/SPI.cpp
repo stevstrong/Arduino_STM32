@@ -147,11 +147,9 @@ static const spi_baud_rate baud_rates[8] __FLASH__ = {
 static spi_baud_rate determine_baud_rate(spi_dev *dev, uint32_t freq)
 {
     uint32_t clock = 0;
-    switch (rcc_dev_clk(dev->clk_id))
-    {
-    case RCC_APB2: clock = STM32_PCLK2; break; // 72 Mhz
-    case RCC_APB1: clock = STM32_PCLK1; break; // 36 Mhz
-    }
+	rcc_clk_domain clk_domain = rcc_dev_clk(dev->clk_id);
+    if (clk_domain==RCC_APB2)      clock = STM32_PCLK2; // 72 Mhz
+    else if (clk_domain==RCC_APB1) clock = STM32_PCLK1; // 36 Mhz
     clock /= 2;
     uint8_t i = 0;
     while (i < 7 && freq < clock) {
@@ -366,7 +364,7 @@ If someone finds this is not the case or sees a logic error with this let me kno
     _currentSetting->spi_d->regs->CR1 = cr1 | (dataMode & (SPI_CR1_CPOL|SPI_CR1_CPHA));
 }
 
-void SPIClass::beginTransaction(uint8_t pin, SPISettings settings)
+void SPIClass::beginTransaction(SPISettings settings)
 {
     PRINTF("<bT-");
     setBitOrder(settings.bitOrder);

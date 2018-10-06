@@ -194,8 +194,7 @@ public:
      */
     void end(void);
 
-    void beginTransaction(uint8_t pin, SPISettings settings);
-    void beginTransaction(SPISettings settings) { beginTransaction(BOARD_SPI_DEFAULT_SS, settings); }
+    void beginTransaction(SPISettings settings);
     void endTransaction(void);
 
     void beginTransactionSlave(SPISettings settings);
