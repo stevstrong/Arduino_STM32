@@ -155,10 +155,9 @@ __weak void cgets(char *s, int bufsize) {
     return;
 }
 
-__weak int _write(int fd __attribute__((unused)), const char *buf, size_t cnt) {
-    int i;
-
-    for (i = 0; i < cnt; i++)
+__weak int _write(int fd __attribute__((unused)), const char *buf, size_t cnt)
+{
+    for (size_t i = 0; i < cnt; i++)
         putch(buf[i]);
 
     return cnt;

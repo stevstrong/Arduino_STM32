@@ -52,16 +52,14 @@ rcc_clk_domain rcc_dev_clk(rcc_clk_id id) {
  * @param sysclk_src New system clock source.
  * @see rcc_sysclk_src
  */
-void rcc_switch_sysclk(rcc_sysclk_src sysclk_src) {
-    uint32 cfgr = RCC_BASE->CFGR;
-    cfgr &= ~RCC_CFGR_SW;
-    cfgr |= sysclk_src;
-
+void rcc_switch_sysclk(rcc_sysclk_src sysclk_src)
+{
+    uint32 cfgr = RCC_BASE->CFGR & (~RCC_CFGR_SW);
     /* Switch SYSCLK source. */
-    RCC_BASE->CFGR = cfgr;
+    RCC_BASE->CFGR = cfgr | sysclk_src;
 
     /* Wait for new source to come into use. */
-    while ((RCC_BASE->CFGR & RCC_CFGR_SWS) != (sysclk_src << 2))
+    while ((RCC_BASE->CFGR & RCC_CFGR_SWS) != (uint32)(sysclk_src << 2))
         ;
 }
 
