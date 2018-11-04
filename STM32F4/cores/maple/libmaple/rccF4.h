@@ -634,12 +634,12 @@ uint32 rcc_dev_timer_clk_speed(rcc_clk_id id);
  * Prescaler identifiers
  * @see rcc_set_prescaler()
  */
-typedef enum rcc_prescaler {
-    RCC_PRESCALER_AHB,
-    RCC_PRESCALER_APB1,
-    RCC_PRESCALER_APB2,
+typedef enum {
+    RCC_PRESCALER_AHB  = RCC_CFGR_HPRE_MASK,
+    RCC_PRESCALER_APB1 = RCC_CFGR_PPRE1_MASK,
+    RCC_PRESCALER_APB2 = RCC_CFGR_PPRE2_MASK,
+    RCC_PRESCALER_RTC  = RCC_CFGR_RTCPRE_MASK,
 } rcc_prescaler;
-
 
 /**
  * APB1 prescaler dividers
@@ -682,8 +682,9 @@ typedef enum rcc_ahb_divider {
     RCC_AHB_SYSCLK_DIV_512 = (0xF << RCC_CFGR_HPRE_BIT),
 } rcc_ahb_divider;
 
+#define RCC_RTCCLK_DIV(i) ((i)<<RCC_CFGR_RTCPRE_BIT)
+
 void rcc_set_prescaler(rcc_prescaler prescaler, uint32 divider);
-void rcc_set_rtc_prescaler(uint8_t divider);
 
 #if 0 // unused functions
 /**

@@ -16,7 +16,7 @@ extern "C" {
 #include <libmaple/nvic.h>
 #include <stdio.h>
 #include <libmaple/pwr.h>
-
+#include <ext_interrupts.h>
 
 //#define RTC_DEBUG 1
 
@@ -74,11 +74,10 @@ typedef struct rtc_reg_map {
  *
  */
 typedef enum rtc_clk_src {
-	RTCSEL_DEFAULT	= 0,
-	RTCSEL_NONE		= 0x10,
-	RTCSEL_LSE		= 0x11,
-	RTCSEL_LSI		= 0x12,
-	RTCSEL_HSE		= 0x13,
+	RTCSEL_NONE		= 0,
+	RTCSEL_LSE		= 1,
+	RTCSEL_LSI		= 2,
+	RTCSEL_HSE		= 3,
 } rtc_clk_src;
 
 // Time register
@@ -105,6 +104,8 @@ typedef enum rtc_clk_src {
 
 
 /* Control Register */
+#define RTC_CR_BYPSHAD_BIT      5
+
 #define RTC_CR_TSIE 	    (1<<15)
 #define RTC_CR_WUTIE 	    (1<<14)
 #define RTC_CR_ALRBIE	    (1<<13)
@@ -115,6 +116,9 @@ typedef enum rtc_clk_src {
 #define RTC_CR_ALRAE 	    (1<<8)
 #define RTC_CR_FMT          (1<<6)
 #define RTC_CR_BYPSHAD      (1<<5)
+#define RTC_CR_REFCKON      (1<<4)
+#define RTC_CR_TSEDGE       (1<<3)
+#define RTC_CR_WUCKSEL_MASK (0x07)
 
 /* Initialization and Status Register */
 #define RTC_ISR_TAMP2F_BIT     14
@@ -159,10 +163,10 @@ static inline uint8_t bin2bcd(uint8_t b) { return ( ((b/10)<<4) + (b%10) ); }
 
 class RTClock {
   public:
- 	RTClock() { RTClock(RTCSEL_LSE, 0, 0); }
-    RTClock(rtc_clk_src _src ) { RTClock(_src, 0, 0);	} 
-	RTClock(rtc_clk_src _src, uint16 _sync_prescaler, uint16 _async_prescaler);
-	void begin();
+ 	RTClock() {}
+	void begin(rtc_clk_src _src, uint16 _sync_prescaler, uint16 _async_prescaler);
+	void begin(rtc_clk_src _src) { begin(_src, 0, 0); }
+	void begin() { begin(RTCSEL_LSE, 0, 0); }
 	//~RTClock(); //to implement
 	
 	void breakTime(time_t epoch_time, tm_t & tm);
@@ -177,23 +181,23 @@ class RTClock {
 	time_t now() { return getTime(); }
 	void now(tm_t & tmm ) { getTime(tmm); }  // non-standard use of now() function, added for compatibility with previous versions of the library
 
-	uint8_t year(void)    { getTime(tm); return tm.year; }
-	uint8_t month(void)   { getTime(tm); return tm.month; }
-	uint8_t day(void)     { getTime(tm); return tm.day; }
-	uint8_t weekday(void) { getTime(tm); return tm.weekday; }
-	uint8_t hour(void)    { getTime(tm); return tm.hour; }
-	uint8_t minute(void)  { getTime(tm); return tm.minute; }
-	uint8_t second(void)  { getTime(tm); return tm.second; }
+	uint8_t year(void)    { getTime(_tm); return _tm.year; }
+	uint8_t month(void)   { getTime(_tm); return _tm.month; }
+	uint8_t day(void)     { getTime(_tm); return _tm.day; }
+	uint8_t weekday(void) { getTime(_tm); return _tm.weekday; }
+	uint8_t hour(void)    { getTime(_tm); return _tm.hour; }
+	uint8_t minute(void)  { getTime(_tm); return _tm.minute; }
+	uint8_t second(void)  { getTime(_tm); return _tm.second; }
 	//uint8_t pm(void)      { return _pm(RTC->TR); }
 	uint8_t isPM(void)    { return ( hour()>=12 ); }
 	
-	uint8_t year(time_t t)    { breakTime(t, tm); return tm.year; }
-	uint8_t month(time_t t)   { breakTime(t, tm); return tm.month; }
-	uint8_t day(time_t t)     { breakTime(t, tm); return tm.day; }
-	uint8_t weekday(time_t t) { breakTime(t, tm); return tm.weekday; }
-	uint8_t hour(time_t t)    { breakTime(t, tm); return tm.hour; }
-	uint8_t minute(time_t t)  { breakTime(t, tm); return tm.minute; }
-	uint8_t second(time_t t)  { breakTime(t, tm); return tm.second; }
+	uint8_t year(time_t t)    { breakTime(t, _tm); return _tm.year; }
+	uint8_t month(time_t t)   { breakTime(t, _tm); return _tm.month; }
+	uint8_t day(time_t t)     { breakTime(t, _tm); return _tm.day; }
+	uint8_t weekday(time_t t) { breakTime(t, _tm); return _tm.weekday; }
+	uint8_t hour(time_t t)    { breakTime(t, _tm); return _tm.hour; }
+	uint8_t minute(time_t t)  { breakTime(t, _tm); return _tm.minute; }
+	uint8_t second(time_t t)  { breakTime(t, _tm); return _tm.second; }
 	uint8_t isPM(time_t t)    { return (hour(t)>=12); }
 	
 	void setAlarmATime (tm_t * tm_ptr, bool hours_match = true, bool mins_match = true, bool secs_match = true, bool date_match = false);
@@ -216,8 +220,6 @@ class RTClock {
 	void detachAlarmBInterrupt();
 
   private:
-	rtc_clk_src src;
-	uint16_t sync_prescaler, async_prescaler;
 	inline uint8_t _year(uint32_t dr)    { return bcd2bin( (dr>>RTC_DR_YEAR_BIT) & RTC_DR_YEAR_MASK ); }
 	inline uint8_t _month(uint32_t dr)   { return bcd2bin( (dr>>RTC_DR_MONTH_BIT) & RTC_DR_MONTH_MASK ); }
 	inline uint8_t _day(uint32_t dr)     { return bcd2bin( (dr>>RTC_DR_DAY_BIT) & RTC_DR_DAY_MASK ); }
@@ -227,11 +229,13 @@ class RTClock {
 	inline uint8_t _minute(uint32_t tr)  { return bcd2bin( (tr>>RTC_TR_MINUTE_BIT) & RTC_TR_MINUTE_MASK ); }
 	inline uint8_t _second(uint32_t tr)  { return bcd2bin( (tr>>RTC_TR_SECOND_BIT) & RTC_TR_SECOND_MASK ); }
 
-	tm_t tm;
+	tm_t _tm;
+	uint16_t sync_prescaler, async_prescaler;
+	rtc_clk_src clk_src;
 };
 
-inline uint32_t getTReg(void) { return (uint32_t)(RTC->TR); }
-inline uint32_t getDReg(void) { return (uint32_t)(RTC->DR); }
+extern volatile uint32 rtc_tr, rtc_dr;
+volatile void getTimeStamp(void);// { rtc_tr = RTC->TR; (void)RTC->DR; rtc_dr = RTC->DR; }
 
 
 

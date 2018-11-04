@@ -217,7 +217,7 @@ void SetupClock72MHz()
 	{
 		/* Select regulator voltage output Scale 2 mode, System frequency up to 144 MHz */
 		RCC->APB1ENR |= RCC_APB1ENR_PWREN;
-		*bb_perip(&PWR->CR, PWR_CR_VOS_BIT) = 0;
+		//*bb_perip(&PWR->CR, PWR_CR_VOS_BIT) = 0;
 
 		/* HCLK = SYSCLK / 1*/
 		rcc_set_prescaler(RCC_PRESCALER_AHB, RCC_AHB_SYSCLK_DIV_1);
@@ -305,7 +305,7 @@ void SetupClock120MHz()
 	{
 		/* Select regulator voltage output Scale 2 mode, System frequency up to 144 MHz */
 		RCC->APB1ENR |= RCC_APB1ENR_PWREN;
-		*bb_perip(&PWR->CR, PWR_CR_VOS_BIT) = 0;
+		//*bb_perip(&PWR->CR, PWR_CR_VOS_BIT) = 0;
 
 		/* HCLK = SYSCLK / 1*/
 		rcc_set_prescaler(RCC_PRESCALER_AHB, RCC_AHB_SYSCLK_DIV_1);
@@ -403,7 +403,7 @@ void SetupClock168MHz()
 	{
 		/* Select regulator voltage output Scale 1 mode, System frequency up to 168 MHz */
 		RCC->APB1ENR |= RCC_APB1ENR_PWREN;
-		*bb_perip(&PWR->CR, PWR_CR_VOS_BIT) = 0;
+		//*bb_perip(&PWR->CR, PWR_CR_VOS_BIT) = 0;
 
 		/* HCLK = SYSCLK / 1*/
 		rcc_set_prescaler(RCC_PRESCALER_AHB, RCC_AHB_SYSCLK_DIV_1);
@@ -650,11 +650,6 @@ uint32 rcc_dev_timer_clk_speed(rcc_clk_id id) {
     return 2*rcc_dev_clk_speed(id);
 }
 
-static const uint32 masks[] = {
-	[RCC_PRESCALER_AHB] = RCC_CFGR_HPRE_MASK,
-	[RCC_PRESCALER_APB1] = RCC_CFGR_PPRE1_MASK,
-	[RCC_PRESCALER_APB2] = RCC_CFGR_PPRE2_MASK,
-};
 /**
  * @brief Set the divider on a peripheral prescaler
  * @param prescaler prescaler to set
@@ -662,12 +657,6 @@ static const uint32 masks[] = {
  */
 void rcc_set_prescaler(rcc_prescaler prescaler, uint32 divider)
 {
-    uint32 cfgr = RCC->CFGR & ~masks[prescaler];
+    uint32 cfgr = RCC->CFGR & ~(prescaler);
     RCC->CFGR = cfgr | divider;
-}
-
-void rcc_set_rtc_prescaler(uint8_t divider)
-{
-    uint32 cfgr = RCC->CFGR & ~(RCC_CFGR_RTCPRE_MASK);
-    RCC->CFGR = cfgr | (divider<<RCC_CFGR_RTCPRE_BIT);
 }

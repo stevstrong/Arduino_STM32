@@ -40,10 +40,10 @@
 #define BB_PERI_REF      0x40000000
 #define BB_PERI_BASE     0x42000000
 
-static inline volatile uint32* __bb_addr(volatile void*,
-                                         uint32,
-                                         uint32,
-                                         uint32);
+
+#define __bb_addr(addr, bit, bb_base, bb_ref) \
+	(volatile uint32*)((bb_base) + (((uint32)((uint32)(address) - (bb_ref))) * 32) + ((bit) * 4))
+
 
 /**
  * @brief Obtain a pointer to the bit-band address corresponding to a
@@ -107,14 +107,6 @@ static inline void bb_peri_set_bit(volatile void *address,
                                    uint32 bit,
                                    uint8 val) {
     *bb_perip(address, bit) = val;
-}
-
-static inline volatile uint32* __bb_addr(volatile void *address,
-                                         uint32 bit,
-                                         uint32 bb_base,
-                                         uint32 bb_ref) {
-    return (volatile uint32*)(bb_base + ((uint32)address - bb_ref) * 32 +
-                              bit * 4);
 }
 
 #endif  /* _BITBAND_H_ */

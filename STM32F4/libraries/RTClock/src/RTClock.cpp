@@ -30,19 +30,20 @@
  */
 
 #include "RTClock.h"
-
+#include <wirish_time.h>
 
 voidFuncPtr handlerAlarmA = NULL;
 voidFuncPtr handlerAlarmB = NULL;
 voidFuncPtr handlerPeriodicWakeup = NULL;
 
 
-#ifdef RTC_DEBUG
   char dbg_s[200];
+#ifdef RTC_DEBUG
   #define PRINTF(...) { sprintf(dbg_s, __VA_ARGS__); Serial.print(dbg_s); }
 #else
   #define PRINTF(...) 
 #endif
+  #define PRINTF1(...) { sprintf(dbg_s, __VA_ARGS__); Serial.print(dbg_s); }
 //-----------------------------------------------------------------------------
 // Clear the register synchronized flag. The flag is then set by hardware after a write to PRL/DIV or CNT.
 //-----------------------------------------------------------------------------
@@ -50,52 +51,58 @@ static inline void rtc_clear_sync() {
 	*bb_perip(&RTC->ISR, RTC_ISR_RSF_BIT) = 0;
 }
 
+#if 0
 //-----------------------------------------------------------------------------
 // Check (wait if necessary) to see RTC registers are synchronized.
 //-----------------------------------------------------------------------------
-//static void rtc_wait_sync()
-//{
-//	rtc_debug_printf("< rtc_wait_sync\n");
-//	uint32 t = 0;
-//	while ( !(RTC->ISR & RTC_ISR_RSF) ) 
-//	{
-//	    if (++t > 1000000) {
-//			rtc_debug_printf("Sync Timeout ! ISR = %08X\n", RTC->ISR);
-//			break;
-//		}
-//	}
-//	rtc_debug_printf("rtc_wait_sync >\n");
-//}
-
+void rtc_wait_sync()
+{
+	PRINTF("> rtc_wait_sync\n");
+	uint32 t = millis();
+	while ( !(RTC->ISR & BIT(RTC_ISR_RSF_BIT)) ) 
+	{
+	    if ( (millis()-t)>1500) {
+			PRINTF("Sync Timeout ! ISR = %08X\n", RTC->ISR);
+			break;
+		}
+	}
+	PRINTF("< rtc_wait_sync\n");
+}
+#endif
 //-----------------------------------------------------------------------------
 // Enter configuration mode.
 //-----------------------------------------------------------------------------
 static void rtc_enter_config_mode()
 {
-	PRINTF("< rtc_enter_config_mode\n");
+	PRINTF("> rtc_enter_config_mode\n");
+	noInterrupts();
 	// Unlock Write Protect
 	RTC->WPR = 0xCA;
 	RTC->WPR = 0x53;
 	PRINTF("RTC->ISR(1) = %08X\n", RTC->ISR);
-	*bb_perip(&RTC->ISR, RTC_ISR_INIT_BIT) = 1;
+	//*bb_perip(&RTC->ISR, RTC_ISR_INIT_BIT) = 1;
+	RTC->ISR = 0x1FFFF;
 	PRINTF("RTC->ISR(2) = %08X\n", RTC->ISR);
 	uint32 t = 0;
 	while (!(RTC->ISR & RTC_ISR_INITF))
 	{
-	    if (++t > 1000000) {
+	    if (++t > 10000000) {
 			PRINTF("RTC->ISR.INITF Timeout ! ISR = %08X\n", RTC->ISR);
 			break;;
 		}
 	}
-	PRINTF("rtc_enter_config_mode >\n");
+	PRINTF("< rtc_enter_config_mode\n");
 }
 
 //-----------------------------------------------------------------------------
 // Exit configuration mode.
 //-----------------------------------------------------------------------------
-static inline void rtc_exit_config_mode() {
+static inline void rtc_exit_config_mode()
+{
 	*bb_perip(&RTC->ISR, RTC_ISR_INIT_BIT) = 0;
-//	PRINTF("rtc_exit_config_mode done !\r\n");
+	interrupts();
+	PRINTF("< rtc_exit_config_mode\n");
+	//delayMicroseconds(100);
 }
 
 //-----------------------------------------------------------------------------
@@ -126,6 +133,12 @@ static void rtc_enable_wakeup_event()
 	EXTI_BASE->EMR  |= EXTI_RTC_WAKEUP;
 	EXTI_BASE->RTSR |= EXTI_RTC_WAKEUP;
 }
+volatile void getTimeStamp(void)
+{
+	rtc_tr = RTC->TR;
+	(void)RTC->DR;
+	rtc_dr = RTC->DR;
+}
 
 //-----------------------------------------------------------------------------
 // @brief Disable the RTC alarm event.
@@ -135,104 +148,111 @@ static void rtc_enable_wakeup_event()
 //	EXTI_BASE->EMR  &= ~(EXTI_RTC_WAKEUP);
 //	EXTI_BASE->RTSR &= ~(EXTI_RTC_WAKEUP);
 //}
-
+typedef struct {
+uint16_t s_presc;
+uint16_t as_presc;
+} prescaler_t;
+const prescaler_t prescalers[4] = {
+	{   0,   0}, // RTCSEL_NONE	
+	{ 255, 127}, // RTCSEL_LSE
+	{ 249, 127}, // RTCSEL_LSI
+	{7999, 124}, // RTCSEL_HSE
+};
 //-----------------------------------------------------------------------------
-RTClock::RTClock(rtc_clk_src clk_src, uint16 sync_presc, uint16 async_presc)
+void RTClock::begin(rtc_clk_src src, uint16 sync_presc, uint16 async_presc)
 {
-	src = clk_src;
+	clk_src = src;
 	sync_prescaler = sync_presc;
 	async_prescaler = async_presc;
-}
-//-----------------------------------------------------------------------------
-void RTClock::begin(void)
-{
-    PRINTF("< RTClock::begin\n");
-	
+
+    PRINTF("> RTClock::begin\n");
+    //PRINTF("PWR->CR(1) = %08X\n", PWR->CR);
     bkp_init();		// turn on peripheral clocks to PWR and BKP and reset the backup domain via RCC registers.
-                        // (we must reset the backup domain here in order to change the rtc clock source).
-    PRINTF("bkp_disable_writes\n");
-    bkp_disable_writes();
+
     PRINTF("bkp_enable_writes\n");
     bkp_enable_writes();	// enable writes to the backup registers and the RTC registers via the DBP bit in the PWR control register
-    PRINTF("PWR->CR = %08X\n", PWR->CR);
-    rcc_set_rtc_prescaler(CRYSTAL_FREQ); // Set the RTCPRE to HSE / 8.
-    PRINTF("RCC->CFGR = %08X\n", RCC->CFGR);
+    PRINTF("PWR->CR(2) = %08X\n", PWR->CR);
 
-	rtc_enter_config_mode();
-    switch (src)
-	{	
+	rcc_set_prescaler(RCC_PRESCALER_RTC, RCC_RTCCLK_DIV(CRYSTAL_FREQ)); // Set the RTCPRE to 8.
+	PRINTF("RCC->CFGR = %08X\n", RCC->CFGR);
+
+	PRINTF("RTC clock source: %s\n", (clk_src==RTCSEL_LSE)?"LSE":((clk_src==RTCSEL_LSI)?"LSI":((clk_src==RTCSEL_HSE)?"HSE":"NONE")));
+    switch (clk_src)
+	{
 	case RTCSEL_LSE:
-	{	
+	{
 		PRINTF("Preparing RTC for LSE mode, RCC->BDCR = %08X\n", RCC->BDCR);
-	    if ((RCC->BDCR & RCC_BDCR_RTCSEL_MASK) != RCC_BDCR_RTCSEL_LSE) {
-            RCC->BDCR = RCC_BDCR_BDRST; // Reset the entire Backup domain
-			PRINTF("BCKP domain reset\n");
-		}
+	    if ((RCC->BDCR & RCC_BDCR_RTCSEL_MASK) == RCC_BDCR_RTCSEL_LSE)
+			break;
+		RCC->BDCR = RCC_BDCR_BDRST; // Reset the entire Backup domain
+		PRINTF("BCKP domain reset\n");
+
 		RCC->BDCR = (RCC_BDCR_RTCEN | RCC_BDCR_RTCSEL_LSE | RCC_BDCR_LSEON);
 		PRINTF("RCC->BDCR = %08X\n", RCC->BDCR);
 		uint32 t = 0;
 		while (!(RCC->BDCR & RCC_BDCR_LSERDY)) {
-			if (++t > 1000000) {
+			if (++t > 10000000) {
 				PRINTF("RCC LSERDY Timeout ! BDCR = %08X\n", RCC->BDCR);
-				goto end0;
+				break;
 			}
 		}
-		PRINTF("RCC->BDCR = %08X\r\n", RCC->BDCR);
-		if (sync_prescaler == 0 && async_prescaler == 0)
-			RTC->PRER = 255 | (127 << 16);
-		else
-			RTC->PRER = sync_prescaler | (async_prescaler << 16);
 	}	break;
+
 	case RTCSEL_LSI:
 	{
 	    PRINTF("Preparing RTC for LSI mode\n");
-	    if ((RCC->BDCR & RCC_BDCR_RTCSEL_MASK) != RCC_BDCR_RTCSEL_LSI) {
-            RCC->BDCR = RCC_BDCR_BDRST; // Reset the entire Backup domain
-			PRINTF("BCKP domain reset\n");
-		}
+	    if ((RCC->BDCR & RCC_BDCR_RTCSEL_MASK) == RCC_BDCR_RTCSEL_LSI)
+			break;
+		RCC->BDCR = RCC_BDCR_BDRST; // Reset the entire Backup domain
+		PRINTF("BCKP domain reset\n");
 		RCC->BDCR = (RCC_BDCR_RTCEN | RCC_BDCR_RTCSEL_LSI | RCC_BDCR_LSEBYP);
 		PRINTF("RCC->BDCR = %08X\r\n", RCC->BDCR);
+
 		RCC->CSR = RCC_CSR_LSION;
 		uint32 t = 0;
 		while (!(RCC->CSR & RCC_CSR_LSIRDY)) {
-			if (++t > 1000000) {
+			if (++t > 10000000) {
 				PRINTF("RCC LSIRDY Timeout ! CSR = %08X\n", RCC->CSR);
 				goto end0;
 			}
 		}
 		PRINTF("RCC->CSR = %08X\n", RCC->CSR);
-		if (sync_prescaler == 0 && async_prescaler == 0)
-			RTC->PRER = 249 | (127 << 16);
-		else
-			RTC->PRER = sync_prescaler | (async_prescaler << 16);
 	}   break;
-	case RTCSEL_DEFAULT: 
-	case RTCSEL_HSE : 
+	
+	case RTCSEL_HSE :
 	    PRINTF("Preparing RTC for HSE mode, RCC->BDCR = %08X\n", RCC->BDCR);
-	    if ((RCC->BDCR & RCC_BDCR_RTCSEL_MASK) != RCC_BDCR_RTCSEL_HSE) {
-            RCC->BDCR = RCC_BDCR_BDRST; // Reset the entire Backup domain
-			PRINTF("BCKP domain reset\n");
-		}
+	    if ((RCC->BDCR & RCC_BDCR_RTCSEL_MASK) == RCC_BDCR_RTCSEL_HSE)
+			break;
+		RCC->BDCR = RCC_BDCR_BDRST; // Reset the entire Backup domain
+		PRINTF("BCKP domain reset\n");
 		RCC->BDCR = (RCC_BDCR_RTCEN | RCC_BDCR_RTCSEL_HSE | RCC_BDCR_LSEBYP);
 		PRINTF("RCC->BDCR = %08X\n", RCC->BDCR);
-		if (sync_prescaler == 0 && async_prescaler == 0)
-			RTC->PRER = 7999 | (124 << 16);
-		else
-			RTC->PRER = sync_prescaler | (async_prescaler << 16);
 	    break;
+
 	case RTCSEL_NONE:
 	    PRINTF("Preparing RTC for NONE mode\n");
 	    if ((RCC->BDCR & RCC_BDCR_RTCSEL_MASK) != RCC_BDCR_RTCSEL_NONE)
             RCC->BDCR = RCC_BDCR_BDRST; // Reset the entire Backup domain
-	    RCC->BDCR = RCC_BDCR_RTCSEL_NONE;
 	    //do nothing. Have a look at the clocks to see the diff between NONE and DEFAULT
-	    break;
+	    goto end0;
+		break;
     }
-    RCC->CR = (RTC_CR_FMT | RTC_CR_BYPSHAD); // 24hrs mode +  bypass shadow regs
+	if ( (sync_prescaler + async_prescaler) == 0) {
+		sync_prescaler = prescalers[clk_src].s_presc;
+		async_prescaler = prescalers[clk_src].as_presc;
+	}
+	PRINTF("sync_prescaler = %d, async_prescaler = %d\n", sync_prescaler, async_prescaler);
+	rtc_enter_config_mode();
+	RTC->PRER = (uint32)(async_prescaler << 16) + sync_prescaler;
+	RTC->DR = 0x00002101; // reset value
+	RTC->TR = 0x00000000; // reset value
+    //RCC->CR |= RTC_CR_BYPSHAD;
+	*bb_perip(&RTC->CR, RTC_CR_BYPSHAD_BIT) = 1; // bypass shadow regs
+	PRINTF("RTC PRER: %08X, CR: %08X\n", RTC->PRER, RTC->CR);
+    rtc_exit_config_mode();
 
 end0:
-    rtc_exit_config_mode();
-    PRINTF("RTClock::begin >\n");
+    PRINTF("< RTClock::begin\n");
 }
 
 /*
@@ -242,21 +262,25 @@ RTClock::~RTClock() {
 */	
 	
 //-----------------------------------------------------------------------------
-void RTClock::setTime (time_t time_stamp)
-{
-	breakTime(time_stamp, tm); // time will be broken to tm
-    setTime(tm);
-}
-
-//-----------------------------------------------------------------------------
 void RTClock::setTime (tm_t & tm)
 {
     if (tm.year > 99)
         tm.year = tm.year % 100;
+    rtc_dr = BUILD_DATE_REGISTER(tm.year, tm.month, tm.day, tm.weekday);
+    rtc_tr = BUILD_TIME_REGISTER(tm.hour, tm.minute, tm.second);
     rtc_enter_config_mode();
-    RTC->TR = BUILD_TIME_REGISTER(tm.hour, tm.minute, tm.second);
-    RTC->DR = BUILD_DATE_REGISTER(tm.year, tm.month, tm.day, tm.weekday);
-    rtc_exit_config_mode();		                
+    RTC->TR = rtc_tr;
+    RTC->DR = rtc_dr;
+    rtc_exit_config_mode();
+	//getTimeStamp(); // fix wrong first read
+    PRINTF("RTClock::setTime DR: %08X, TR: %08X\n", rtc_dr, rtc_tr);
+}
+
+//-----------------------------------------------------------------------------
+void RTClock::setTime (time_t time_stamp)
+{
+	breakTime(time_stamp, _tm); // time will be broken to tm
+    setTime(_tm);
 }
 
 /*============================================================================*/	
@@ -282,7 +306,7 @@ void RTClock::breakTime(time_t timeInput, tm_t & tm)
 	time /= 60; // now it is hours
 	tm.hour = time % 24;
 	time /= 24; // now it is days
-	tm.weekday = ((time + 4) % 7); // Monday is day 1 // + 1;  // Sunday is day 1 
+	tm.weekday = ((time + 4) % 7); // Monday is day 1 // (time + 4): Sunday is day 1 
 
 	uint8_t year = 0;
 	uint32_t days = 0;
@@ -351,26 +375,28 @@ time_t RTClock::makeTime(tm_t & tm)
 //-----------------------------------------------------------------------------
 void RTClock::getTime(tm_t & tm)
 {
-    uint32_t dr_reg, tr_reg;
+	uint32 tr;
 	do { // read multiple time till both readings are equal
-		dr_reg = getDReg();
-		tr_reg = getTReg();
-	} while ( (dr_reg!=getDReg()) || (tr_reg!=getTReg()) );
-	tm.year    = _year(dr_reg);
-    tm.month   = _month(dr_reg);
-    tm.day     = _day(dr_reg);
-    tm.weekday = _weekday(dr_reg);
-    tm.pm      = _pm(tr_reg);
-    tm.hour    = _hour(tr_reg);
-    tm.minute  = _minute(tr_reg);
-    tm.second  = _second(tr_reg);
+		getTimeStamp();
+		tr = rtc_tr;
+		getTimeStamp();
+	} while ( tr!=rtc_tr );
+    PRINTF1("RTClock::getTime DR: %08X, TR: %08X\n", rtc_dr, rtc_tr);
+	tm.year    = _year(rtc_dr);
+    tm.month   = _month(rtc_dr);
+    tm.day     = _day(rtc_dr);
+    tm.weekday = _weekday(rtc_dr);
+    tm.pm      = _pm(rtc_tr);
+    tm.hour    = _hour(rtc_tr);
+    tm.minute  = _minute(rtc_tr);
+    tm.second  = _second(rtc_tr);
 }
 
 //-----------------------------------------------------------------------------
 time_t RTClock::getTime()
 {
-	getTime(tm);
-	return makeTime(tm);
+	getTime(_tm);
+	return makeTime(_tm);
 }
 
 //-----------------------------------------------------------------------------
@@ -402,8 +428,8 @@ void RTClock::setAlarmATime (tm_t * tm_ptr, bool hours_match, bool mins_match, b
 //-----------------------------------------------------------------------------
 void RTClock::setAlarmATime (time_t alarm_time, bool hours_match, bool mins_match, bool secs_match, bool date_match)
 {	
-    breakTime(alarm_time, tm);
-    setAlarmATime(&tm, hours_match, mins_match, secs_match, date_match);
+    breakTime(alarm_time, _tm);
+    setAlarmATime(&_tm, hours_match, mins_match, secs_match, date_match);
 }
 
 //-----------------------------------------------------------------------------
@@ -443,8 +469,8 @@ void RTClock::setAlarmBTime (tm_t * tm_ptr, bool hours_match, bool mins_match, b
 //-----------------------------------------------------------------------------
 void RTClock::setAlarmBTime (time_t alarm_time, bool hours_match, bool mins_match, bool secs_match, bool date_match)
 {	
-    breakTime(alarm_time, tm);
-    setAlarmBTime(&tm, hours_match, mins_match, secs_match, date_match);
+    breakTime(alarm_time, _tm);
+    setAlarmBTime(&_tm, hours_match, mins_match, secs_match, date_match);
 }
 
 //-----------------------------------------------------------------------------
@@ -471,7 +497,8 @@ void RTClock::setPeriodicWakeup(uint16 period)
     RTC->WUTR = period; // set the period
     PRINTF("RTC->WUTR = %08X\r\n", RTC->WUTR);
     PRINTF("before setting RTC->CR.WUCKSEL\r\n");    
-    RTC->CR &= ~(3); RTC->CR |= 4; // Set the WUCKSEL to 1Hz (0x00000004)
+    RTC->CR &= ~(RTC_CR_WUCKSEL_MASK);
+	RTC->CR |= 4; // Set the WUCKSEL to 1Hz (0x00000004)
 	*bb_perip(&RTC->ISR, RTC_ISR_WUTF_BIT) = 0;
     RTC->CR |= RTC_CR_WUTE;
     if (period == 0)
@@ -515,6 +542,7 @@ void RTClock::detachPeriodicWakeupInterrupt() {
 
 
 extern "C" {
+volatile uint32 rtc_tr, rtc_dr;
 //-----------------------------------------------------------------------------
 void __irq_rtc(void)
 {
