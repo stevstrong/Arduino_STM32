@@ -37,8 +37,7 @@
 /*
  * There's a fair amount of common DMA functionality needed by each
  * <series/dma.h> and <libmaple/dma.h>.  This header exists in order
- * to provide it to both, avoiding some hacks and circular
- * dependencies.
+ * to provide it to both, avoiding some hacks and circular dependencies.
  */
 
 #ifndef _LIBMAPLE_DMA_COMMON_H_

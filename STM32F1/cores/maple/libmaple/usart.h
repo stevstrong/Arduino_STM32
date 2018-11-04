@@ -44,8 +44,7 @@ extern "C"{
 #include <libmaple/nvic.h>
 #include <libmaple/ring_buffer.h>
 
- /* Roger clark. Replaced with line below #include <series/usart.h>*/
-#include "stm32f1/include/series/usart.h"
+#include "series/usart.h"
 
 /*
  * Register map (common across supported STM32 series).

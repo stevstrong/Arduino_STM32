@@ -73,9 +73,8 @@ extern "C" {
  * - Reg. map base pointers, device pointer declarations.
  */
 
- /* Roger clark. Replaced with line below #include <series/i2c.h>*/
-#include "libmaple/i2c_common_slave.h"
-#include "stm32f1/include/series/i2c.h"
+#include <libmaple/i2c_common_slave.h>
+#include <libmaple/series/i2c.h>
 
 #include <libmaple/libmaple_types.h>
 #include <libmaple/rcc.h>

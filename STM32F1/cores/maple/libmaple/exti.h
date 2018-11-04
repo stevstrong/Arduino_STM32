@@ -38,8 +38,8 @@
 extern "C"{
 #endif
 
-/* Roger clark. replaced by line below #include <series/exti.h>  */      /* provides EXTI_BASE */
-#include "stm32f1/include/series/exti.h"
+/* provides EXTI_BASE */
+#include "series/exti.h"
 #include <libmaple/libmaple_types.h>
 
 /*

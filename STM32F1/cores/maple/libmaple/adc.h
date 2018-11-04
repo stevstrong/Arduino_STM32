@@ -98,8 +98,7 @@ void adc_enable_irq(adc_dev* dev, uint8 interrupt);
 void adc_attach_interrupt(adc_dev *dev, uint8 interrupt, voidFuncPtr handler);
 
 
-/* Pull in the series header (which may need the above struct
- * definitions).
+/* Pull in the series header (which may need the above struct definitions).
  *
  * IMPORTANT: The series header must define the following:
  *
@@ -122,8 +121,7 @@ void adc_attach_interrupt(adc_dev *dev, uint8 interrupt, voidFuncPtr handler);
  *   portability.
  */
  
- /* Roger clark. Replaced with line below #include <series/adc.h>*/
-#include "stm32f1/include/series/adc.h"
+#include "series/adc.h"
 
 
 /*

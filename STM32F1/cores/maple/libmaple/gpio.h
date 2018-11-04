@@ -42,8 +42,7 @@ extern "C"{
  * - enum gpio_pin_mode (TODO think harder about portability here)
  */
 
-// roger clark. replaced with line below #include <series/gpio.h>
-#include "stm32f1/include/series/gpio.h"
+#include "series/gpio.h"
 #include <libmaple/libmaple_types.h>
 #include <libmaple/rcc.h>
 #include <libmaple/exti.h>

@@ -44,8 +44,7 @@ extern "C" {
 #include <libmaple/libmaple_types.h>
 #include <libmaple/rcc.h>
 #include <libmaple/nvic.h>
- /* Roger clark. Replaced with line below #include <series/spi.h>*/
-#include "stm32f1/include/series/spi.h"
+#include "series/spi.h"
 
 
 /*

@@ -98,8 +98,7 @@ typedef struct nvic_reg_map {
  * NVIC_BASE, in order to let it do so).
  */
 
-/* Roger clark. Replaced with line below #include <series/nvic.h>*/
-#include "stm32f1/include/series/nvic.h"
+#include "series/nvic.h"
 
 void nvic_init(uint32 address, uint32 offset);
 void nvic_set_vector_table(uint32 address, uint32 offset);

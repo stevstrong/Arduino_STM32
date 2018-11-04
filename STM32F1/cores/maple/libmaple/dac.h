@@ -39,8 +39,7 @@
 extern "C"{
 #endif
 
- /* Roger clark. Replaced with line below #include <series/dac.h>*/
-#include "stm32f1/include/series/dac.h"
+#include "series/dac.h"
 #include <libmaple/libmaple_types.h>
 #include <libmaple/rcc.h>
 #include <libmaple/stm32.h>
