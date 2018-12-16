@@ -39,6 +39,7 @@
 #include "Wire.h"
 
 uint8 TwoWire::process(uint8 stop) {
+	(void)stop;
     int8 res = i2c_master_xfer(sel_hard, &itc_msg, 1, 0);
     if (res == I2C_ERROR_PROTOCOL) {
         if (sel_hard->error_flags & I2C_SR1_AF) { /* NACK */
@@ -75,6 +76,7 @@ TwoWire::~TwoWire() {
 }
 
 void TwoWire::begin(uint8 self_addr) {
+	(void)self_addr;
     i2c_master_enable(sel_hard, dev_flags);
 }
 
