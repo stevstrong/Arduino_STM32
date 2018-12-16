@@ -30,7 +30,7 @@ typedef union {
 	uint8_t bytes[4];  // IPv4 address
 } ip_addr;
 // Utility functions to handle IP addresses as chars
-char * ip2chr(ip_addr);
+char * ip2chr(ip_addr addr);
 char * mac2chr(uint8_t * mac);
 
 
@@ -49,7 +49,7 @@ public:
     // Constructors
     IPAddress();
     IPAddress(uint8_t first_octet, uint8_t second_octet, uint8_t third_octet, uint8_t fourth_octet);
-    IPAddress(uint32_t address);
+    IPAddress(uint32_t address) { _address.dword = address; }
     IPAddress(const uint8_t *address);
 
     bool fromString(const char *address);
@@ -71,7 +71,7 @@ public:
 
     virtual size_t printTo(Print& p) const;
     String toString();
-	char * toChars();
+	char * toChars() { return ip2chr(_address); }
 
     friend class EthernetClass;
     friend class UDP;
