@@ -25,8 +25,7 @@
  *****************************************************************************/
 
 /**
- * @file HardWire.h
- * @author Trystan Jones <crenn6977@gmail.com>
+ * @file Wire.h
  * @brief Wire library, uses the hardware I2C available in the Maple to
  *        interact with I2C slave devices.
  */
@@ -43,7 +42,7 @@
 #include "wirish.h"
 #include <libmaple/i2c.h>
 
-class HardWire : public WireBase {
+class TwoWire : public WireBase {
 private:
     i2c_dev* sel_hard;
     uint8    dev_flags;
@@ -59,7 +58,7 @@ public:
      * Check if devsel is within range and enable selected I2C interface with
      * passed flags
      */
-    HardWire(uint8, uint8 = 0);
+    TwoWire(uint8, uint8 = 0);
 	
 	/*
 	 * Shuts down (disables) the hardware I2C
@@ -70,9 +69,9 @@ public:
     /*
      * Disables the I2C device and remove the device address.
      */
-    ~HardWire();
+    ~TwoWire();
 
     void begin(void);
 };
-extern HardWire Wire;
+extern TwoWire Wire;
 #endif // _HARDWIRE_H_
