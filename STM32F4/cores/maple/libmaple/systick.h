@@ -75,17 +75,18 @@ extern systick_reg_map * const SYSTICK;
 /** System elapsed time, in milliseconds */
 extern volatile uint32 systick_uptime_millis;
 
+
+void systick_init(uint32 reload_val);
+void systick_disable();
+void systick_enable();
+void systick_attach_callback(void (*callback)(void));
+
 /**
  * @brief Returns the system uptime, in milliseconds.
  */
 static inline uint32 systick_uptime(void) {
     return systick_uptime_millis;
 }
-
-
-void systick_init(uint32 reload_val);
-void systick_disable();
-void systick_enable();
 
 /**
  * @brief Returns the current value of the SysTick counter.

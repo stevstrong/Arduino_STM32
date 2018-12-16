@@ -77,10 +77,6 @@ protected:
 extern USBSerial SerialUSB;
 #define Serial SerialUSB
 
-#else //  _USB_SERIAL_H_
-
-#define Serial Serial1
-
 #endif //  SERIAL_USB
 
 

@@ -125,6 +125,8 @@ extern bool boardUsesPin(uint8 pin);
 #include "discovery_f4.h"
 #elif defined(VARIANT_generic_f407v)
 #include "generic_f407v.h"
+#elif defined(VARIANT_arch_max)
+#include "arch_max.h"
 #elif defined(BOARD_freeflight)
 #include "freeflight.h"
 #else

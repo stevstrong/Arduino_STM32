@@ -1,7 +1,7 @@
 /******************************************************************************
  * The MIT License
  *
- * Copyright (c) 2010 Perry Hung.
+ * Copyright (c) 2011 LeafLabs, LLC.
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,48 +25,40 @@
  *****************************************************************************/
 
 /**
- *  @file libmaple_types.h
- *
- *  @brief libmaple types
+ * @file   arch_max.cpp
+ * @author stevestrong
+ * @brief  Arch Max 1.1 board file.
  */
 
-#ifndef _LIBMAPLE_TYPES_H_
-#define _LIBMAPLE_TYPES_H_
+#include "arch_max.h"
 
-#include <inttypes.h>
+#include <libmaple/libmaple_types.h>
 
-typedef unsigned char uint8;
-typedef unsigned short uint16;
-typedef unsigned int uint32;
-typedef unsigned long long uint64;
+/*****************************************************************************/
+//  Alternate functions, see DocID022152 Rev 8, Table 9. 
+/*****************************************************************************/
+void boardInit(void)
+{
+	// TODO
+	// remap SPI1 to alternative pins
 
-typedef signed char int8;
-typedef short int16;
-typedef int int32;
-typedef long long int64;
+	// remap I2C1 to alternative pins
+	return;
+}
 
-typedef void (*voidFuncPtr)(void);
+/* to be defined
+const uint8 boardPWMPins[BOARD_NR_PWM_PINS] __FLASH__ = {
+    0, 1, 2, 3, 15, 16, 17, 19, 20, 21, 38, 39, 49, 41, 60, 61, 62, 63, 73, 75, 77, 78
+};
+*/
+const uint8 boardADCPins[BOARD_NR_ADC_PINS] = {
+    PA0, PA3, PA4, PA5, PA6, PB0, PB1, PC0,
+};
 
-#define __IO volatile
-
-#ifndef __attr_flash
-  #define __attr_flash __attribute__((section (".USER_FLASH")))
-#endif
-#ifndef __attr_ccmram
-  #define __attr_ccmram __attribute__((section (".ccmdata")))
-#endif
-#ifndef __always_inline
-  #define __always_inline inline __attribute__((always_inline))
-#endif
-#ifndef NULL
-  #define NULL 0
-#endif
-
-// Variable attributes, instructs the linker to place the marked
-// variable in FLASH or CCRAM instead of RAM.
-#define __FLASH__ __attr_flash
-#define __CCMRAM__ __attr_ccmram
-
-
-#endif
+const uint8 boardUsedPins[BOARD_NR_USED_PINS] = {
+    BOARD_LED_PIN, //BOARD_LED2_PIN, BOARD_LED3_PIN,
+	BOARD_JTMS_SWDIO_PIN, BOARD_JTCK_SWCLK_PIN,
+	BOARD_SDIO_D0, BOARD_SDIO_D1, BOARD_SDIO_D2, BOARD_SDIO_D3, BOARD_SDIO_CLK, BOARD_SDIO_CMD,
+	USB_DM_PIN, USB_DP_PIN
+};
 

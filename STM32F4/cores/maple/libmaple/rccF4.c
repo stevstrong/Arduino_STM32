@@ -72,6 +72,10 @@ static const struct rcc_dev_info rcc_dev_table[] = {
     [RCC_CCMRAM]  = { .clk_domain = AHB1, .line_num = 20 }, //?
     [RCC_DMA1]    = { .clk_domain = AHB1, .line_num = 21 }, //*
     [RCC_DMA2]    = { .clk_domain = AHB1, .line_num = 22 }, //*
+    [RCC_ETHMAC]  = { .clk_domain = AHB1, .line_num = 25 },
+    [RCC_ETHMACTX]= { .clk_domain = AHB1, .line_num = 26 },
+    [RCC_ETHMACRX]= { .clk_domain = AHB1, .line_num = 27 },
+    [RCC_ETHMACPTP]={ .clk_domain = AHB1, .line_num = 28 },
 
     [RCC_DCMI]    = { .clk_domain = AHB2, .line_num =  0 }, //*
     [RCC_USBFS]   = { .clk_domain = AHB2, .line_num =  7 }, //*
@@ -172,10 +176,11 @@ void InitMCO1()
     gpio_set_mode(PA8, GPIO_MODE_AF | GPIO_OTYPE_PP | GPIO_OSPEED_100MHZ);
 }
 
+uint32_t SystemCoreClock;
 
 void SetupClock72MHz()
 {
-	uint32_t SystemCoreClock = 72000000;
+	SystemCoreClock = 72000000;
 
 	/******************************************************************************/
 	/*            PLL (clocked by HSE) used as System clock source                */
@@ -263,7 +268,7 @@ void SetupClock72MHz()
 
 void SetupClock120MHz()
 {
-	uint32_t SystemCoreClock = 120000000;
+	SystemCoreClock = 120000000;
 
 	/******************************************************************************/
 	/*            PLL (clocked by HSE) used as System clock source                */
@@ -351,7 +356,7 @@ void SetupClock120MHz()
 
 void SetupClock168MHz()
 {
-	uint32_t SystemCoreClock = 168000000;
+	SystemCoreClock = 168000000;
 
 	/******************************************************************************/
 	/*            PLL (clocked by HSE) used as System clock source                */

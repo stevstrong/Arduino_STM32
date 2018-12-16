@@ -26,7 +26,7 @@
 
 #define USE_USB_OTG_FS
 #define     __IO    volatile
-typedef unsigned long	uint32_t;
+typedef unsigned int	uint32_t;
 typedef unsigned int	u32;
 typedef unsigned short	uint16_t;
 typedef unsigned short	u16;

@@ -53,6 +53,10 @@ typedef struct flash_reg_map {
 
 /** Flash register map base pointer */
 #define FLASH_BASE                      ((struct flash_reg_map*)0x40022000)
+// taken from CMSIS
+#define UID_BASE         0x1FFF7A10U // Unique device ID register base address
+#define FLASHSIZE_BASE   0x1FFF7A22U // FLASH Size register base address
+#define PACKAGE_BASE     0x1FFF7BF0U // Package size register base address
 
 /*
  * Register bit definitions

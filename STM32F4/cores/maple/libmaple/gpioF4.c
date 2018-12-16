@@ -87,7 +87,6 @@ const gpio_dev gpiog = {
 };
 #endif
 
-syscfg_reg_map * const SYSCFG = SYSCFG_BASE;
 
 const gpio_dev * const gpio_devices[] = {
 	GPIOA, GPIOB, GPIOC, GPIOD, GPIOE,
