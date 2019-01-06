@@ -83,5 +83,6 @@ extern HardwareSerial Serial3;
 extern HardwareSerial Serial4;
 extern HardwareSerial Serial5;
 #endif
+extern HardwareSerial Serial6;
 extern HardwareSerial &SerialDebug;
 #endif

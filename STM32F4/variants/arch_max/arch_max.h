@@ -68,8 +68,8 @@
 #define BOARD_USB_DP_PIN		PA12
 
 #define BOARD_LED_PIN           PB3
-//#define BOARD_LED2_PIN		PC6 // can be connected via P9
-//#define BOARD_LED3_PIN		PC7 // can be connected via P10
+#define BOARD_LED2_PIN		    PC6
+#define BOARD_LED3_PIN		    PC7
 
 #define BOARD_NR_USARTS         6
 #define BOARD_USART1_TX_PIN     PB6

@@ -56,6 +56,11 @@
 #define RX5 BOARD_UART5_RX_PIN
 #endif
 
+#ifdef BOARD_USART6_TX_PIN
+	#define TX6 BOARD_USART6_TX_PIN
+	#define RX6 BOARD_USART6_RX_PIN
+#endif
+
 HardwareSerial Serial1(USART1, TX1, RX1);
 
 #ifdef TX2
@@ -69,6 +74,10 @@ HardwareSerial Serial3(USART3, TX3, RX3);
 #if !defined(BOARD_maple_RET6)
 HardwareSerial Serial4(UART4,  TX4, RX4);
 HardwareSerial Serial5(UART5,  TX5, RX5);
+#endif
+
+#ifdef TX6
+HardwareSerial Serial6(USART6, TX6, RX6);
 #endif
 
 HardwareSerial::HardwareSerial(usart_dev *usart_device,
@@ -90,7 +99,7 @@ void HardwareSerial::begin(uint32 baud) {
         return;
     }
 
-    if (usart_device == UART4 || usart_device == UART5) {
+    if (usart_device == UART4 || usart_device == UART5 || usart_device == USART6) {
         gpio_set_af_mode(tx_pin, GPIO_AFMODE_USART4_6);
         gpio_set_af_mode(rx_pin, GPIO_AFMODE_USART4_6);
     }
