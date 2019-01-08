@@ -59,29 +59,26 @@ spi_dev *SPI3 = &spi3;
 
 void spi_config_gpios(spi_dev *dev,
                       uint8 as_master,
-                      uint8 nss_pin,
-                      uint8 sck_pin,
-                      uint8 miso_pin,
-                      uint8 mosi_pin) {
+                      const spi_pins_t *pins) {
     if (as_master) {
-        gpio_set_mode(sck_pin, GPIO_AF_OUTPUT_PP);
-        gpio_set_mode(miso_pin, GPIO_AF_INPUT_PD);		
-        gpio_set_mode(mosi_pin, GPIO_AF_OUTPUT_PP);
+        gpio_set_mode(pins->sck, GPIO_AF_OUTPUT_PP);
+        gpio_set_mode(pins->miso, GPIO_AF_INPUT_PD);		
+        gpio_set_mode(pins->mosi, GPIO_AF_OUTPUT_PP);
     } else {
-        gpio_set_mode(nss_pin, GPIO_INPUT_FLOATING);
-        gpio_set_mode(sck_pin, GPIO_INPUT_FLOATING);
-        gpio_set_mode(miso_pin, GPIO_AF_OUTPUT_PP);
-        gpio_set_mode(mosi_pin, GPIO_INPUT_FLOATING);
+        gpio_set_mode(pins->nss, GPIO_INPUT_FLOATING);
+        gpio_set_mode(pins->sck, GPIO_INPUT_FLOATING);
+        gpio_set_mode(pins->miso, GPIO_AF_OUTPUT_PP);
+        gpio_set_mode(pins->mosi, GPIO_INPUT_FLOATING);
     }
 
 	gpio_af_mode af_mode = GPIO_AFMODE_SPI3;
-	if(dev->clk_id <= RCC_SPI2) { af_mode = GPIO_AFMODE_SPI1_2; }
-	if(!as_master) {
-		gpio_set_af_mode(nss_pin, af_mode);
+	if (dev->clk_id <= RCC_SPI2) { af_mode = GPIO_AFMODE_SPI1_2; }
+	if (!as_master) {
+		gpio_set_af_mode(pins->nss, af_mode);
 	}
-	gpio_set_af_mode(sck_pin, af_mode);
-	gpio_set_af_mode(miso_pin, af_mode);
-	gpio_set_af_mode(mosi_pin, af_mode);
+	gpio_set_af_mode(pins->sck, af_mode);
+	gpio_set_af_mode(pins->miso, af_mode);
+	gpio_set_af_mode(pins->mosi, af_mode);
 }
 
 void spi_foreach(void (*fn)(spi_dev*)) {

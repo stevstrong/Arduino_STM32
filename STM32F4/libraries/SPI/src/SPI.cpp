@@ -52,30 +52,16 @@
 #warning "Unexpected clock speed; SPI frequency calculation will be incorrect"
 #endif
 
-struct spi_pins {
-    uint8 nss;
-    uint8 sck;
-    uint8 miso;
-    uint8 mosi;
-};
-
 #if (BOARD_NR_SPI > 3)
 #error "The SPI library is misconfigured: 3 SPI ports only available on foundation line STM32F4 devices"
 #endif
 
-static const spi_pins board_spi_pins[BOARD_NR_SPI] __FLASH__ =
+static const spi_pins_t board_spi_pins[BOARD_NR_SPI] __FLASH__ =
 {
-#ifdef SPI1_ALTERNATE_CONFIG
-    {BOARD_SPI1A_NSS_PIN,
-     BOARD_SPI1A_SCK_PIN,
-     BOARD_SPI1A_MISO_PIN,
-     BOARD_SPI1A_MOSI_PIN},
-#else
     {BOARD_SPI1_NSS_PIN,
      BOARD_SPI1_SCK_PIN,
      BOARD_SPI1_MISO_PIN,
      BOARD_SPI1_MOSI_PIN},
-#endif
     {BOARD_SPI2_NSS_PIN,
      BOARD_SPI2_SCK_PIN,
      BOARD_SPI2_MISO_PIN,
@@ -85,18 +71,38 @@ static const spi_pins board_spi_pins[BOARD_NR_SPI] __FLASH__ =
      BOARD_SPI3_MISO_PIN,
      BOARD_SPI3_MOSI_PIN},
 };
+#if defined(BOARD_SPI1A_NSS_PIN) && defined(BOARD_SPI2A_NSS_PIN) && defined(BOARD_SPI3A_NSS_PIN)
+#define SPI_ALT_PINS 1
+static const spi_pins_t board_spi_alt_pins[BOARD_NR_SPI] __FLASH__ =
+{
+    {BOARD_SPI1A_NSS_PIN,
+     BOARD_SPI1A_SCK_PIN,
+     BOARD_SPI1A_MISO_PIN,
+     BOARD_SPI1A_MOSI_PIN},
+    {BOARD_SPI2A_NSS_PIN,
+     BOARD_SPI2A_SCK_PIN,
+     BOARD_SPI2A_MISO_PIN,
+     BOARD_SPI2A_MOSI_PIN},
+    {BOARD_SPI3A_NSS_PIN,
+     BOARD_SPI3A_SCK_PIN,
+     BOARD_SPI3A_MISO_PIN,
+     BOARD_SPI3A_MOSI_PIN},
+};
+#else
+#define SPI_ALT_PINS 0
+#endif
 
 //-----------------------------------------------------------------------------
 //  Auxiliary functions
 //-----------------------------------------------------------------------------
-static const spi_pins * dev_to_spi_pins(spi_dev *dev)
+static const spi_pins_t * dev_to_spi_pins(spi_dev *dev)
 {
-    switch (dev->clk_id) {
-    case RCC_SPI1: return board_spi_pins;
-    case RCC_SPI2: return board_spi_pins + 1;
-    case RCC_SPI3: return board_spi_pins + 2;
-    default:       return NULL;
-    }
+	uint8_t dev_nr = (dev->clk_id==RCC_SPI3) ? 2 : ((dev->clk_id==RCC_SPI2) ? 1 : 0);
+#if SPI_ALT_PINS
+ 	return (_settings[dev_nr].pin_set) ? &board_spi_alt_pins[dev_nr] : &board_spi_pins[dev_nr];
+#else
+ 	return &board_spi_pins[dev_nr];
+#endif
 }
 
 static void disable_pwm(uint8_t pin)
@@ -110,18 +116,14 @@ static void disable_pwm(uint8_t pin)
 
 static void configure_gpios(spi_dev *dev, bool as_master)
 {
-    const spi_pins *pins = dev_to_spi_pins(dev);
-
-    if (!pins) {
-        return;
-    }
+    const spi_pins_t *pins = dev_to_spi_pins(dev);
 
     disable_pwm(pins->nss);
     disable_pwm(pins->sck);
     disable_pwm(pins->miso);
     disable_pwm(pins->mosi);
 
-    spi_config_gpios(dev, as_master, pins->nss, pins->sck, pins->miso, pins->mosi);
+    spi_config_gpios(dev, as_master, pins);
 }
 
 static const spi_baud_rate baud_rates[8] __FLASH__ =
@@ -219,11 +221,21 @@ void _spi2EventCallback(void) { spiEventCallback(1); }
 void _spi3EventCallback(void) { spiEventCallback(2); }
 
 //-----------------------------------------------------------------------------
+void SPIClass::setModule(int spi_num, uint8_t alt_pins)
+{
+	spi_num --; // SPI channels are called 1 2 and 3 but the array is zero indexed
+#if SPI_ALT_PINS
+	_settings[spi_num].pin_set = alt_pins; // alternate pins selection possible
+#endif
+	_currentSetting = &_settings[spi_num];
+}
+
+//-----------------------------------------------------------------------------
 //  Constructor
 //-----------------------------------------------------------------------------
 SPIClass::SPIClass(uint32 spi_num)
 {
-    _currentSetting = &_settings[spi_num-1]; // SPI channels are called 1 2 and 3 but the array is zero indexed
+	setModule(spi_num);
 
 	//-------------------------------------------------------------------------
 	// Init things specific to each SPI device
@@ -245,6 +257,7 @@ SPIClass::SPIClass(uint32 spi_num)
 		_settings[0].spiRxDmaStream  = DMA_STREAM0; // alternative: DMA_STREAM2
 		_settings[0].spiTxDmaStream  = DMA_STREAM3; // alternative: DMA_STREAM5
 		_settings[0].state = SPI_STATE_IDLE;
+		_settings[0].pin_set = 0;
 		_settings[1].spi_d = SPI2;
 		_settings[1].spiDmaDev = DMA1;
 		_settings[1].dmaIsr = _spi2EventCallback;
@@ -253,6 +266,7 @@ SPIClass::SPIClass(uint32 spi_num)
 		_settings[1].spiRxDmaStream  = DMA_STREAM3; // alternative: -
 		_settings[1].spiTxDmaStream  = DMA_STREAM4; // alternative: -
 		_settings[1].state = SPI_STATE_IDLE;
+		_settings[1].pin_set = 0;
 		_settings[2].spi_d = SPI3;
 		_settings[2].spiDmaDev = DMA1;
 		_settings[2].dmaIsr = _spi3EventCallback;
@@ -261,6 +275,7 @@ SPIClass::SPIClass(uint32 spi_num)
 		_settings[2].spiRxDmaStream  = DMA_STREAM0; // alternative: DMA_STREAM2
 		_settings[2].spiTxDmaStream  = DMA_STREAM5; // alternative: DMA_STREAM7
 		_settings[2].state = SPI_STATE_IDLE;
+		_settings[2].pin_set = 0;
 	}
 }
 
@@ -891,5 +906,8 @@ uint8 SPIClass::send(uint8 *buf, uint32 len) {
     return len;
 }
 
+#ifndef DEFAULT_SPI_PORT
+  #define DEFAULT_SPI_PORT 1
+#endif
 
-SPIClass SPI(3);
+SPIClass SPI(DEFAULT_SPI_PORT);

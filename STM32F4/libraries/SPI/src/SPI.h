@@ -130,7 +130,7 @@ public:
             init_MightInline(clock, MSBFIRST, SPI_MODE0, SPI_DATA_SIZE_8BIT);
         }
     }
-    SPISettings() { init_AlwaysInline(4000000, MSBFIRST, SPI_MODE0, SPI_DATA_SIZE_8BIT); }
+    SPISettings() { init_AlwaysInline(4200000, MSBFIRST, SPI_MODE0, SPI_DATA_SIZE_8BIT); }
 
 private:
     uint32_t clock;
@@ -150,6 +150,8 @@ private:
     uint8_t  dmaTrxAsync;
     BitOrder bitOrder;
     uint8_t dataMode;
+public:
+	uint8_t pin_set;
 
     friend class SPIClass;
 };
@@ -283,6 +285,7 @@ public:
     void transfer(const uint8_t tx_data, uint8_t * rx_buf, uint32 len);
     void transfer(const uint16_t * tx_buf, uint16_t * rx_buf, uint32 len);
     void transfer(const uint16_t tx_data, uint16_t * rx_buf, uint32 len);
+	inline void transfer(uint8_t * buf, uint32 len) { transfer((const uint8_t *)buf, buf, len); }
 
     /**
      * @brief Sets up a DMA Transfer for "length" bytes.
@@ -369,19 +372,14 @@ public:
      */
     spi_dev* c_dev(void) { return _currentSetting->spi_d; }
 
-    spi_dev *dev(){ return _currentSetting->spi_d;}
+    spi_dev *dev(){ return _currentSetting->spi_d; }
 
     /**
-    * @brief Sets the number of the SPI peripheral to be used by
-    *        this HardwareSPI instance.
+    * @brief Sets the number of the SPI peripheral to be used by this HardwareSPI instance.
     *
-    * @param spi_num Number of the SPI port. 1-2 in low density devices
-    *        or 1-3 in high density devices.
+    * @param spi_num Number of the SPI port. 1-2 in low density devices or 1-3 in high density devices.
     */
-    void setModule(int spi_num)
-    {
-        _currentSetting=&_settings[spi_num-1];// SPI channels are called 1 2 and 3 but the array is zero indexed
-    }
+    void setModule(int spi_num, uint8_t alt_pins = 0);
 
     /* -- The following methods are deprecated --------------------------- */
 

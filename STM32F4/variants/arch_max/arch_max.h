@@ -67,9 +67,9 @@
 #define BOARD_USB_DM_PIN		PA11
 #define BOARD_USB_DP_PIN		PA12
 
-#define BOARD_LED_PIN           PB3
-#define BOARD_LED2_PIN		    PC6
-#define BOARD_LED3_PIN		    PC7
+#define BOARD_LED_PIN			PB3 // ! BOARD_SPI1A_SCK_PIN
+#define BOARD_LED2_PIN			PC6 // ! BOARD_USART6_TX_PIN, DCMI_D0
+#define BOARD_LED3_PIN			PC7 // ! BOARD_USART6_RX_PIN, DCMI_D1
 
 #define BOARD_NR_USARTS         6
 #define BOARD_USART1_TX_PIN     PB6
@@ -82,8 +82,8 @@
 #define BOARD_UART4_RX_PIN      PC11
 #define BOARD_UART5_TX_PIN      PC12
 #define BOARD_UART5_RX_PIN      PD2
-#define BOARD_USART6_TX_PIN     PC6
-#define BOARD_USART6_RX_PIN     PC7
+#define BOARD_USART6_TX_PIN     PC6 // ! BOARD_LED2_PIN, DCMI_D0
+#define BOARD_USART6_RX_PIN     PC7 // ! BOARD_LED3_PIN, DCMI_D1
 
 // I2C pins
 #define BOARD_NR_I2C            1
@@ -93,19 +93,21 @@
 // SPI pins
 #define BOARD_NR_SPI            3
 #define BOARD_SPI1_NSS_PIN     PA15
-#define BOARD_SPI1_SCK_PIN     PB3 // *
-#define BOARD_SPI1_MISO_PIN    PB4 // *
-#define BOARD_SPI1_MOSI_PIN    PB5 // *
+#define BOARD_SPI1_SCK_PIN     PB3 // ! LED
+#define BOARD_SPI1_MISO_PIN    PB4
+#define BOARD_SPI1_MOSI_PIN    PB5
 
 #define BOARD_SPI2_NSS_PIN     PB9
-#define BOARD_SPI2_SCK_PIN     PB10 // *
-#define BOARD_SPI2_MISO_PIN    PC2  // *
-#define BOARD_SPI2_MOSI_PIN    PC3  // *
+#define BOARD_SPI2_SCK_PIN     PB10
+#define BOARD_SPI2_MISO_PIN    PC2
+#define BOARD_SPI2_MOSI_PIN    PC3
 
 #define BOARD_SPI3_NSS_PIN     PA4
-#define BOARD_SPI3_SCK_PIN     PC10
-#define BOARD_SPI3_MISO_PIN    PC11
+#define BOARD_SPI3_SCK_PIN     PC10 // ! BOARD_SDIO_D2, BOARD_UART4_TX_PIN
+#define BOARD_SPI3_MISO_PIN    PC11 // ! BOARD_SDIO_D3, BOARD_UART4_RX_PIN
 #define BOARD_SPI3_MOSI_PIN    PC12
+
+#define DEFAULT_SPI_PORT		1 // valid selections 1, 2 or 3
 
 // SDIO pins
 #define BOARD_SDIO_D0          PC8
