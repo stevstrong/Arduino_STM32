@@ -133,13 +133,6 @@ static void rtc_enable_wakeup_event()
 	EXTI_BASE->EMR  |= EXTI_RTC_WAKEUP;
 	EXTI_BASE->RTSR |= EXTI_RTC_WAKEUP;
 }
-volatile void getTimeStamp(void)
-{
-	rtc_tr = RTC->TR;
-	(void)RTC->DR;
-	rtc_dr = RTC->DR;
-}
-
 //-----------------------------------------------------------------------------
 // @brief Disable the RTC alarm event.
 //-----------------------------------------------------------------------------
@@ -343,63 +336,6 @@ void RTClock::breakTime(time_t timeInput, tm_t & tm)
 }
 
 //-----------------------------------------------------------------------------
-time_t RTClock::makeTime(tm_t & tm)
-{
-// assemble time elements into time_t 
-// note year argument is offset from 1970 (see macros in time.h to convert to other formats)
-// previous version used full four digit year (or digits since 2000),i.e. 2009 was 2009 or 9
-  
-	// seconds from 1970 till 1 jan 00:00:00 of the given year
-	uint32_t seconds = tm.year*(SECS_PER_DAY * 365);
-	for (uint16_t i = 0; i < tm.year; i++) {
-		if (LEAP_YEAR(i)) {
-			seconds +=  SECS_PER_DAY;   // add extra days for leap years
-		}
-	}
-
-	// add days for this year, months start from 1
-	for (uint16_t i = 1; i < tm.month; i++) {
-		if ( (i == 2) && LEAP_YEAR(tm.year)) { 
-			seconds += SECS_PER_DAY * 29;
-		} else {
-			seconds += SECS_PER_DAY * monthDays[i-1];  //monthDay array starts from 0
-		}
-	}
-	seconds+= (tm.day-1) * SECS_PER_DAY;
-	seconds+= tm.hour * SECS_PER_HOUR;
-	seconds+= tm.minute * SECS_PER_MIN;
-	seconds+= tm.second;
-	return (time_t)seconds; 
-}
-
-//-----------------------------------------------------------------------------
-void RTClock::getTime(tm_t & tm)
-{
-	uint32 tr;
-	do { // read multiple time till both readings are equal
-		getTimeStamp();
-		tr = rtc_tr;
-		getTimeStamp();
-	} while ( tr!=rtc_tr );
-    PRINTF1("RTClock::getTime DR: %08X, TR: %08X\n", rtc_dr, rtc_tr);
-	tm.year    = _year(rtc_dr);
-    tm.month   = _month(rtc_dr);
-    tm.day     = _day(rtc_dr);
-    tm.weekday = _weekday(rtc_dr);
-    tm.pm      = _pm(rtc_tr);
-    tm.hour    = _hour(rtc_tr);
-    tm.minute  = _minute(rtc_tr);
-    tm.second  = _second(rtc_tr);
-}
-
-//-----------------------------------------------------------------------------
-time_t RTClock::getTime()
-{
-	getTime(_tm);
-	return makeTime(_tm);
-}
-
-//-----------------------------------------------------------------------------
 void RTClock::setAlarmATime (tm_t * tm_ptr, bool hours_match, bool mins_match, bool secs_match, bool date_match)
 {
     rtc_enter_config_mode();
@@ -542,7 +478,6 @@ void RTClock::detachPeriodicWakeupInterrupt() {
 
 
 extern "C" {
-volatile uint32 rtc_tr, rtc_dr;
 //-----------------------------------------------------------------------------
 void __irq_rtc(void)
 {
