@@ -55,6 +55,7 @@ static void ifaceSetupHook(unsigned);
 #define USB_TIMEOUT 50
 #if BOARD_HAVE_SERIALUSB
 bool USBSerial::_hasBegun = false;
+bool USBSerial::_isBlocking = false;
 #endif
 
 USBSerial::USBSerial(void) {
@@ -103,16 +104,12 @@ void USBSerial::end(void)
 #endif
 }
 
-size_t USBSerial::write(uint8 ch)
-{
-    this->write(&ch, 1);
-    return 1;
+size_t USBSerial::write(uint8 ch) {
+    return this->write(&ch, 1);
 }
 
-size_t USBSerial::write(const char *str)
-{
-    this->write((const uint8*)str, strlen(str));
-    return 1;
+size_t USBSerial::write(const char *str) {
+    return this->write((const uint8*)str, strlen(str));
 }
 
 size_t USBSerial::write(const uint8 *buf, uint32 len)
@@ -128,11 +125,20 @@ size_t USBSerial::write(const uint8 *buf, uint32 len)
 #endif	
 
     uint32 txed = 0;
-    while (txed < len) {
-        txed += usb_cdcacm_tx((const uint8*)buf + txed, len - txed);
-    }
+	if (!_isBlocking) 	{
+		txed = usb_cdcacm_tx((const uint8*)buf + txed, len - txed);
+	}
+	else {
+		while (txed < len) {
+			txed += usb_cdcacm_tx((const uint8*)buf + txed, len - txed);
+		}
+	}
 
-	return len;
+	return txed;
+}
+
+int USBSerial::available(void) {
+    return usb_cdcacm_data_available();
 }
 
 int USBSerial::peek(void)
@@ -184,7 +190,6 @@ size_t USBSerial::readBytes(char *buf, const size_t& len)
 /* Blocks forever until 1 byte is received */
 int USBSerial::read(void) {
     uint8 b;
-
 	if (usb_cdcacm_rx(&b, 1)==0)
 	{
 		return -1;
@@ -210,6 +215,16 @@ uint8 USBSerial::getRTS(void) {
 USBSerial::operator bool() {
     return usb_is_connected(USBLIB) && usb_is_configured(USBLIB) && usb_cdcacm_get_dtr();
 }
+
+void USBSerial::enableBlockingTx(void)
+{
+	_isBlocking=true;
+}
+void USBSerial::disableBlockingTx(void)
+{
+	_isBlocking=false;
+}
+
 
 #if BOARD_HAVE_SERIALUSB
 	#ifdef SERIAL_USB 
@@ -258,12 +273,7 @@ static void ifaceSetupHook(unsigned requestvp)
         break;
     }
 #endif
-#if false
-	if ((usb_cdcacm_get_baud() == 1200) && (reset_state == DTR_NEGEDGE)) {
-		iwdg_init(IWDG_PRE_4, 10);
-		while (1);
-	}
-#endif	
+
 }
 
 #define RESET_DELAY 100000
