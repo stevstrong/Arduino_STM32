@@ -6,7 +6,7 @@ set driverLetter=%driverLetter:~0,2%
 %driverLetter%
 cd %~dp0
 rem: the two line below are needed to fix path issues with incorrect slashes before the bin file name
-set str=%4
+set str=%1
 set str=%str:/=\%
 
 
