@@ -28,7 +28,9 @@
 
 #include <Wire.h>
 
-HardWire HWire(1, I2C_FAST_MODE); // I2c1
+TwoWire HWire(1, I2C_FAST_MODE); // I2c1
+// optionally, it is possible to use the default declared Wire(1) instance with normal speed
+//#define HWire Wire
 
 void setup() {
   Serial.begin(115200);
