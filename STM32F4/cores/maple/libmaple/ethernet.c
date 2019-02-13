@@ -8,6 +8,7 @@
  extern "C" {
 #endif // __cplusplus
 
+#ifdef VARIANT_arch_max
 
 // RMII interface IO pins
 const uint8_t eth_pins[] = {
@@ -54,6 +55,8 @@ void ethernet_gpio_init(void)
 		gpio_set_af_mode(pin, GPIO_AFMODE_ETH);
 	}
 }
+
+#endif
 
 #ifdef __cplusplus
 }
