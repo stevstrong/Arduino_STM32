@@ -460,7 +460,7 @@ void rcc_clk_init(void)
 	  SetupClock120MHz();
 #elif STM32_TICKS_PER_US == 72
 	  SetupClock72MHz();
-#elif
+#else
 	#error Wrong TICKS_PER_US!
 #endif
 }
