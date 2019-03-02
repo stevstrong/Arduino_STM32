@@ -137,10 +137,6 @@ size_t USBSerial::write(const uint8 *buf, uint32 len)
 	return txed;
 }
 
-int USBSerial::available(void) {
-    return usb_cdcacm_data_available();
-}
-
 int USBSerial::peek(void)
 {
     uint8 b;
