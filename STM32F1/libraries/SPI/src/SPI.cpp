@@ -56,12 +56,10 @@
 
 static const spi_pins board_spi_pins[BOARD_NR_SPI] __FLASH__ =
 {
-#if BOARD_NR_SPI >= 1
     {BOARD_SPI1_NSS_PIN,
      BOARD_SPI1_SCK_PIN,
      BOARD_SPI1_MISO_PIN,
      BOARD_SPI1_MOSI_PIN},
-#endif
 #if BOARD_NR_SPI >= 2
     {BOARD_SPI2_NSS_PIN,
      BOARD_SPI2_SCK_PIN,
@@ -82,9 +80,7 @@ static const spi_pins board_spi_pins[BOARD_NR_SPI] __FLASH__ =
 static const spi_pins * dev_to_spi_pins(spi_dev *dev)
 {
     switch (dev->clk_id) {
-#if BOARD_NR_SPI >= 1
     case RCC_SPI1: return board_spi_pins;
-#endif
 #if BOARD_NR_SPI >= 2
     case RCC_SPI2: return board_spi_pins + 1;
 #endif
@@ -209,9 +205,13 @@ void spiEventCallback(uint32 spi_num)
 //-----------------------------------------------------------------------------
 void _spi1EventCallback(void) { spiEventCallback(0); }
 
+#if BOARD_NR_SPI >= 2
 void _spi2EventCallback(void) { spiEventCallback(1); }
+#endif
 
+#if BOARD_NR_SPI >= 3
 void _spi3EventCallback(void) { spiEventCallback(2); }
+#endif
 
 //-----------------------------------------------------------------------------
 //  Constructor
@@ -233,6 +233,7 @@ SPIClass::SPIClass(uint32 spi_num)
 		_settings[0].spiRxDmaChannel = DMA_CH2;
 		_settings[0].spiTxDmaChannel = DMA_CH3;
 		_settings[0].state = SPI_STATE_IDLE;
+#if BOARD_NR_SPI >= 2
 		_settings[1].spi_d = SPI2;
 		_settings[1].spiDmaDev = DMA1;
 		_settings[1].dmaIsr = _spi2EventCallback;
@@ -240,6 +241,7 @@ SPIClass::SPIClass(uint32 spi_num)
 		_settings[1].spiRxDmaChannel = DMA_CH4;
 		_settings[1].spiTxDmaChannel = DMA_CH5;
 		_settings[1].state = SPI_STATE_IDLE;
+#endif
 #if BOARD_NR_SPI >= 3
 		_settings[2].spi_d = SPI3;
 		_settings[2].spiDmaDev = DMA2;
