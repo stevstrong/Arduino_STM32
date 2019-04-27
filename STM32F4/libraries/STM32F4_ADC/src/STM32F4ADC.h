@@ -3,6 +3,13 @@
 #include <libmaple/adc.h>
 #include <boards.h>
 
+static inline uint8 adc_pin_to_channel(uint8 pin) {
+	for (uint8 channel = 0; channel<16; channel++) {
+		if (boardADCPins[channel]==pin) return channel;
+	}
+	return 0;
+}
+
 class STM32ADC
 {
 public:
@@ -16,7 +23,7 @@ public:
 
     uint16 readInput(uint8 pin)
     {
-        return adc_read(_dev, PIN_MAP[pin].adc_channel);
+        return adc_read(_dev, adc_pin_to_channel(pin));
     }
 
     uint32 getData() { return adc_get_data(_dev); }

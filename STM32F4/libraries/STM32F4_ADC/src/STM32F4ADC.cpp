@@ -33,8 +33,8 @@ void STM32ADC::setPins(const uint8 * pins, uint8 length)
 {
     //convert pins to channels.
     uint8 channels[length];
-    for (uint8 i = 0; i < length; i++) { //convert the channels from pins to ch.
-        channels[i] = PIN_MAP[pins[i]].adc_channel;
+    for (uint8 i = 0; i < length; i++) { //convert the pins to channels
+        channels[i] = adc_pin_to_channel(pins[i]);
     }
 
     adc_set_reg_sequence(_dev, channels, length);

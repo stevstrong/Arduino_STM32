@@ -48,7 +48,7 @@ const uint8 boardPWMPins[BOARD_NR_PWM_PINS] __FLASH__ = {
     0, 1, 2, 3, 15, 16, 17, 19, 20, 21, 38, 39, 49, 41, 60, 61, 62, 63, 73, 75, 77, 78
 };
 */
-const uint8 boardADCPins[BOARD_NR_ADC_PINS] = {
+extern const uint8 boardADCPins[BOARD_NR_ADC_PINS] = {
     PA0, PA1, PA2, PA3, PA4, PA5, PA6, PA7, PB0, PB1, PC0, PC1, PC2, PC3, PC4, PC5
 };
 
