@@ -23,14 +23,15 @@
 #ifndef __USB_CONF__H__
 #define __USB_CONF__H__
 
+#include <stdint.h>
 
 #define USE_USB_OTG_FS
 #define     __IO    volatile
-typedef unsigned int	uint32_t;
+//typedef unsigned int	uint32_t;
 typedef unsigned int	u32;
-typedef unsigned short	uint16_t;
+//typedef unsigned short	uint16_t;
 typedef unsigned short	u16;
-typedef unsigned char	uint8_t;
+//typedef unsigned char	uint8_t;
 typedef unsigned char	u8;
 
 /* Includes ------------------------------------------------------------------*/
