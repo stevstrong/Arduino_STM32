@@ -40,17 +40,11 @@ STM32ADC myADC(ADC1);
 uint8_t analog_pins[] = { PA0, PA1, PA2, PA3, PA4, PA5 };
 
 //-----------------------------------------------------------------------------
-void blink(uint16_t dly)
+void blink()
 {
 	digitalWrite(LED_BUILTIN, !digitalRead(LED_BUILTIN));
-	delay(dly);
 }
 
-//-----------------------------------------------------------------------------
-void ADC_ISR()
-{
-	
-}
 //-----------------------------------------------------------------------------
 void setup()
 {
@@ -68,9 +62,6 @@ void setup()
 	//myADC.enableVBAT(); // needed if reading Vbat, channel 18
 	myADC.enableTsVref(); // needed if reading internal temperature sensor
 	myADC.setSamplingTime(ADC_SMPR_480); // 3µsec, needed for temp sensor
-	myADC.attachInterrupt(ADC_ISR, ADC_EOC);
-
-	//myADC.readTemp(); // dummy reads first to stabilize
 }
 
 //-----------------------------------------------------------------------------
@@ -81,7 +72,8 @@ void loop()
     // Read internal values:
 	//Serial.print("Vref: "), Serial.println(myADC.readVref());
 	Serial.print(millis()); Serial.print(": Temp = ");
-	Serial.print(myADC.readTemp()); Serial.write(',');
+	float val = myADC.readTemp();
+	Serial.print(val); Serial.write(',');
     // Read the voltages form analog input pins:
 	for (uint8_t i=0; i<sizeof(analog_pins); i++)
 	{
@@ -89,6 +81,6 @@ void loop()
 		Serial.print(dbg);
 	}
 	Serial.write('\n'); // new line
-    // blink
-    blink(100);
+    blink();
+    delay(100);
 }

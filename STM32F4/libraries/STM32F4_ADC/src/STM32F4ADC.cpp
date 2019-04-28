@@ -1,5 +1,16 @@
 #include "STM32F4ADC.h"
 
+// for debug only
+extern "C" void STM32ADC_PrintRegs(const adc_dev * dev, const char * p) {
+//	if (p) Serial.print(p);
+//	Serial.print("\nSR: "); Serial.print(dev->regs->SR, HEX);
+//	Serial.print(", CR1: "); Serial.print(dev->regs->CR1, HEX);
+//	Serial.print(", CR2: "); Serial.print(dev->regs->CR2, HEX);
+//	Serial.print(", SMPR1: "); Serial.print(dev->regs->SMPR1, HEX);
+//	Serial.print(", SMPR2: "); Serial.print(dev->regs->SMPR2, HEX);
+//	Serial.print(", CCR: "); Serial.print(ADC_COMMON->CCR, HEX);
+//	Serial.print(", CSR: "); Serial.println(ADC_COMMON->CSR, HEX);
+}
 
 /*
     This will read the Vcc and return something useful.
@@ -7,7 +18,7 @@
 */
 float STM32ADC::readVref()
 {
-    uint16_t result = adc_read(_dev, 17);
+    uint16_t result = adc_read(ADC1, 17);
     float vref = (3300.0*result)/4096; // mV
     return vref/1000;
 }
@@ -17,10 +28,10 @@ float STM32ADC::readVref()
 */
 float STM32ADC::readTemp()
 {
-    uint16_t result = adc_read(_dev, 16);
+    uint16_t result = adc_read(ADC1, 16);
     //Serial.print("Res: "); Serial.print(result);
     float vSense = (3300.0*result)/4096; // mV
-    //Serial.print(", mV: "); Serial.print(Vsense); Serial.print(", temp: ");
+    //Serial.print(", mV: "); Serial.print(vSense); Serial.print(", temp: ");
     float temperature = ((vSense-v25)/averageSlope) + 25.0; 
     return temperature;
 }
@@ -31,10 +42,13 @@ float STM32ADC::readTemp()
 */
 void STM32ADC::setPins(const uint8 * pins, uint8 length)
 {
+	extern const uint8 adc_map[];
     //convert pins to channels.
     uint8 channels[length];
     for (uint8 i = 0; i < length; i++) { //convert the pins to channels
-        channels[i] = adc_pin_to_channel(pins[i]);
+		uint8_t adc_chan = adc_map[i];
+		if (adc_chan==0xFF) adc_chan = 0;
+        channels[i] = adc_chan;
     }
 
     adc_set_reg_sequence(_dev, channels, length);

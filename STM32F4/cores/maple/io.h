@@ -145,7 +145,8 @@ uint32 digitalRead(uint8 pin);
  *         conversion).
  * @see pinMode()
  */
-uint16 analogRead(uint8 pin);
+uint16 analogReadDev(uint8 pin, const adc_dev *);
+static inline uint16 analogRead(uint8 pin) { return analogReadDev(pin, ADC1); }
 
 /**
  * Toggles the digital value at the given pin.

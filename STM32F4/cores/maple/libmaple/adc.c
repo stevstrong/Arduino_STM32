@@ -192,23 +192,15 @@ void adc_foreach(void (*fn)(const adc_dev*))
  */
 void adc_set_sampling_time(const adc_dev *dev, adc_smp_rate smpl_time)
 {
-    uint32 adc_smpr1_val = 0, adc_smpr2_val = 0;
+    uint32 adc_smpr_val = 0;
 
-    for (uint8 i = 0; i < 18; i++)
+    for (uint8 i = 0; i < 10; i++)
     {
-        if (i < 10)
-        { // ADC_SMPR2 determines sampling times for channels 0..9
-        
-            adc_smpr2_val |= smpl_time << (i * 3);
-        }
-        else
-        { // ADC_SMPR1 determines sampling times for channels 10..18
-            adc_smpr1_val |= smpl_time << (i * 3);
-        }
+        adc_smpr_val |= smpl_time << (i * 3);
     }
 
-    dev->regs->SMPR1 = adc_smpr1_val;
-    dev->regs->SMPR2 = adc_smpr2_val;
+    dev->regs->SMPR2 = adc_smpr_val; // channels 0..9
+    dev->regs->SMPR1 = adc_smpr_val&0x7FFFFFF; // channels 10..18
 }
 
 /*
@@ -287,27 +279,25 @@ void adc_set_reg_sequence(const adc_dev * dev, uint8 * channels, uint8 len)
 */
 void adc_irq_handler(const adc_dev * dev)
 {
-    //get status
-    uint32 adc_sr = dev->regs->SR;
     //End Of Conversion
-    if (adc_sr & ADC_SR_EOC) {
-        dev->regs->SR &= ~ADC_SR_EOC;
+    if (dev->regs->SR & ADC_SR_EOC) {
+        dev->regs->SR = ~ADC_SR_EOC;
         voidFuncPtr handler = (*(dev->handler_p))[ADC_EOC];
         if (handler) {
             handler();
         }
     }
     //Injected End Of Conversion
-    if (adc_sr & ADC_SR_JEOC) {
-        dev->regs->SR &= ~ADC_SR_JEOC;
+    if (dev->regs->SR & ADC_SR_JEOC) {
+        dev->regs->SR = ~ADC_SR_JEOC;
         voidFuncPtr handler = (*(dev->handler_p))[ADC_JEOC];
         if (handler) {
             handler();
         }
     }
     //Analog Watchdog
-    if (adc_sr & ADC_SR_AWD) {
-        dev->regs->SR &= ~ADC_SR_AWD;
+    if (dev->regs->SR & ADC_SR_AWD) {
+        dev->regs->SR = ~ADC_SR_AWD;
         voidFuncPtr handler = (*(dev->handler_p))[ADC_AWD];
         if (handler) {
             handler();

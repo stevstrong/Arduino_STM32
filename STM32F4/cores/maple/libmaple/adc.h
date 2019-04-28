@@ -523,6 +523,11 @@ static inline uint16 adc_get_data(const adc_dev * dev)
 	return dev->regs->DR;
 }
 
+static inline uint16 adc_get_status(const adc_dev * dev)
+{ 
+	return dev->regs->SR;
+}
+
 static inline void adc_start_convert(const adc_dev * dev)
 {
 	dev->regs->CR2 |= ADC_CR2_SWSTART;

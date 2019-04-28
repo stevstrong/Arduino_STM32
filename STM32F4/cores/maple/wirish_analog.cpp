@@ -78,11 +78,11 @@ ADCx, /* D39/PC7  */
 };
 
 // Assumes that the ADC has been initialized and the pin set to INPUT_ANALOG
-uint16 analogRead(uint8 pin)
+uint16 analogReadDev(uint8 pin, const adc_dev * dev)
 {
     uint8_t channel = adc_map[pin];
     if ( channel==ADCx )
         return 0;
 
-    return adc_read(ADC1, channel);
+    return adc_read(dev, channel);
 }
