@@ -12,8 +12,8 @@
   modified 8 May 2014
   by Scott Fitzgerald
   
-  modified for stm32f3discovery 
-  2015/02 by Frank-Michael Krause
+  modified for generic_f303cc 
+  2019/06 by stevestrong
  */
 #define Serial SerialUSB
 

@@ -1,6 +1,7 @@
 /******************************************************************************
  * The MIT License
  *
+ * Copyright (c) 2012 LeafLabs, LLC.
  * Copyright (c) 2013 OpenMusicKontrollers.
  *
  * Permission is hereby granted, free of charge, to any person
@@ -25,17 +26,25 @@
  *****************************************************************************/
 
 /**
- * @file libmaple/syscfg.c
- * @brief System configuration controller (SYSCFG)
+ * @file libmaple/stm32f3/syscfg.c
  * @author F3-port by Hanspeter Portner <dev@open-music-kontrollers.ch>
- *
- * Availability: STM32F2, STM32F3, STM32F4.
+ * @brief SYSCFG routines.
  */
 
 #include <libmaple/syscfg.h>
+#include <libmaple/bitband.h>
 #include <libmaple/rcc.h>
+#include <libmaple/syscfg.h>
+
 
 void syscfg_init(void) {
     rcc_clk_enable(RCC_SYSCFG);
     rcc_reset_dev(RCC_SYSCFG);
+}
+
+void syscfg_set_mem_mode(syscfg_mem_mode mode) {
+    uint32 memrmp = SYSCFG_BASE->CFGR1;
+    memrmp &= ~SYSCFG_CFGR1_MEM_MODE;
+    memrmp |= (uint32)mode;
+    SYSCFG_BASE->CFGR1 = memrmp;
 }

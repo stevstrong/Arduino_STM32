@@ -52,18 +52,6 @@ enum {
     D92, D93, D94, D95, D96, D97, D98, D99, D100, D101, D102, D103, D104, D105,
     D106, D107, D108, D109, D110, D111, };
 
-/**
- * @brief Maps each Maple pin to a corresponding stm32_pin_info.
- * @see stm32_pin_info
- */
-extern const stm32_pin_info PIN_MAP[];
-
-/**
- * @brief Pins capable of PWM output.
- *
- * Its length is BOARD_NR_PWM_PINS.
- */
-extern const uint8 boardPWMPins[];
 
 /**
  * @brief Array of pins capable of analog input.

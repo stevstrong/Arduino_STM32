@@ -39,6 +39,7 @@ extern "C" {
 #endif
 
 #include <libmaple/libmaple_types.h>
+#include "syscfg.h"
 
 /*
  * Register map and base pointer.
@@ -96,12 +97,6 @@ typedef enum exti_cfg {
     EXTI_PA,                    /**< Use PAx pin */
     EXTI_PB,                    /**< Use PBx pin */
     EXTI_PC,                    /**< Use PCx pin */
-    EXTI_PD,                    /**< Use PDx pin */
-    EXTI_PE,                    /**< Use PEx pin */
-    EXTI_PF,                    /**< Use PFx pin */
-    EXTI_PG,                    /**< Use PGx pin */
-    EXTI_PH,                    /**< Use PHx pin */
-    EXTI_PI,                    /**< Use PIx pin */
 } exti_cfg;
 
 /** External interrupt trigger mode */
@@ -115,16 +110,23 @@ typedef enum exti_trigger_mode {
  * Routines
  */
 
-void exti_attach_interrupt(exti_num num,
-                           exti_cfg port,
-                           voidFuncPtr handler,
-                           exti_trigger_mode mode);
 void exti_attach_callback(exti_num num,
                           exti_cfg port,
                           voidArgumentFuncPtr handler,
                           void *arg,
                           exti_trigger_mode mode);
+
+static inline void exti_attach_interrupt(exti_num num,
+                           exti_cfg port,
+                           voidFuncPtr handler,
+                           exti_trigger_mode mode) {
+    // Call callback version with arg being null
+    exti_attach_callback(num, port, (voidArgumentFuncPtr)handler, NULL, mode);
+}
+
 void exti_detach_interrupt(exti_num num);
+
+void exti_do_select(__IO uint32 *exti_cr, exti_num num, exti_cfg port);
 
 /**
  * @brief Set the GPIO port for an EXTI line.
@@ -138,7 +140,9 @@ void exti_detach_interrupt(exti_num num);
  * @see exti_num
  * @see exti_cfg
  */
-extern void exti_select(exti_num num, exti_cfg port);
+static inline void exti_select(exti_num num, exti_cfg cfg) {
+    exti_do_select(&SYSCFG_BASE->EXTICR[num / 4], num, cfg);
+}
 
 
 

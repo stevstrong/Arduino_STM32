@@ -34,11 +34,11 @@
  */
 
 #include <libmaple/usb_cdcacm.h>
-
 #include <libmaple/usb.h>
 #include <libmaple/nvic.h>
 #include <libmaple/delay.h>
 
+#include <board/board.h>
 /* Private headers */
 #include "usb_lib_globals.h"
 #include "usb_reg_map.h"
@@ -367,38 +367,42 @@ void usb_cdcacm_set_hooks(unsigned hook_flags, void (*hook)(unsigned, void*)) {
  * CDC ACM interface
  */
 
-void usb_cdcacm_enable(gpio_dev *disc_dev, uint8 disc_bit) {
+//void usb_cdcacm_enable(gpio_dev *disc_dev, uint8 disc_bit) {
+void usb_cdcacm_enable() {
     /* Present ourselves to the host. Writing 0 to "disc" pin must
      * pull USB_DP pin up while leaving USB_DM pulled down by the
      * transceiver. See USB 2.0 spec, section 7.1.7.3. */
-		gpio_set_modef(disc_dev, disc_bit, GPIO_MODE_OUTPUT, GPIO_MODEF_TYPE_PP);
-    gpio_write_bit(disc_dev, disc_bit, 0);
+	gpio_set_mode(USB_DP, GPIO_OUTPUT);
+	// pull down the USB DP line for 50ms
+	gpio_clear_pin(USB_DP);
+	delay_us(50000);
+	gpio_set_pin(USB_DP);
 	
 		/*
 		 * set USB_DP and USB_DM pins to alternate mode and set alternate function to USB
 		 */
-		gpio_set_modef(GPIOA, 12, GPIO_MODE_AF, GPIO_MODEF_TYPE_PP);
-		gpio_set_modef(GPIOA, 11, GPIO_MODE_AF, GPIO_MODEF_TYPE_PP);
-		gpio_set_af(GPIOA, 12, GPIO_AF_14);
-		gpio_set_af(GPIOA, 11, GPIO_AF_14);
+		gpio_set_mode(USB_DP, GPIO_AF_OUTPUT);
+		gpio_set_mode(USB_DM, GPIO_AF_OUTPUT);
+		gpio_set_af(USB_DP, GPIO_AF_USB);
+		gpio_set_af(USB_DM, GPIO_AF_USB);
 
     /* Initialize the USB peripheral. */
     usb_init_usblib(USBLIB, ep_int_in, ep_int_out);
 }
 
-void usb_cdcacm_disable(gpio_dev *disc_dev, uint8 disc_bit) {
+void usb_cdcacm_disable() {
     /* Turn off the interrupt and signal disconnect (see e.g. USB 2.0
      * spec, section 7.1.7.3). */
     nvic_irq_disable(NVIC_USB_LP_CAN_RX0);
-    gpio_write_bit(disc_dev, disc_bit, 1);
+    gpio_set_pin(USB_DP);
 
 		/*
 		 * set USB_DP and USB_DM pins to input floating mode, reset alternate function to system default
 		 */
-		gpio_set_modef(GPIOA, 12, GPIO_MODE_INPUT, GPIO_MODEF_PUPD_NONE);
-		gpio_set_modef(GPIOA, 11, GPIO_MODE_INPUT, GPIO_MODEF_PUPD_NONE);
-		gpio_set_af(GPIOA, 12, GPIO_AF_0);
-		gpio_set_af(GPIOA, 11, GPIO_AF_0);
+		gpio_set_mode(USB_DP, GPIO_INPUT);
+		gpio_set_mode(USB_DM, GPIO_INPUT);
+		gpio_set_af(USB_DP, GPIO_AF_SYSTEM);
+		gpio_set_af(USB_DM, GPIO_AF_SYSTEM);
 }
 
 void usb_cdcacm_putc(char ch) {

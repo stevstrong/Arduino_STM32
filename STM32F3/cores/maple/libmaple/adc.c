@@ -40,41 +40,37 @@
 #include <libmaple/gpio.h>
 #include <libmaple/nvic.h>
 
+/** ADC1 device. */
 static adc_private_data adc1_priv;
-static adc_dev adc1 = {
+const adc_dev adc1 = {
     .regs   = ADC1_BASE,
     .clk_id = RCC_ADC12,
 		.priv = &adc1_priv
 };
-/** ADC1 device. */
-const adc_dev *ADC1 = &adc1;
 
+/** ADC2 device. */
 static adc_private_data adc2_priv;
-static adc_dev adc2 = {
+const adc_dev adc2 = {
     .regs   = ADC2_BASE,
     .clk_id = RCC_ADC12,
 		.priv = &adc2_priv
 };
-/** ADC2 device. */
-const adc_dev *ADC2 = &adc2;
 
+/** ADC3 device. */
 static adc_private_data adc3_priv;
-static adc_dev adc3 = {
+const adc_dev adc3 = {
     .regs   = ADC3_BASE,
     .clk_id = RCC_ADC34,
 		.priv = &adc3_priv
 };
-/** ADC3 device. */
-const adc_dev *ADC3 = &adc3;
 
+/** ADC4 device. */
 static adc_private_data adc4_priv;
-static adc_dev adc4 = {
+const adc_dev adc4 = {
     .regs   = ADC4_BASE,
     .clk_id = RCC_ADC34,
 		.priv = &adc4_priv
 };
-/** ADC4 device. */
-const adc_dev *ADC4 = &adc4;
 
 
 /**
@@ -306,8 +302,8 @@ void adc_foreach(void (*fn)(const adc_dev*)) {
     fn(ADC4);
 }
 
-void adc_config_gpio(const adc_dev *ignored, gpio_dev *gdev, uint8 bit) {
-    gpio_set_modef(gdev, bit, GPIO_MODE_ANALOG, GPIO_MODEF_PUPD_NONE);
+void adc_config_gpio(const adc_dev *ignored, uint8 pin) {
+    gpio_set_mode(pin, GPIO_INPUT_ANALOG);
 }
 
 void adc_enable_single_swstart(const adc_dev *dev)

@@ -52,7 +52,7 @@ struct usart_dev;
 
 class HardwareSerial : public Print {
 public:
-    HardwareSerial(struct usart_dev *usart_device,
+    HardwareSerial(const usart_dev *usart_device,
                    uint8 tx_pin,
                    uint8 rx_pin);
 
@@ -73,9 +73,9 @@ public:
 
     /* Escape hatch into libmaple */
     /* FIXME [0.0.13] documentation */
-    struct usart_dev* c_dev(void) { return this->usart_device; }
+    const usart_dev* c_dev(void) { return this->usart_device; }
 private:
-    struct usart_dev *usart_device;
+    const usart_dev *usart_device;
     uint8 tx_pin;
     uint8 rx_pin;
 };

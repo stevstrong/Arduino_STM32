@@ -32,13 +32,13 @@
 
 #include <libmaple/timer.h>
 #include <libmaple/stm32.h>
-#include "timer_private.h"
 
-static void disable_channel(timer_dev *dev, uint8 channel);
-static void pwm_mode(timer_dev *dev, uint8 channel);
-static void output_compare_mode(timer_dev *dev, uint8 channel);
 
-static inline void enable_irq(timer_dev *dev, uint8 interrupt);
+static void disable_channel(const timer_dev *dev, uint8 channel);
+static void pwm_mode(const timer_dev *dev, uint8 channel);
+static void output_compare_mode(const timer_dev *dev, uint8 channel);
+
+static inline void enable_irq(const timer_dev *dev, uint8 interrupt);
 
 /*
  * Devices
@@ -46,77 +46,65 @@ static inline void enable_irq(timer_dev *dev, uint8 interrupt);
  * Defer to the timer_private API for declaring these.
  */
 
-static timer_dev timer1 = ADVANCED_TIMER(1);
 /** Timer 1 device (advanced) */
-timer_dev *TIMER1 = &timer1;
+const timer_dev timer1 = ADVANCED_TIMER(1);
+voidFuncPtr timer1_handlers[NR_ADV_HANDLERS];
 
-static timer_dev timer2 = GENERAL_TIMER(2);
 /** Timer 2 device (general-purpose) */
-timer_dev *TIMER2 = &timer2;
+const timer_dev timer2 = GENERAL_TIMER(2);
+voidFuncPtr timer2_handlers[NR_GEN_HANDLERS];
 
-static timer_dev timer3 = GENERAL_TIMER(3);
 /** Timer 3 device (general-purpose) */
-timer_dev *TIMER3 = &timer3;
+const timer_dev timer3 = GENERAL_TIMER(3);
+voidFuncPtr timer3_handlers[NR_GEN_HANDLERS];
 
-static timer_dev timer4 = GENERAL_TIMER(4);
 /** Timer 4 device (general-purpose) */
-timer_dev *TIMER4 = &timer4;
+const timer_dev timer4 = GENERAL_TIMER(4);
+voidFuncPtr timer4_handlers[NR_GEN_HANDLERS];
 
-#if 0
-static timer_dev timer5 = GENERAL_TIMER(5);
-/** Timer 5 device (general-purpose) */
-timer_dev *TIMER5 = &timer5;
-#endif
-
-static timer_dev timer6 = BASIC_TIMER(6);
 /** Timer 6 device (basic) */
-timer_dev *TIMER6 = &timer6;
+const timer_dev timer6 = BASIC_TIMER(6);
+voidFuncPtr timer6_handlers[NR_BAS_HANDLERS];
 
-static timer_dev timer7 = BASIC_TIMER(7);
 /** Timer 7 device (basic) */
-timer_dev *TIMER7 = &timer7;
+const timer_dev timer7 = BASIC_TIMER(7);
+voidFuncPtr timer7_handlers[NR_BAS_HANDLERS];
 
-static timer_dev timer8 = ADVANCED_TIMER(8);
 /** Timer 8 device (advanced) */
-timer_dev *TIMER8 = &timer8;
+const timer_dev timer8 = ADVANCED_TIMER(8);
+voidFuncPtr timer8_handlers[NR_ADV_HANDLERS];
 
 #if 0
-static timer_dev timer9 = RESTRICTED_GENERAL_TIMER(9, TIMER_DIER_TIE_BIT);
 /** Timer 9 device (general-purpose) */
-timer_dev *TIMER9 = &timer9;
+const timer_dev timer9 = RESTRICTED_GENERAL_TIMER(9, TIMER_DIER_TIE_BIT);
 
-static timer_dev timer10 = RESTRICTED_GENERAL_TIMER(10, TIMER_DIER_CC1IE_BIT);
 /** Timer 10 device (general-purpose) */
-timer_dev *TIMER10 = &timer10;
+const timer_dev timer10 = RESTRICTED_GENERAL_TIMER(10, TIMER_DIER_CC1IE_BIT);
 
-static timer_dev timer11 = RESTRICTED_GENERAL_TIMER(11, TIMER_DIER_CC1IE_BIT);
 /** Timer 11 device (general-purpose) */
-timer_dev *TIMER11 = &timer11;
+const timer_dev timer11 = RESTRICTED_GENERAL_TIMER(11, TIMER_DIER_CC1IE_BIT);
 
-static timer_dev timer12 = RESTRICTED_GENERAL_TIMER(12, TIMER_DIER_TIE_BIT);
 /** Timer 12 device (general-purpose) */
-timer_dev *TIMER12 = &timer12;
+const timer_dev timer12 = RESTRICTED_GENERAL_TIMER(12, TIMER_DIER_TIE_BIT);
 
-static timer_dev timer13 = RESTRICTED_GENERAL_TIMER(13, TIMER_DIER_CC1IE_BIT);
 /** Timer 13 device (general-purpose) */
-timer_dev *TIMER13 = &timer13;
+const timer_dev timer13 = RESTRICTED_GENERAL_TIMER(13, TIMER_DIER_CC1IE_BIT);
 
-static timer_dev timer14 = RESTRICTED_GENERAL_TIMER(14, TIMER_DIER_CC1IE_BIT);
 /** Timer 14 device (general-purpose) */
-timer_dev *TIMER14 = &timer14;
+const timer_dev timer14 = RESTRICTED_GENERAL_TIMER(14, TIMER_DIER_CC1IE_BIT);
 #endif
 
-static timer_dev timer15 = RESTRICTED_GENERAL_TIMER(15, TIMER_DIER_TIE_BIT); //XXX
 /** Timer 15 device (general-purpose) */
-timer_dev *TIMER15 = &timer15;
+const timer_dev timer15 = GENERAL_TIMER(15); //XXX
+voidFuncPtr timer15_handlers[NR_GEN_HANDLERS];
 
-static timer_dev timer16 = RESTRICTED_GENERAL_TIMER(16, TIMER_DIER_CC1IE_BIT); //XXX
 /** Timer 16 device (general-purpose) */
-timer_dev *TIMER16 = &timer16;
+const timer_dev timer16 = GENERAL_TIMER(16); //XXX
+voidFuncPtr timer16_handlers[NR_GEN_HANDLERS];
 
-static timer_dev timer17 = RESTRICTED_GENERAL_TIMER(17, TIMER_DIER_CC1IE_BIT); //XXX
 /** Timer 17 device (general-purpose) */
-timer_dev *TIMER17 = &timer17;
+const timer_dev timer17 = GENERAL_TIMER(17); //XXX
+voidFuncPtr timer17_handlers[NR_GEN_HANDLERS];
 
 
 /*
@@ -127,18 +115,14 @@ timer_dev *TIMER17 = &timer17;
  * @brief Call a function on timer devices.
  * @param fn Function to call on each timer device.
  */
-void timer_foreach(void (*fn)(timer_dev*)) {
+void timer_foreach(void (*fn)(const timer_dev*)) {
     fn(TIMER1);
     fn(TIMER2);
     fn(TIMER3);
     fn(TIMER4);
-#if 0
-    fn(TIMER5);
-#endif
     fn(TIMER6);
     fn(TIMER7);
     fn(TIMER8);
-
 #if 0
     fn(TIMER9);
     fn(TIMER10);
@@ -156,7 +140,7 @@ void timer_foreach(void (*fn)(timer_dev*)) {
  * Initialize a timer, and reset its register map.
  * @param dev Timer to initialize
  */
-void timer_init(timer_dev *dev) {
+void timer_init(const timer_dev *dev) {
     rcc_clk_enable(dev->clk_id);
     rcc_reset_dev(dev->clk_id);
 }
@@ -169,7 +153,7 @@ void timer_init(timer_dev *dev) {
  *
  * @param dev Timer to disable.
  */
-void timer_disable(timer_dev *dev) {
+void timer_disable(const timer_dev *dev) {
     (dev->regs).bas->CR1 = 0;
     (dev->regs).bas->DIER = 0;
     switch (dev->type) {
@@ -193,7 +177,7 @@ void timer_disable(timer_dev *dev) {
  * @param channel Relevant channel
  * @param mode New timer mode for channel
  */
-void timer_set_mode(timer_dev *dev, uint8 channel, timer_mode mode) {
+void timer_set_mode(const timer_dev *dev, uint8 channel, timer_mode mode) {
     ASSERT_FAULT(channel > 0 && channel <= 4);
 
     /* TODO decide about the basic timers */
@@ -225,7 +209,7 @@ void timer_set_mode(timer_dev *dev, uint8 channel, timer_mode mode) {
  * @param channel Capture/compare channel, from 1 to 4
  * @return Nonzero if dev has channel, zero otherwise.
  */
-int timer_has_cc_channel(timer_dev *dev, uint8 channel) {
+int timer_has_cc_channel(const timer_dev *dev, uint8 channel) {
     /* On all currently supported series: advanced and "full-featured"
      * general purpose timers have all four channels. Of the
      * restricted general timers, timers 9, 12 and 15 have channels 1 and
@@ -252,10 +236,10 @@ int timer_has_cc_channel(timer_dev *dev, uint8 channel) {
  * @see timer_interrupt_id
  * @see timer_channel
  */
-void timer_attach_interrupt(timer_dev *dev,
+void timer_attach_interrupt(const timer_dev *dev,
                             uint8 interrupt,
                             voidFuncPtr handler) {
-    dev->handlers[interrupt] = handler;
+    (*(dev->handlers_ptr))[interrupt] = handler;
     timer_enable_irq(dev, interrupt);
     enable_irq(dev, interrupt);
 }
@@ -269,40 +253,29 @@ void timer_attach_interrupt(timer_dev *dev,
  * @see timer_interrupt_id
  * @see timer_channel
  */
-void timer_detach_interrupt(timer_dev *dev, uint8 interrupt) {
+void timer_detach_interrupt(const timer_dev *dev, uint8 interrupt) {
     timer_disable_irq(dev, interrupt);
-    dev->handlers[interrupt] = NULL;
+    (*(dev->handlers_ptr))[interrupt] = NULL;
 }
 
 /*
  * Utilities
  */
 
-static void disable_channel(timer_dev *dev, uint8 channel) {
+static void disable_channel(const timer_dev *dev, uint8 channel) {
     timer_detach_interrupt(dev, channel);
     timer_cc_disable(dev, channel);
 }
 
-static void pwm_mode(timer_dev *dev, uint8 channel) {
+static void pwm_mode(const timer_dev *dev, uint8 channel) {
     timer_disable_irq(dev, channel);
     timer_oc_set_mode(dev, channel, TIMER_OC_MODE_PWM_1, TIMER_OC_PE);
     timer_cc_enable(dev, channel);
 }
 
-static void output_compare_mode(timer_dev *dev, uint8 channel) {
+static void output_compare_mode(const timer_dev *dev, uint8 channel) {
     timer_oc_set_mode(dev, channel, TIMER_OC_MODE_ACTIVE_ON_MATCH, 0);
     timer_cc_enable(dev, channel);
-}
-
-static void enable_adv_irq(timer_dev *dev, timer_interrupt_id id);
-static void enable_bas_gen_irq(timer_dev *dev);
-
-static inline void enable_irq(timer_dev *dev, timer_interrupt_id iid) {
-    if (dev->type == TIMER_ADVANCED) {
-        enable_adv_irq(dev, iid);
-    } else {
-        enable_bas_gen_irq(dev);
-    }
 }
 
 /* Advanced control timers have several IRQ lines corresponding to
@@ -311,7 +284,7 @@ static inline void enable_irq(timer_dev *dev, timer_interrupt_id iid) {
  * Note: This function assumes that the only advanced timers are TIM1
  * and TIM8, and needs the obvious changes if that assumption is
  * violated by a later STM32 series. */
-static void enable_adv_irq(timer_dev *dev, timer_interrupt_id id) {
+static void enable_adv_irq(const timer_dev *dev, timer_interrupt_id id) {
     uint8 is_tim1 = dev->clk_id == RCC_TIMER1;
     nvic_irq_num irq_num;
     switch (id) {
@@ -347,7 +320,7 @@ static void enable_adv_irq(timer_dev *dev, timer_interrupt_id id) {
 
 /* Basic and general purpose timers have a single IRQ line, which is
  * shared by all interrupts supported by a particular timer. */
-static void enable_bas_gen_irq(timer_dev *dev) {
+static void enable_bas_gen_irq(const timer_dev *dev) {
     nvic_irq_num irq_num;
     switch (dev->clk_id) {
     case RCC_TIMER2:
@@ -412,3 +385,82 @@ static void enable_bas_gen_irq(timer_dev *dev) {
     }
     nvic_irq_enable(irq_num);
 }
+
+static inline void enable_irq(const timer_dev *dev, timer_interrupt_id iid) {
+    if (dev->type == TIMER_ADVANCED) {
+        enable_adv_irq(dev, iid);
+    } else {
+        enable_bas_gen_irq(dev);
+    }
+}
+
+
+/*
+ * IRQ handlers
+ *
+ * Defer to the timer_private dispatch API.
+ *
+ * FIXME: The names of these handlers are inaccurate since XL-density
+ * devices came out. Update these to match the STM32F3 names, maybe
+ * using some weak symbol magic to preserve backwards compatibility if
+ * possible. Once that's done, we can just move the IRQ handlers into
+ * the top-level libmaple/timer.c, and there will be no need for this
+ * file.
+ */
+
+void __irq_tim1_brk_tim15(void) {
+    dispatch_adv_brk(TIMER1);
+    dispatch_tim_9_12(TIMER15);
+}
+
+void __irq_tim1_up_tim16(void) {
+    dispatch_adv_up(TIMER1);
+    dispatch_tim_10_11_13_14(TIMER16);
+}
+
+void __irq_tim1_trg_com_tim17(void) {
+    dispatch_adv_trg_com(TIMER1);
+    dispatch_tim_10_11_13_14(TIMER17);
+}
+
+void __irq_tim1_cc(void) {
+    dispatch_adv_cc(TIMER1);
+}
+
+void __irq_tim2(void) {
+    dispatch_general(TIMER2);
+}
+
+void __irq_tim3(void) {
+    dispatch_general(TIMER3);
+}
+
+void __irq_tim4(void) {
+    dispatch_general(TIMER4);
+}
+
+void __irq_tim6_dacunder(void) {
+    dispatch_basic(TIMER6);
+		/* FIXME handle DAC12 underrun */
+}
+
+void __irq_tim7(void) {
+    dispatch_basic(TIMER7);
+}
+
+void __irq_tim8_brk(void) {
+    dispatch_adv_brk(TIMER8);
+}
+
+void __irq_tim8_up(void) {
+    dispatch_adv_up(TIMER8);
+}
+
+void __irq_tim8_trg_com(void) {
+    dispatch_adv_trg_com(TIMER8);
+}
+
+void __irq_tim8_cc(void) {
+    dispatch_adv_cc(TIMER8);
+}
+

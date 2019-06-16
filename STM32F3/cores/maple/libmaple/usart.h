@@ -114,23 +114,28 @@ typedef struct usart_dev {
     ring_buffer *rb;                 /**< RX ring buffer */
     uint32 max_baud;                 /**< @brief Deprecated.
                                       * Maximum baud rate. */
-    uint8 rx_buf[USART_RX_BUF_SIZE]; /**< @brief Deprecated.
-                                      * Actual RX buffer used by rb.
-                                      * This field will be removed in
-                                      * a future release. */
+	uint8 *rx_buf;
     rcc_clk_id clk_id;               /**< RCC clock information */
     nvic_irq_num irq_num;            /**< USART NVIC interrupt */
 } usart_dev;
 
 
-struct usart_dev;
-extern struct usart_dev *USART1;
-extern struct usart_dev *USART2;
-extern struct usart_dev *USART3;
+extern const usart_dev usart1;
+extern const usart_dev usart2;
+extern const usart_dev usart3;
+#define USART1 (&usart1)
+#define USART2 (&usart2)
+#define USART3 (&usart3)
+
 #ifdef STM32_HIGH_DENSITY
-extern struct usart_dev *UART4;
-extern struct usart_dev *UART5;
+extern const usart_dev uart4;
+extern const usart_dev uart5;
+#define UART4 (&uart4)
+#define UART5 (&uart5)
 #endif
+
+
+
 
 /*
  * F3-only register bit definitions.
@@ -601,10 +606,9 @@ extern struct usart_dev *UART5;
 #define USART_RX_BUF_SIZE               64
 #endif
 
-void usart_init(usart_dev *dev);
+void usart_init(const usart_dev *dev);
 
-struct gpio_dev;                /* forward declaration */
-/* FIXME [PRE 0.0.13] decide if flags are necessary */
+
 /**
  * @brief Configure GPIOs for use as USART TX/RX.
  * @param udev USART device to use
@@ -614,17 +618,14 @@ struct gpio_dev;                /* forward declaration */
  * @param tx     TX pin bit on tx_dev
  * @param flags  Currently ignored
  */
-extern void usart_config_gpios_async(usart_dev *udev,
-                                     struct gpio_dev *rx_dev, uint8 rx,
-                                     struct gpio_dev *tx_dev, uint8 tx,
-                                     unsigned flags);
+extern void usart_config_gpios_async(const usart_dev *udev, uint8 rx_pin, uint8 tx_pin);
 
 #define USART_USE_PCLK 0
-void usart_set_baud_rate(usart_dev *dev, uint32 clock_speed, uint32 baud);
+void usart_set_baud_rate(const usart_dev *dev, uint32 clock_speed, uint32 baud);
 
-void usart_enable(usart_dev *dev);
-void usart_disable(usart_dev *dev);
-void usart_foreach(void (*fn)(usart_dev *dev));
+void usart_enable(const usart_dev *dev);
+void usart_disable(const usart_dev *dev);
+void usart_foreach(void (*fn)(const usart_dev *dev));
 /**
  * @brief Nonblocking USART transmit
  * @param dev Serial port to transmit over
@@ -632,9 +633,10 @@ void usart_foreach(void (*fn)(usart_dev *dev));
  * @param len Maximum number of bytes to transmit
  * @return Number of bytes transmitted
  */
-uint32 usart_tx(usart_dev *dev, const uint8 *buf, uint32 len);
-uint32 usart_rx(usart_dev *dev, uint8 *buf, uint32 len);
-void usart_putudec(usart_dev *dev, uint32 val);
+uint32 usart_tx(const usart_dev *dev, const uint8 *buf, uint32 len);
+uint32 usart_rx(const usart_dev *dev, uint8 *buf, uint32 len);
+void usart_putudec(const usart_dev *dev, uint32 val);
+uint32 _usart_clock_freq(const usart_dev *dev);
 
 /**
  * @brief Disable all serial ports.
@@ -652,7 +654,7 @@ static inline void usart_disable_all(void) {
  * @param dev Serial port to send on.
  * @param byte Byte to transmit.
  */
-static inline void usart_putc(usart_dev* dev, uint8 byte) {
+static inline void usart_putc(const usart_dev* dev, uint8 byte) {
     while (!usart_tx(dev, &byte, 1))
         ;
 }
@@ -665,7 +667,7 @@ static inline void usart_putc(usart_dev* dev, uint8 byte) {
  * @param dev Serial port to send on
  * @param str String to send
  */
-static inline void usart_putstr(usart_dev *dev, const char* str) {
+static inline void usart_putstr(const usart_dev *dev, const char* str) {
     uint32 i = 0;
     while (str[i] != '\0') {
         usart_putc(dev, str[i++]);
@@ -682,7 +684,7 @@ static inline void usart_putstr(usart_dev *dev, const char* str) {
  * @return byte read
  * @see usart_data_available()
  */
-static inline uint8 usart_getc(usart_dev *dev) {
+static inline uint8 usart_getc(const usart_dev *dev) {
     return rb_remove(dev->rb);
 }
 
@@ -691,7 +693,7 @@ static inline uint8 usart_getc(usart_dev *dev) {
  * @param dev Serial port to check
  * @return Number of bytes in dev's RX buffer.
  */
-static inline uint32 usart_data_available(usart_dev *dev) {
+static inline uint32 usart_data_available(const usart_dev *dev) {
     return rb_full_count(dev->rb);
 }
 
@@ -699,14 +701,14 @@ static inline uint32 usart_data_available(usart_dev *dev) {
  * @brief Discard the contents of a serial port's RX buffer.
  * @param dev Serial port whose buffer to empty.
  */
-static inline void usart_reset_rx(usart_dev *dev) {
+static inline void usart_reset_rx(const usart_dev *dev) {
     rb_reset(dev->rb);
 }
 /*
  * Routines
  */
 
-gpio_af usart_get_af(struct usart_dev *dev);
+gpio_af usart_get_af(const usart_dev *dev);
 
 #ifdef __cplusplus
 }

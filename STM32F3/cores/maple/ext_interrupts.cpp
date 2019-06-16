@@ -40,39 +40,39 @@
 static inline exti_trigger_mode exti_out_mode(ExtIntTriggerMode mode);
 
 void attachInterrupt(uint8 pin, voidFuncPtr handler, ExtIntTriggerMode mode) {
-    if (pin >= BOARD_NR_GPIO_PINS || !handler) {
+    if (pin >= LAST_GPIO_PIN || !handler) {
         return;
     }
 
     exti_trigger_mode outMode = exti_out_mode(mode);
 
-    exti_attach_interrupt((exti_num)(PIN_MAP[pin].gpio_bit),
-                          gpio_exti_port(PIN_MAP[pin].gpio_device),
+    exti_attach_interrupt((exti_num)digitalPinToBit(pin),
+                          (exti_cfg)(pin>>4),
                           handler,
                           outMode);
 }
 
 void attachInterrupt(uint8 pin, voidArgumentFuncPtr handler, void *arg,
                      ExtIntTriggerMode mode) {
-    if (pin >= BOARD_NR_GPIO_PINS || !handler) {
+    if (pin >= LAST_GPIO_PIN || !handler) {
         return;
     }
 
     exti_trigger_mode outMode = exti_out_mode(mode);
 
-    exti_attach_callback((exti_num)(PIN_MAP[pin].gpio_bit),
-                          gpio_exti_port(PIN_MAP[pin].gpio_device),
+    exti_attach_callback((exti_num)digitalPinToBit(pin),
+                          (exti_cfg)(pin>>4),
                           handler,
                           arg,
                           outMode);
 }
 
 void detachInterrupt(uint8 pin) {
-    if (pin >= BOARD_NR_GPIO_PINS) {
+    if (pin >= LAST_GPIO_PIN) {
         return;
     }
 
-    exti_detach_interrupt((exti_num)(PIN_MAP[pin].gpio_bit));
+    exti_detach_interrupt((exti_num)digitalPinToBit(pin));
 }
 
 static inline exti_trigger_mode exti_out_mode(ExtIntTriggerMode mode) {

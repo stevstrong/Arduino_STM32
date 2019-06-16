@@ -44,9 +44,9 @@
 extern "C" {
     static timer_dev **this_devp;
     static rcc_clk_id this_id;
-    static void set_this_dev(timer_dev *dev) {
+    static void set_this_dev(const timer_dev *dev) {
         if (dev->clk_id == this_id) {
-            *this_devp = dev;
+            *this_devp = (timer_dev *)dev;
         }
     }
 }

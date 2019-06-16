@@ -25,7 +25,7 @@
  *****************************************************************************/
 
 /**
- * @file   wirish/boards/48F3/include/board/board.h
+ * @file   board/board.h
  * @author F3-port: Hanspeter Portner <dev@open-music-kontrollers.ch>
  * @brief  F303xx board header (F303CB, F303CC, F303RB, F303RC, F303VB, F303VC).
  *
@@ -42,37 +42,22 @@
 #define SYSTICK_RELOAD_VAL     (F_CPU/1000) - 1 /* takes a cycle to reload */
 
 enum {
-		PC13, PC14, PC15,
-		PF0, PF1,
-		PA0, PA1, PA2, PA3, PA4, PA5, PA6, PA7,
-		PB0, PB1, PB2,
-		PB10, PB11, PB12, PB13, PB14, PB15,
-		PA8, PA9, PA10, PA11, PA12, PA13, PA14, PA15,
-		PB3, PB4, PB5, PB6, PB7, PB8, PB9,
-#if defined(STM32_HIGH_DENSITY) || defined(STM32_XL_DENSITY)
-		PC0, PC1, PC2, PC3,
-		PF4,
-		PC4, PC5, PC6, PC7, PC8, PC9, PC10, PC11, PC12,
-		PD2,
-#	if defined(STM32_XL_DENSITY)
-		PE2, PE3, PE4, PE5, PE6,
-		PF9, PF10,
-		PF2,
-		PE7, PE8, PE9, PE10, PE11, PE12, PE13, PE14, PE15,
-		PD8, PD9, PD10, PD11, PD12, PD13, PD14, PD15,
-		PF6,
-		PD0, PD1,
-		PD3, PD4, PD5, PD6, PD7,
-		PE0, PE1,
-#	endif
-#endif
+PA0, PA1, PA2, PA3, PA4, PA5, PA6, PA7, PA8, PA9, PA10, PA11, PA12, PA13, PA14, PA15,
+PB0, PB1, PB2, PB3, PB4, PB5, PB6, PB7, PB8, PB9, PB10, PB11, PB12, PB13, PB14, PB15,
+PC13 = 45, PC14, PC15, LAST_GPIO_PIN
 };
 
-#define BOARD_USART1_TX_PIN       PA9		/* also PB6 */
+#define OSC_IN  PC14
+#define OSC_OUT PC15
+
+#define USB_DM  PA11
+#define USB_DP  PA12
+
+#define BOARD_USART1_TX_PIN       PA9	/* also PB6 */
 #define BOARD_USART1_RX_PIN       PA10	/* also PB7 */
 
-#define BOARD_USART2_TX_PIN       PA2		/* also PA14, PB3 */
-#define BOARD_USART2_RX_PIN       PA3		/* also PA15, PB4 */
+#define BOARD_USART2_TX_PIN       PA2	/* also PA14, PB3 */
+#define BOARD_USART2_RX_PIN       PA3	/* also PA15, PB4 */
 
 #define BOARD_USART3_TX_PIN       PB10
 #define BOARD_USART3_RX_PIN       PB11
@@ -110,9 +95,9 @@ enum {
 
 #if defined(STM32_MEDIUM_DENSITY)
 # define BOARD_NR_USARTS           3
-#	define BOARD_NR_GPIO_PINS        37
-#	define BOARD_NR_PWM_PINS         28
-#	define BOARD_NR_ADC_PINS         15
+#	define BOARD_NR_GPIO_PINS        35 //37
+//#	define BOARD_NR_PWM_PINS         28
+//#	define BOARD_NR_ADC_PINS         15
 #	define BOARD_NR_USED_PINS         4
 #elif defined(STM32_HIGH_DENSITY)
 # define BOARD_NR_USARTS           5

@@ -38,11 +38,10 @@
 #include <boards.h>
 
 void pwmWrite(uint8 pin, uint16 duty_cycle) {
-    if (pin >= BOARD_NR_GPIO_PINS) {
+    if (pin > PB15) {
         return;
     }
-    timer_dev *dev = PIN_MAP[pin].timer_device;
-    uint8 cc_channel = PIN_MAP[pin].timer_channel;
-    ASSERT(dev && cc_channel);
-    timer_set_compare(dev, cc_channel, duty_cycle);
+	const timer_info *info = &timer_map[pin];
+	if (info->index==NULL || info->channel==0) return;
+    timer_set_compare(timer_devices[info->index], info->channel, duty_cycle);
 }

@@ -8,8 +8,8 @@ menu.upload_method=Upload method
 generic_f303cc.name=Generic STM32F303xC series
 
 generic_f303cc.upload.file_type=bin
-generic_f303cc.upload.maximum_size=514288
-generic_f303cc.upload.maximum_data_size=131072
+generic_f303cc.upload.maximum_size=262144
+generic_f303cc.upload.maximum_data_size=32768
 
 #generic_f303cc.upload.usbID=0483:3748
 #generic_f303cc.upload.altID=1

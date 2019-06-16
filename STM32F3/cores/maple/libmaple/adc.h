@@ -124,14 +124,23 @@ typedef struct adc_dev {
 		adc_private_data *priv;	/**< ADC private data */
 } adc_dev;
 
+typedef struct adc_info {
+	const adc_dev * device;
+	uint8 channel;
+} adc_info;
+
 /*
  * Devices
  */
 
-extern const struct adc_dev *ADC1;	/* master */
-extern const struct adc_dev *ADC2;	/* slave */
-extern const struct adc_dev *ADC3;	/* master */
-extern const struct adc_dev *ADC4;	/* slave */
+extern const adc_dev adc1;	/* master */
+extern const adc_dev adc2;	/* slave */
+extern const adc_dev adc3;	/* master */
+extern const adc_dev adc4;	/* slave */
+#define ADC1 (&adc1)
+#define ADC2 (&adc2)
+#define ADC3 (&adc3)
+#define ADC4 (&adc4)
 
 /*
  * Register map base pointers
@@ -912,9 +921,7 @@ struct gpio_dev;
  * @param gdev GPIO device to configure.
  * @param bit Bit on gdev to configure for ADC conversion.
  */
-extern void adc_config_gpio(const struct adc_dev *dev,
-                            struct gpio_dev *gdev,
-                            uint8 bit);
+extern void adc_config_gpio(const adc_dev *dev, uint8 pin);
 
 /**
  * @brief Enable an ADC and configure it for single conversion mode.

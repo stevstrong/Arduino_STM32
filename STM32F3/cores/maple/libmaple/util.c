@@ -121,7 +121,7 @@ __attribute__((noreturn)) void throb(void) {
     uint32 TOP_CNT = 0x0200;
     uint32 i       = 0;
 
-    gpio_set_mode(ERROR_LED_PORT, ERROR_LED_PIN, GPIO_MODE_OUTPUT);
+    gpio_set_mode(ERROR_LED_PIN, GPIO_MODE_OUTPUT);
     /* Error fade. */
     while (1) {
         if (CC == TOP_CNT)  {

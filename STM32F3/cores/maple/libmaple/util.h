@@ -25,7 +25,7 @@
  *****************************************************************************/
 
 /**
- * @file libmaple/include/libmaple/util.h
+ * @file libmaple/util.h
  * @brief Miscellaneous utility macros and procedures.
  */
 

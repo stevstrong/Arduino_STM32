@@ -42,26 +42,16 @@
                         BOARD_USART##n##_TX_PIN,                   \
                         BOARD_USART##n##_RX_PIN)
 
-#if BOARD_HAVE_USART1
 DEFINE_HWSERIAL(Serial1, 1);
-#endif
-#if BOARD_HAVE_USART2
 DEFINE_HWSERIAL(Serial2, 2);
-#endif
-#if BOARD_HAVE_USART3
 DEFINE_HWSERIAL(Serial3, 3);
-#endif
-#if BOARD_HAVE_UART4
+
+#ifdef STM32_HIGH_DENSITY
 DEFINE_HWSERIAL(Serial4, 4);
-#endif
-#if BOARD_HAVE_UART5
 DEFINE_HWSERIAL(Serial5, 5);
 #endif
-#if BOARD_HAVE_USART6
-DEFINE_HWSERIAL(Serial6, 6);
-#endif
 
-HardwareSerial::HardwareSerial(usart_dev *usart_device,
+HardwareSerial::HardwareSerial(const usart_dev *usart_device,
                                uint8 tx_pin,
                                uint8 rx_pin) {
     this->usart_device = usart_device;
@@ -73,21 +63,7 @@ HardwareSerial::HardwareSerial(usart_dev *usart_device,
  * Set up/tear down
  */
 
-#if STM32_MCU_SERIES == STM32_SERIES_F1
-/* F1 MCUs have no GPIO_AFR[HL], so turn off PWM if there's a conflict
- * on this GPIO bit. */
-static void disable_timer_if_necessary(timer_dev *dev, uint8 ch) {
-    if (dev != NULL) {
-        timer_set_mode(dev, ch, TIMER_DISABLED);
-    }
-}
-#elif (STM32_MCU_SERIES == STM32_SERIES_F2) ||    \
-      (STM32_MCU_SERIES == STM32_SERIES_F3) ||    \
-      (STM32_MCU_SERIES == STM32_SERIES_F4)
-#define disable_timer_if_necessary(dev, ch) ((void)0)
-#else
-#warning "Unsupported STM32 series; timer conflicts are possible"
-#endif
+#define disable_timer_if_necessary(pin) ((void)0)
 
 void HardwareSerial::begin(uint32 baud) {
     ASSERT(baud <= this->usart_device->max_baud);
@@ -96,15 +72,9 @@ void HardwareSerial::begin(uint32 baud) {
         return;
     }
 
-    const stm32_pin_info *txi = &PIN_MAP[this->tx_pin];
-    const stm32_pin_info *rxi = &PIN_MAP[this->rx_pin];
+    disable_timer_if_necessary(tx_pin);
 
-    disable_timer_if_necessary(txi->timer_device, txi->timer_channel);
-
-    usart_config_gpios_async(this->usart_device,
-                             rxi->gpio_device, rxi->gpio_bit,
-                             txi->gpio_device, txi->gpio_bit,
-                             0);
+    usart_config_gpios_async(this->usart_device, rx_pin, tx_pin);
     usart_init(this->usart_device);
     usart_set_baud_rate(this->usart_device, USART_USE_PCLK, baud);
     usart_enable(this->usart_device);

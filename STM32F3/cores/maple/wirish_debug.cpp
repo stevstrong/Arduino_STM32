@@ -37,34 +37,24 @@ void disableDebugPorts(void) {
     // BOARD_JTMS_SWDIO_PIN-BOARD_JTDI_PIN and BOARD_JTDO_PIN-BOARD_NJTRST_PIN are in system alternate function mode on
     // reset, to support JTAG. Just put them in input mode to release
     // them.
-    gpio_set_modef(PIN_MAP[BOARD_JTMS_SWDIO_PIN].gpio_device, PIN_MAP[BOARD_JTMS_SWDIO_PIN].gpio_bit,
-			GPIO_MODE_INPUT, GPIO_MODEF_PUPD_NONE);
-    gpio_set_modef(PIN_MAP[BOARD_JTCK_SWCLK_PIN].gpio_device, PIN_MAP[BOARD_JTCK_SWCLK_PIN].gpio_bit,
-			GPIO_MODE_INPUT, GPIO_MODEF_PUPD_NONE);
-    gpio_set_modef(PIN_MAP[BOARD_JTDI_PIN].gpio_device, PIN_MAP[BOARD_JTDI_PIN].gpio_bit,
-			GPIO_MODE_INPUT, GPIO_MODEF_PUPD_NONE);
-    gpio_set_modef(PIN_MAP[BOARD_JTDO_PIN].gpio_device, PIN_MAP[BOARD_JTDO_PIN].gpio_bit,
-			GPIO_MODE_INPUT, GPIO_MODEF_PUPD_NONE);
-    gpio_set_modef(PIN_MAP[BOARD_NJTRST_PIN].gpio_device, PIN_MAP[BOARD_NJTRST_PIN].gpio_bit,
-			GPIO_MODE_INPUT, GPIO_MODEF_PUPD_NONE);
+    gpio_set_mode(BOARD_JTMS_SWDIO_PIN, GPIO_INPUT);
+    gpio_set_mode(BOARD_JTCK_SWCLK_PIN, GPIO_INPUT);
+    gpio_set_mode(BOARD_JTDI_PIN, GPIO_INPUT);
+    gpio_set_mode(BOARD_JTDO_PIN, GPIO_INPUT);
+    gpio_set_mode(BOARD_NJTRST_PIN, GPIO_INPUT);
 }
 
 void enableDebugPorts(void) {
     // Put BOARD_JTMS_SWDIO_PIN-BOARD_JTDI_PIN and BOARD_JTDO_PIN-BOARD_NJTRST_PIN back in system AF mode.
-    gpio_set_modef(PIN_MAP[BOARD_JTMS_SWDIO_PIN].gpio_device, PIN_MAP[BOARD_JTMS_SWDIO_PIN].gpio_bit,
-			GPIO_MODE_AF, GPIO_MODEF_TYPE_PP);
-    gpio_set_modef(PIN_MAP[BOARD_JTCK_SWCLK_PIN].gpio_device, PIN_MAP[BOARD_JTCK_SWCLK_PIN].gpio_bit,
-			GPIO_MODE_AF, GPIO_MODEF_TYPE_PP);
-    gpio_set_modef(PIN_MAP[BOARD_JTDI_PIN].gpio_device, PIN_MAP[BOARD_JTDI_PIN].gpio_bit,
-			GPIO_MODE_AF, GPIO_MODEF_TYPE_PP);
-    gpio_set_modef(PIN_MAP[BOARD_JTDO_PIN].gpio_device, PIN_MAP[BOARD_JTDO_PIN].gpio_bit,
-			GPIO_MODE_AF, GPIO_MODEF_TYPE_PP);
-    gpio_set_modef(PIN_MAP[BOARD_NJTRST_PIN].gpio_device, PIN_MAP[BOARD_NJTRST_PIN].gpio_bit,
-			GPIO_MODE_AF, GPIO_MODEF_TYPE_PP);
+    gpio_set_mode(BOARD_JTMS_SWDIO_PIN, GPIO_AF_OUTPUT);
+    gpio_set_mode(BOARD_JTCK_SWCLK_PIN, GPIO_AF_OUTPUT);
+    gpio_set_mode(BOARD_JTDI_PIN, GPIO_AF_OUTPUT);
+    gpio_set_mode(BOARD_JTDO_PIN, GPIO_AF_OUTPUT);
+    gpio_set_mode(BOARD_NJTRST_PIN, GPIO_AF_OUTPUT);
 
-    gpio_set_af(PIN_MAP[BOARD_JTMS_SWDIO_PIN].gpio_device, PIN_MAP[BOARD_JTMS_SWDIO_PIN].gpio_bit, GPIO_AF_0);
-    gpio_set_af(PIN_MAP[BOARD_JTCK_SWCLK_PIN].gpio_device, PIN_MAP[BOARD_JTCK_SWCLK_PIN].gpio_bit, GPIO_AF_0);
-    gpio_set_af(PIN_MAP[BOARD_JTDI_PIN].gpio_device, PIN_MAP[BOARD_JTDI_PIN].gpio_bit, GPIO_AF_0);
-    gpio_set_af(PIN_MAP[BOARD_JTDO_PIN].gpio_device, PIN_MAP[BOARD_JTDO_PIN].gpio_bit, GPIO_AF_0);
-    gpio_set_af(PIN_MAP[BOARD_NJTRST_PIN].gpio_device, PIN_MAP[BOARD_NJTRST_PIN].gpio_bit, GPIO_AF_0);
+    gpio_set_af(BOARD_JTMS_SWDIO_PIN, GPIO_AF_SYSTEM);
+    gpio_set_af(BOARD_JTCK_SWCLK_PIN, GPIO_AF_SYSTEM);
+    gpio_set_af(BOARD_JTDI_PIN, GPIO_AF_SYSTEM);
+    gpio_set_af(BOARD_JTDO_PIN, GPIO_AF_SYSTEM);
+    gpio_set_af(BOARD_NJTRST_PIN, GPIO_AF_SYSTEM);
 }
