@@ -53,7 +53,8 @@ build.extra_flags= {build.upload_flags} {build.cpu_flags} {build.hs_flag} {build
 # These can be overridden in platform.local.txt
 compiler.c.extra_flags=
 compiler.combine.flags=-u _printf_float -u _sbrk -u link -u _close -u _fstat -u _isatty -u _lseek -u _read -u _write -u _exit -u kill -u _getpid
-compiler.c.elf.extra_flags="-L{build.variant.path}/ld" -specs=nosys.specs -specs=nano.specs {compiler.combine.flags}
+#compiler.c.elf.extra_flags="-L{build.variant.path}/ld" -specs=nosys.specs -specs=nano.specs {compiler.combine.flags}
+compiler.c.elf.extra_flags="-L{build.variant.path}/ld" {compiler.combine.flags}
 compiler.cpp.extra_flags= 
 compiler.S.extra_flags=
 compiler.ar.extra_flags=
@@ -113,7 +114,7 @@ recipe.output.save_file={build.project_name}.{build.variant}.bin
 # Upload using Maple bootloader over DFU
 tools.maple_upload.cmd=maple_upload
 tools.maple_upload.cmd.windows=maple_upload.bat
-tools.maple_upload.path={runtime.hardware.path}/tools/win
+tools.maple_upload.path.windows={runtime.hardware.path}/tools/win
 tools.maple_upload.path.macosx={runtime.hardware.path}/tools/macosx
 tools.maple_upload.path.linux={runtime.hardware.path}/tools/linux
 tools.maple_upload.path.linux64={runtime.hardware.path}/tools/linux64    
@@ -127,7 +128,7 @@ tools.maple_upload.upload.pattern="{path}/{cmd}" {serial.port.file} {upload.altI
 tools.serial_upload.cmd=serial_upload
 tools.serial_upload.cmd.windows=serial_upload.bat
 tools.serial_upload.cmd.macosx=serial_upload
-tools.serial_upload.path={runtime.hardware.path}/tools/win
+tools.serial_upload.path.windows={runtime.hardware.path}/tools/win
 tools.serial_upload.path.macosx={runtime.hardware.path}/tools/macosx
 tools.serial_upload.path.linux={runtime.hardware.path}/tools/linux
 tools.serial_upload.path.linux64={runtime.hardware.path}/tools/linux64
@@ -144,7 +145,7 @@ tools.stlink_upload.path.linux={runtime.hardware.path}/tools/linux
 tools.stlink_upload.path.linux64={runtime.hardware.path}/tools/linux64
 tools.stlink_upload.upload.params.verbose=-d
 tools.stlink_upload.upload.params.quiet=
-tools.stlink_upload.upload.pattern="{path}/{cmd}"  "{build.path}/{build.project_name}.bin"
+tools.stlink_upload.upload.pattern="{path}/{cmd}" "{build.path}/{build.project_name}.bin"
  
 # blackmagic probe upload
 tools.bmp_upload.cmd=arm-none-eabi-gdb

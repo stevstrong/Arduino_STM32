@@ -34,7 +34,7 @@
 #include "stdint.h"
 
 #include <libmaple/nvic.h>
-#include <libmaple/usb.h>
+#include <libmaple/usb/usb.h>
 #include <libmaple/iwdg.h>
 #include <libmaple/bkp.h>
 #include "wirish.h"
@@ -71,7 +71,7 @@ void USBSerial::begin(void)
         return;
     _hasBegun = true;
 
-    usb_cdcacm_enable(BOARD_USB_DISC_DEV, (uint8_t)BOARD_USB_DISC_BIT);
+    usb_cdcacm_enable();
     usb_cdcacm_set_hooks(USB_CDCACM_HOOK_RX, rxHook);
     usb_cdcacm_set_hooks(USB_CDCACM_HOOK_IFACE_SETUP, ifaceSetupHook);
 #endif
@@ -98,7 +98,7 @@ volatile uint8_t removeCompilerWarningsIgnore=ignore;
 void USBSerial::end(void)
 {
 #if BOARD_HAVE_SERIALUSB
-    usb_cdcacm_disable(BOARD_USB_DISC_DEV, (uint8_t)BOARD_USB_DISC_BIT);
+    usb_cdcacm_disable();
     usb_cdcacm_remove_hooks(USB_CDCACM_HOOK_RX | USB_CDCACM_HOOK_IFACE_SETUP);
 	_hasBegun = false;
 #endif

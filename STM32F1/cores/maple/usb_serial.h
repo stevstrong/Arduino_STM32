@@ -31,7 +31,7 @@
 #ifndef _WIRISH_USB_SERIAL_H_
 #define _WIRISH_USB_SERIAL_H_
 
-#include <libmaple/usb_cdcacm.h>
+#include <libmaple/usb/usb_cdcacm.h>
 #include "Print.h"
 #include "boards.h"
 #include "Stream.h"

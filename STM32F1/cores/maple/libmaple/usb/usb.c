@@ -31,7 +31,7 @@
  * This is a mess.
  */
 
-#include <libmaple/usb.h>
+#include "usb.h"
 
 #include <libmaple/libmaple.h>
 #include <libmaple/rcc.h>

@@ -33,9 +33,8 @@
  * the result made cleaner.
  */
 
-#include <libmaple/usb_cdcacm.h>
+#include "usb_cdcacm.h"
 
-#include <libmaple/usb.h>
 #include <libmaple/nvic.h>
 #include <libmaple/delay.h>
 
@@ -373,16 +372,19 @@ void usb_cdcacm_set_hooks(unsigned hook_flags, void (*hook)(unsigned)) {
 /*
  * CDC ACM interface
  */
+#define USB_GPIO_DEVICE  GPIOA
+#define USB_DP_BIT       12 //PA12
+#define USB_DM_BIT       11 //PA11
 
-void usb_cdcacm_enable(gpio_dev *disc_dev, uint8 disc_bit) {
+void usb_cdcacm_enable() {
     /* Present ourselves to the host. Writing 0 to "disc" pin must
      * pull USB_DP pin up while leaving USB_DM pulled down by the
      * transceiver. See USB 2.0 spec, section 7.1.7.3. */
-	gpio_set_mode(USB_DP, GPIO_OUTPUT);
+	gpio_set_mode(USB_GPIO_DEVICE, USB_DP_BIT, GPIO_OUTPUT_PP);
 	// pull down the USB DP line for 50ms
-	gpio_clear_pin(USB_DP);
+	gpio_write_bit(USB_GPIO_DEVICE, USB_DP_BIT, 0);
 	delay_us(50000);
-	gpio_set_pin(USB_DP);
+	gpio_write_bit(USB_GPIO_DEVICE, USB_DP_BIT, 1);
 	
     /* Initialize the USB peripheral. */
     /* One of the callbacks that will automatically happen from this will be to usbInit(),
@@ -390,20 +392,17 @@ void usb_cdcacm_enable(gpio_dev *disc_dev, uint8 disc_bit) {
     usb_init_usblib(USBLIB, ep_int_in, ep_int_out);
 }
 
-void usb_cdcacm_disable(gpio_dev *disc_dev, uint8 disc_bit) {
+void usb_cdcacm_disable() {
     /* Turn off the interrupt and signal disconnect (see e.g. USB 2.0
      * spec, section 7.1.7.3). */
     nvic_irq_disable(NVIC_USB_LP_CAN_RX0);
-	if (disc_dev!=NULL)
-	{
-		gpio_write_bit(disc_dev, disc_bit, 1);
-	}
-    gpio_set_pin(USB_DP);
-		/*
+	gpio_set_mode(USB_GPIO_DEVICE, USB_DP_BIT, GPIO_OUTPUT_PP);
+	gpio_write_bit(USB_GPIO_DEVICE, USB_DP_BIT, 1);
+ 		/*
 		 * set USB_DP and USB_DM pins to input floating mode, reset alternate function to system default
 		 */
-		gpio_set_mode(USB_DP, GPIO_INPUT);
-		gpio_set_mode(USB_DM, GPIO_INPUT);
+		gpio_set_mode(USB_GPIO_DEVICE, USB_DP_BIT, GPIO_INPUT_FLOATING);
+		gpio_set_mode(USB_GPIO_DEVICE, USB_DM_BIT, GPIO_INPUT_FLOATING);
     /* Powerdown the USB peripheral. It gets powered up again with usbInit(), which
        gets called when usb_cdcacm_enable() is called. */
     usb_power_off(); 
