@@ -22,10 +22,10 @@
  * Modified 12 April 2011 by Marti Bolivar <mbolivar@leaflabs.com>
  */
 
-#include <Print.h>
+#include "Print.h"
 
-#include <wirish_math.h>
-#include <limits.h>
+#include "wirish_math.h"
+#include "limits.h"
 
 #ifndef LLONG_MAX
 /*
@@ -46,129 +46,198 @@
  * Public methods
  */
 
-void Print::write(const char *str) {
-    while (*str) {
-        write(*str++);
-    }
-}
-
-void Print::write(const void *buffer, uint32 size) {
+size_t Print::write(const void *buffer, uint32 size) {
+	size_t n = 0;
     uint8 *ch = (uint8*)buffer;
     while (size--) {
         write(*ch++);
+        n++;
     }
+	return n;
 }
 
-void Print::print(uint8 b, int base) {
-    print((uint64)b, base);
+size_t Print::write(const char *str) {
+    if (str == NULL) return 0;
+	return write((const uint8_t *)str, strlen(str));
 }
 
-void Print::print(char c) {
-    write(c);
+size_t Print::print(uint8 b, int base) {
+    return print((uint64)b, base);
 }
 
-void Print::print(const char str[]) {
-    write(str);
+size_t Print::print(const String &s)
+{
+  return write(s.c_str(), s.length());
 }
 
-void Print::print(int n, int base) {
-    print((long long)n, base);
+size_t Print::print(char c) {
+    return write(c);
 }
 
-void Print::print(unsigned int n, int base) {
-    print((unsigned long long)n, base);
+size_t Print::print(const char str[]) {
+    return write(str);
 }
 
-void Print::print(long n, int base) {
-    print((long long)n, base);
+size_t Print::print(int n, int base) {
+    return print((long long)n, base);
 }
 
-void Print::print(unsigned long n, int base) {
-    print((unsigned long long)n, base);
+size_t Print::print(unsigned int n, int base) {
+    return print((unsigned long long)n, base);
 }
 
-void Print::print(long long n, int base) {
+size_t Print::print(long n, int base) {
+    return print((long long)n, base);
+}
+
+size_t Print::print(unsigned long n, int base) {
+    return print((unsigned long long)n, base);
+}
+
+size_t Print::print(long long n, int base) {
     if (n < 0) {
         print('-');
         n = -n;
     }
-    printNumber(n, base);
+    return printNumber(n, base);
 }
 
-void Print::print(unsigned long long n, int base) {
-    printNumber(n, base);
+size_t Print::print(unsigned long long n, int base) {
+	return printNumber(n, base);
 }
 
-void Print::print(double n, int digits) {
-    printFloat(n, digits);
+size_t Print::print(double n, int digits) {
+    return printFloat(n, digits);
 }
 
-void Print::println(void) {
-    print('\r');
-    print('\n');
+size_t Print::print(const __FlashStringHelper *ifsh)
+{
+  return print(reinterpret_cast<const char *>(ifsh));
 }
 
-void Print::println(char c) {
-    print(c);
-    println();
+size_t Print::print(const Printable& x)
+{
+  return x.printTo(*this);
 }
 
-void Print::println(const char c[]) {
-    print(c);
-    println();
+size_t Print::println(void) 
+{
+	size_t n =  print('\r');
+    n += print('\n');
+	return n;
 }
 
-void Print::println(uint8 b, int base) {
-    print(b, base);
-    println();
+size_t Print::println(const String &s)
+{
+  size_t n = print(s);
+  n += println();
+  return n;
 }
 
-void Print::println(int n, int base) {
-    print(n, base);
-    println();
+size_t Print::println(char c) {
+    size_t n = print(c);
+    n += println();
+	return n;
 }
 
-void Print::println(unsigned int n, int base) {
-    print(n, base);
-    println();
+size_t Print::println(const char c[]) {
+    size_t n = print(c);
+    n += println();
+	return n;
 }
 
-void Print::println(long n, int base) {
-    print((long long)n, base);
-    println();
+size_t Print::println(uint8 b, int base) {
+    size_t n = print(b, base);
+	n += println();
+	return n;
 }
 
-void Print::println(unsigned long n, int base) {
-    print((unsigned long long)n, base);
-    println();
+size_t Print::println(int n, int base) {
+    size_t s = print(n, base);
+    s += println();
+	return s;
 }
 
-void Print::println(long long n, int base) {
-    print(n, base);
-    println();
+size_t Print::println(unsigned int n, int base) {
+    size_t s = print(n, base);
+    s += println();
+	return s;
 }
 
-void Print::println(unsigned long long n, int base) {
-    print(n, base);
-    println();
+size_t Print::println(long n, int base) {
+    size_t s = print((long long)n, base);
+    s += println();
+	return s;
 }
 
-void Print::println(double n, int digits) {
-    print(n, digits);
-    println();
+size_t Print::println(unsigned long n, int base) {
+    size_t s = print((unsigned long long)n, base);
+    s += println();
+	return s;
 }
+
+size_t Print::println(long long n, int base) {
+    size_t s = print(n, base);
+    s += println();
+	return s;
+}
+
+size_t Print::println(unsigned long long n, int base) {
+    size_t s = print(n, base);
+    s += println();
+	return s;
+}
+
+size_t Print::println(double n, int digits) {
+    size_t s = print(n, digits);
+    s += println();
+	return s;
+}
+
+size_t Print::println(const __FlashStringHelper *ifsh)
+{
+  size_t n = print(ifsh);
+  n += println();
+  return n;
+}
+
+size_t Print::println(const Printable& x)
+{
+  size_t n = print(x);
+  n += println();
+  return n;
+}
+
+#ifdef SUPPORTS_PRINTF
+#include <stdio.h>
+#include <stdarg.h>
+// Work in progress to support printf.
+// Need to implement stream FILE to write individual chars to chosen serial port
+int Print::printf (__const char *__restrict __format, ...)
+ {
+FILE *__restrict __stream;
+     int ret_status = 0;
+
+
+     va_list args;
+     va_start(args,__format);
+     ret_status = vfprintf(__stream, __format, args);
+     va_end(args);
+     return ret_status;
+ }
+ #endif
 
 /*
  * Private methods
  */
 
-void Print::printNumber(unsigned long long n, uint8 base) {
+size_t Print::printNumber(unsigned long long n, uint8 base) {
     unsigned char buf[CHAR_BIT * sizeof(long long)];
     unsigned long i = 0;
-
+	size_t s=0;
     if (n == 0) {
         print('0');
-        return;
+        return 1;
     }
 
     while (n > 0) {
@@ -177,11 +246,13 @@ void Print::printNumber(unsigned long long n, uint8 base) {
     }
 
     for (; i > 0; i--) {
-        print((char)(buf[i - 1] < 10 ?
+        s += print((char)(buf[i - 1] < 10 ?
                      '0' + buf[i - 1] :
                      'A' + buf[i - 1] - 10));
     }
+	return s;
 }
+
 
 /* According to snprintf(),
  *
@@ -200,19 +271,20 @@ void Print::printNumber(unsigned long long n, uint8 base) {
  *
  * http://kurtstephens.com/files/p372-steele.pdf
  */
-void Print::printFloat(double number, uint8 digits) {
+size_t Print::printFloat(double number, uint8 digits) {
+size_t s=0;
     // Hackish fail-fast behavior for large-magnitude doubles
     if (abs(number) >= LARGE_DOUBLE_TRESHOLD) {
         if (number < 0.0) {
-            print('-');
+            s=print('-');
         }
-        print("<large double>");
-        return;
+        s+=print("<large double>");
+        return s;
     }
 
     // Handle negative numbers
     if (number < 0.0) {
-        print('-');
+        s+=print('-');
         number = -number;
     }
 
@@ -227,18 +299,20 @@ void Print::printFloat(double number, uint8 digits) {
     // Extract the integer part of the number and print it
     long long int_part = (long long)number;
     double remainder = number - int_part;
-    print(int_part);
+    s+=print(int_part);
 
     // Print the decimal point, but only if there are digits beyond
     if (digits > 0) {
-        print(".");
+        s+=print(".");
     }
 
     // Extract digits from the remainder one at a time
     while (digits-- > 0) {
         remainder *= 10.0;
         int to_print = (int)remainder;
-        print(to_print);
+        s+=print(to_print);
         remainder -= to_print;
     }
+	return s;
 }
+

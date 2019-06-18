@@ -1,6 +1,6 @@
 # 
 
-#menu.usb_cfg=USB configuration
+menu.usb_cfg=USB configuration
 menu.opt=Optimize
 menu.upload_method=Upload method
 
@@ -22,10 +22,10 @@ generic_f303cc.build.variant_system_lib=lib_f303.a
 generic_f303cc.build.error_led_pin=PC13
 generic_f303cc.build.board=generic_f303cc
 
-#generic_f303cc.menu.usb_cfg.usb_serial=USB serial (CDC)
-#generic_f303cc.menu.usb_cfg.usb_serial.build.cpu_flags=-DSERIAL_USB
-#generic_f303cc.menu.usb_cfg.usb_nc=USB inactive
-#generic_f303cc.menu.usb_cfg.usb_nc.build.cpu_flags=-DUSB_NC
+generic_f303cc.menu.usb_cfg.usb_serial=USB serial (CDC)
+generic_f303cc.menu.usb_cfg.usb_serial.build.cpu_flags=-DSERIAL_USB
+generic_f303cc.menu.usb_cfg.usb_nc=USB inactive
+generic_f303cc.menu.usb_cfg.usb_nc.build.cpu_flags=-DUSB_NC
 #generic_f303cc.menu.usb_cfg.usb_msc=USB Mass Storage (MSC)
 #generic_f303cc.menu.usb_cfg.usb_msc.build.cpu_flags=-DUSB_MSC
 

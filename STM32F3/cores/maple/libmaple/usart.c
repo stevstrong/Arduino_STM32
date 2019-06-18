@@ -40,36 +40,48 @@
 
 /** USART1 device */
 static ring_buffer usart1_rb;
+static ring_buffer usart1_wb;
 static uint8 rx1_buf[USART_RX_BUF_SIZE];
+static uint8 tx1_buf[USART_TX_BUF_SIZE];
 const usart_dev usart1 = {
     .regs     = USART1_BASE,
     .rb       = &usart1_rb,
+    .wb       = &usart1_wb,
     .max_baud = 4500000UL,
     .rx_buf   = rx1_buf,
+    .tx_buf   = tx1_buf,
     .clk_id   = RCC_USART1,
     .irq_num  = NVIC_USART1,
 };
 
 /** USART2 device */
 static ring_buffer usart2_rb;
+static ring_buffer usart2_wb;
 static uint8 rx2_buf[USART_RX_BUF_SIZE];
+static uint8 tx2_buf[USART_TX_BUF_SIZE];
 const usart_dev usart2 = {
     .regs     = USART2_BASE,
     .rb       = &usart2_rb,
+    .wb       = &usart2_wb,
     .max_baud = 2250000UL,
     .rx_buf   = rx2_buf,
+    .tx_buf   = tx2_buf,
     .clk_id   = RCC_USART2,
     .irq_num  = NVIC_USART2,
 };
 
 /** USART3 device */
 static ring_buffer usart3_rb;
+static ring_buffer usart3_wb;
 static uint8 rx3_buf[USART_RX_BUF_SIZE];
+static uint8 tx3_buf[USART_TX_BUF_SIZE];
 const usart_dev usart3 = {
     .regs     = USART3_BASE,
     .rb       = &usart3_rb,
+    .wb       = &usart3_wb,
     .max_baud = 2250000UL,
     .rx_buf   = rx3_buf,
+    .tx_buf   = tx3_buf,
     .clk_id   = RCC_USART3,
     .irq_num  = NVIC_USART3,
 };

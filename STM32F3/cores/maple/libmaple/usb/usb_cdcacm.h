@@ -36,7 +36,7 @@
 
 #include <libmaple/libmaple_types.h>
 #include <libmaple/gpio.h>
-#include <libmaple/usb.h>
+#include "usb.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -124,10 +124,12 @@ void   usb_cdcacm_putc(char ch);
 uint32 usb_cdcacm_tx(const uint8* buf, uint32 len);
 uint32 usb_cdcacm_rx(uint8* buf, uint32 len);
 uint32 usb_cdcacm_peek(uint8* buf, uint32 len);
+uint32 usb_cdcacm_peek_ex(uint8* buf, uint32 offset, uint32 len);
 
 uint32 usb_cdcacm_data_available(void); /* in RX buffer */
 uint16 usb_cdcacm_get_pending(void);
 uint8 usb_cdcacm_is_transmitting(void);
+int usb_cdcacm_tx_available();
 
 uint8 usb_cdcacm_get_dtr(void);
 uint8 usb_cdcacm_get_rts(void);
@@ -166,10 +168,10 @@ int usb_cdcacm_get_n_data_bits(void); /* bDataBits */
 #define USB_CDCACM_HOOK_RX 0x1
 #define USB_CDCACM_HOOK_IFACE_SETUP 0x2
 
-void usb_cdcacm_set_hooks(unsigned hook_flags, void (*hook)(unsigned, void*));
+extern void usb_cdcacm_set_hooks(unsigned hook_flags, void (*hook)(unsigned));
 
-static __always_inline void usb_cdcacm_remove_hooks(unsigned hook_flags) {
-    usb_cdcacm_set_hooks(hook_flags, 0);
+static inline void usb_cdcacm_remove_hooks(unsigned hook_flags) {
+    usb_cdcacm_set_hooks(hook_flags, NULL);
 }
 
 #ifdef __cplusplus

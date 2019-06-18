@@ -129,8 +129,8 @@ int HardwareSerial::availableForWrite(void)
     return this->usart_device->wb->size-rb_full_count(this->usart_device->wb);
 }
 
-size_t HardwareSerial::write(unsigned char ch) {
-
+size_t HardwareSerial::write(unsigned char ch)
+{
     usart_putc(this->usart_device, ch);
 	return 1;
 }

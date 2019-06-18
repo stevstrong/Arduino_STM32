@@ -33,36 +33,67 @@
 
 #include <Print.h>
 #include <boards.h>
+#include "Stream.h"
+#include "usb_cdcacm.h"
 
 /**
  * @brief Virtual serial terminal.
  */
-class USBSerial : public Print {
+class USBSerial : public Stream {
 public:
     USBSerial(void);
 
     void begin(void);
-    void begin(int) {begin();};
+    // Roger Clark. Added dummy function so that existing Arduino sketches which specify baud rate will compile.
+    void begin(unsigned int) {begin();}
+    void begin(unsigned int, uint8_t) {begin();};
     void end(void);
 
-    uint32 available(void);
+    virtual int available(void) { return usb_cdcacm_data_available(); }
+    int availableForWrite(void) { return usb_cdcacm_tx_available(); }
 
-    uint32 read(void *buf, uint32 len);
-    uint8  read(void);
+    size_t readBytes(char *buf, const size_t& len);
+    uint32 read(uint8 * buf, uint32 len);
+    // uint8  read(void);
 
-    void write(uint8);
-    void write(const char *str);
-    void write(const void*, uint32);
+    // Roger Clark. added functions to support Arduino 1.0 API
+    virtual int peek(void);
+    virtual int read(void);
+    virtual void flush(void);
+
+
+    size_t write(uint8);
+    size_t write(const char *str);
+    size_t write(const uint8*, uint32);
 
     uint8 getRTS();
     uint8 getDTR();
-    uint8 isConnected();
     uint8 pending();
+	
+	
+	void enableBlockingTx(void);
+	void disableBlockingTx(void);
+
+    /* SukkoPera: This is the Arduino way to check if an USB CDC serial
+     * connection is open.
+
+     * Used for instance in cardinfo.ino.
+     */
+    operator bool();
+
+    /* Old libmaple way to check for serial connection.
+     *
+     * Deprecated, use the above.
+     */
+    uint8 isConnected() __attribute__((deprecated("Use !Serial instead"))) { return (bool) *this; }
+
+protected:
+    static bool _hasBegun;
+	static bool _isBlocking;
 };
 
-#if BOARD_HAVE_SERIALUSB
-extern USBSerial SerialUSB;
+#ifdef SERIAL_USB
+    extern USBSerial Serial;
 #endif
 
 #endif
-

@@ -96,14 +96,30 @@ int HardwareSerial::read(void) {
 	}
 }
 
-uint32 HardwareSerial::available(void) {
+int HardwareSerial::available(void) {
     return usart_data_available(this->usart_device);
 }
 
-void HardwareSerial::write(unsigned char ch) {
-    usart_putc(this->usart_device, ch);
+/* Roger Clark. Added function missing from LibMaple code */
+
+int HardwareSerial::peek(void)
+{
+    return usart_peek(this->usart_device);
 }
 
+int HardwareSerial::availableForWrite(void)
+{
+    return this->usart_device->wb->size-rb_full_count(this->usart_device->wb);
+}
+
+size_t HardwareSerial::write(unsigned char ch)
+{
+    usart_putc(this->usart_device, ch);
+	return 1;
+}
+
+/* edogaldo: Waits for the transmission of outgoing serial data to complete (Arduino 1.0 api specs) */
 void HardwareSerial::flush(void) {
-    usart_reset_rx(this->usart_device);
+    while(!rb_is_empty(this->usart_device->wb)); // wait for TX buffer empty
+    while(!((this->usart_device->regs->SR) & (1<<USART_SR_TC_BIT))); // wait for TC (Transmission Complete) flag set 
 }

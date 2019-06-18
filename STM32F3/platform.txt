@@ -50,7 +50,7 @@ compiler.ar.extra_flags=
 compiler.elf2hex.extra_flags=
 
 
-compiler.libs.c.flags="-I{build.core.path}/libmaple" "-I{build.core.path}/libmaple/usb" "-I{build.core.path}/libmaple/usb/usb_lib"
+compiler.libs.c.flags="-I{build.core.path}/libmaple" "-I{build.core.path}/libmaple/usb"
 
 
 

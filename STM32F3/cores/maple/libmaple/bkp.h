@@ -35,6 +35,11 @@
 #define _LIBMAPLE_STM32F3_BKP_H_
 
 
+#ifdef __cplusplus
+extern "C"{
+#endif
+
+
 #include <libmaple/libmaple.h>
 
 
@@ -70,16 +75,6 @@ typedef struct bkp_dev {
 
 
 extern const struct bkp_dev *BKP;
-
-/*
- * this function needs to be implemented for each series separately
- */
-inline __IO uint32* bkp_data_register(uint8 reg) {
-    if (reg < 1 || reg > BKP_NR_DATA_REGS)
-			return NULL;
-		else
-			return (uint32*)BKP_BASE + (reg-1); // regs are accessed from 1-16
-}
 
 /**
  * @brief Initialize backup interface.
@@ -120,6 +115,10 @@ uint16 bkp_read(uint8 reg);
  */
 void bkp_write(uint8 reg, uint16 val);
 
+
+#ifdef __cplusplus
+}
+#endif
 
 
 #endif

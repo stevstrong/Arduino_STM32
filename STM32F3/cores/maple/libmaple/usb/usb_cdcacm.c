@@ -33,8 +33,8 @@
  * the result made cleaner.
  */
 
-#include <libmaple/usb_cdcacm.h>
-#include <libmaple/usb.h>
+#include "usb_cdcacm.h"
+#include "usb.h"
 #include <libmaple/nvic.h>
 #include <libmaple/delay.h>
 
@@ -59,11 +59,6 @@
  ***
  ******************************************************************************
  *****************************************************************************/
-
-#if !(defined(BOARD_maple_mini_f3))
-#warning USB CDC ACM relies on LeafLabs board-specific configuration.\
-    You may have problems on non-LeafLabs boards.
-#endif
 
 static void vcomDataTxCb(void);
 static void vcomDataRxCb(void);
@@ -260,16 +255,28 @@ static ONE_DESCRIPTOR String_Descriptor[N_STRING_DESCRIPTORS] = {
 
 /* I/O state */
 
+#define CDC_SERIAL_RX_BUFFER_SIZE	256 // must be power of 2
+#define CDC_SERIAL_RX_BUFFER_SIZE_MASK (CDC_SERIAL_RX_BUFFER_SIZE-1)
+
 /* Received data */
-static volatile uint8 vcomBufferRx[USB_CDCACM_RX_EPSIZE];
-/* Read index into vcomBufferRx */
-static volatile uint32 rx_offset = 0;
-/* Number of bytes left to transmit */
-static volatile uint32 n_unsent_bytes = 0;
-/* Are we currently sending an IN packet? */
-static volatile uint8 transmitting = 0;
-/* Number of unread bytes */
-static volatile uint32 n_unread_bytes = 0;
+static volatile uint8 vcomBufferRx[CDC_SERIAL_RX_BUFFER_SIZE];
+/* Write index to vcomBufferRx */
+static volatile uint32 rx_head;
+/* Read index from vcomBufferRx */
+static volatile uint32 rx_tail;
+
+#define CDC_SERIAL_TX_BUFFER_SIZE	256 // must be power of 2
+#define CDC_SERIAL_TX_BUFFER_SIZE_MASK (CDC_SERIAL_TX_BUFFER_SIZE-1)
+// Tx data
+static volatile uint8 vcomBufferTx[CDC_SERIAL_TX_BUFFER_SIZE];
+// Write index to vcomBufferTx
+static volatile uint32 tx_head;
+// Read index from vcomBufferTx
+static volatile uint32 tx_tail;
+// Are we currently sending an IN packet?
+static volatile int8 transmitting;
+
+
 
 /* Other state (line coding, DTR/RTS) */
 
@@ -351,10 +358,10 @@ __weak USER_STANDARD_REQUESTS User_Standard_Requests = {
  * User hooks
  */
 
-static void (*rx_hook)(unsigned, void*) = 0;
-static void (*iface_setup_hook)(unsigned, void*) = 0;
+static void (*rx_hook)(unsigned) = NULL;
+static void (*iface_setup_hook)(unsigned) = NULL;
 
-void usb_cdcacm_set_hooks(unsigned hook_flags, void (*hook)(unsigned, void*)) {
+void usb_cdcacm_set_hooks(unsigned hook_flags, void (*hook)(unsigned)) {
     if (hook_flags & USB_CDCACM_HOOK_RX) {
         rx_hook = hook;
     }
@@ -367,7 +374,6 @@ void usb_cdcacm_set_hooks(unsigned hook_flags, void (*hook)(unsigned, void*)) {
  * CDC ACM interface
  */
 
-//void usb_cdcacm_enable(gpio_dev *disc_dev, uint8 disc_bit) {
 void usb_cdcacm_enable() {
     /* Present ourselves to the host. Writing 0 to "disc" pin must
      * pull USB_DP pin up while leaving USB_DM pulled down by the
@@ -387,6 +393,8 @@ void usb_cdcacm_enable() {
 		gpio_set_af(USB_DM, GPIO_AF_USB);
 
     /* Initialize the USB peripheral. */
+    /* One of the callbacks that will automatically happen from this will be to usbInit(),
+       which will power up the USB peripheral. */
     usb_init_usblib(USBLIB, ep_int_in, ep_int_out);
 }
 
@@ -403,6 +411,9 @@ void usb_cdcacm_disable() {
 		gpio_set_mode(USB_DM, GPIO_INPUT);
 		gpio_set_af(USB_DP, GPIO_AF_SYSTEM);
 		gpio_set_af(USB_DM, GPIO_AF_SYSTEM);
+    /* Powerdown the USB peripheral. It gets powered up again with usbInit(), which
+       gets called when usb_cdcacm_enable() is called. */
+    usb_power_off(); 
 }
 
 void usb_cdcacm_putc(char ch) {
@@ -412,84 +423,123 @@ void usb_cdcacm_putc(char ch) {
 
 /* This function is non-blocking.
  *
- * It copies data from a usercode buffer into the USB peripheral TX
+ * It copies data from a user buffer into the USB peripheral TX
  * buffer, and returns the number of bytes copied. */
-uint32 usb_cdcacm_tx(const uint8* buf, uint32 len) {
-    /* Last transmission hasn't finished, so abort. */
-    if (usb_cdcacm_is_transmitting()) {
-        return 0;
-    }
+uint32 usb_cdcacm_tx(const uint8* buf, uint32 len)
+{
+	if (len==0) return 0; // no data to send
 
-    /* We can only put USB_CDCACM_TX_EPSIZE bytes in the buffer. */
-    if (len > USB_CDCACM_TX_EPSIZE) {
-        len = USB_CDCACM_TX_EPSIZE;
-    }
+	uint32 head = tx_head; // load volatile variable
+	uint32 tx_unsent = (head - tx_tail) & CDC_SERIAL_TX_BUFFER_SIZE_MASK;
 
-    /* Queue bytes for sending. */
-    if (len) {
-        usb_copy_to_pma(buf, len, USB_CDCACM_TX_ADDR);
+    // We can only put bytes in the buffer if there is place
+    if (len > (CDC_SERIAL_TX_BUFFER_SIZE-tx_unsent-1) ) {
+        len = (CDC_SERIAL_TX_BUFFER_SIZE-tx_unsent-1);
     }
-    // We still need to wait for the interrupt, even if we're sending
-    // zero bytes. (Sending zero-size packets is useful for flushing
-    // host-side buffers.)
-    usb_set_ep_tx_count(USB_CDCACM_TX_ENDP, len);
-    n_unsent_bytes = len;
-    transmitting = 1;
-    usb_set_ep_tx_stat(USB_CDCACM_TX_ENDP, USB_EP_STAT_TX_VALID);
+	if (len==0) return 0; // buffer full
+
+	uint16 i;
+	// copy data from user buffer to USB Tx buffer
+	for (i=0; i<len; i++) {
+		vcomBufferTx[head] = buf[i];
+		head = (head+1) & CDC_SERIAL_TX_BUFFER_SIZE_MASK;
+	}
+	tx_head = head; // store volatile variable
+
+	if (transmitting<0) {
+		vcomDataTxCb(); // initiate data transmission
+	}
 
     return len;
 }
 
+
+
 uint32 usb_cdcacm_data_available(void) {
-    return n_unread_bytes;
+    return (rx_head - rx_tail) & CDC_SERIAL_RX_BUFFER_SIZE_MASK;
 }
 
 uint8 usb_cdcacm_is_transmitting(void) {
-    return transmitting;
+    return ( transmitting>0 ? transmitting : 0);
+}
+
+int usb_cdcacm_tx_available()
+{
+	return CDC_SERIAL_TX_BUFFER_SIZE - usb_cdcacm_get_pending() - 1;
 }
 
 uint16 usb_cdcacm_get_pending(void) {
-    return n_unsent_bytes;
+    return (tx_head - tx_tail) & CDC_SERIAL_TX_BUFFER_SIZE_MASK;
 }
 
-/* Nonblocking byte receive.
+/* Non-blocking byte receive.
  *
  * Copies up to len bytes from our private data buffer (*NOT* the PMA)
  * into buf and deq's the FIFO. */
-uint32 usb_cdcacm_rx(uint8* buf, uint32 len) {
+uint32 usb_cdcacm_rx(uint8* buf, uint32 len)
+{
     /* Copy bytes to buffer. */
     uint32 n_copied = usb_cdcacm_peek(buf, len);
 
     /* Mark bytes as read. */
-    n_unread_bytes -= n_copied;
-    rx_offset += n_copied;
+	uint16 tail = rx_tail; // load volatile variable
+	tail = (tail + n_copied) & CDC_SERIAL_RX_BUFFER_SIZE_MASK;
+	rx_tail = tail; // store volatile variable
 
-    /* If all bytes have been read, re-enable the RX endpoint, which
-     * was set to NAK when the current batch of bytes was received. */
-    if (n_unread_bytes == 0) {
-        usb_set_ep_rx_count(USB_CDCACM_RX_ENDP, USB_CDCACM_RX_EPSIZE);
+	uint32 rx_unread = (rx_head - tail) & CDC_SERIAL_RX_BUFFER_SIZE_MASK;
+    // If buffer was emptied to a pre-set value, re-enable the RX endpoint
+    if ( rx_unread <= 64 ) { // experimental value, gives the best performance
         usb_set_ep_rx_stat(USB_CDCACM_RX_ENDP, USB_EP_STAT_RX_VALID);
-        rx_offset = 0;
-    }
-
+	}
     return n_copied;
 }
 
-/* Nonblocking byte lookahead.
+/* Non-blocking byte lookahead.
  *
  * Looks at unread bytes without marking them as read. */
-uint32 usb_cdcacm_peek(uint8* buf, uint32 len) {
-    int i;
+uint32 usb_cdcacm_peek(uint8* buf, uint32 len)
+{
+    uint32 tail = rx_tail;
+	uint32 rx_unread = (rx_head-tail) & CDC_SERIAL_RX_BUFFER_SIZE_MASK;
 
-    if (len > n_unread_bytes) {
-        len = n_unread_bytes;
+    if (len > rx_unread) {
+        len = rx_unread;
     }
 
-    for (i = 0; i < len; i++) {
-        buf[i] = vcomBufferRx[i + rx_offset];
+    for (uint32 i = 0; i < len; i++) {
+        buf[i] = vcomBufferRx[tail];
+        tail = (tail + 1) & CDC_SERIAL_RX_BUFFER_SIZE_MASK;
     }
 
     return len;
+}
+
+uint32 usb_cdcacm_peek_ex(uint8* buf, uint32 offset, uint32 len)
+{
+    uint32 tail = (rx_tail + offset) & CDC_SERIAL_RX_BUFFER_SIZE_MASK ;
+	uint32 rx_unread = (rx_head-tail) & CDC_SERIAL_RX_BUFFER_SIZE_MASK;
+
+    if (len + offset > rx_unread) {
+        len = rx_unread - offset;
+    }
+
+    for (uint32 i = 0; i < len; i++) {
+        buf[i] = vcomBufferRx[tail];
+        tail = (tail + 1) & CDC_SERIAL_RX_BUFFER_SIZE_MASK;
+    }
+
+    return len;
+}
+
+/* Roger Clark. Added. for Arduino 1.0 API support of Serial.peek() */
+int usb_cdcacm_peek_char() 
+{
+    if (usb_cdcacm_data_available() == 0) 
+	{
+		return -1;
+    }
+
+    return vcomBufferRx[rx_tail];
 }
 
 uint8 usb_cdcacm_get_dtr() {
@@ -523,34 +573,77 @@ int usb_cdcacm_get_n_data_bits(void) {
     return line_coding.bDataBits;
 }
 
-
 /*
  * Callbacks
  */
+static void vcomDataTxCb(void)
+{
+	uint32 tail = tx_tail; // load volatile variable
+	uint32 tx_unsent = (tx_head - tail) & CDC_SERIAL_TX_BUFFER_SIZE_MASK;
+	if (tx_unsent==0) {
+		if ( (--transmitting)==0) goto flush; // no more data to send
+		return; // it was already flushed, keep Tx endpoint disabled
+	}
+	transmitting = 1;
+    // We can only send up to USB_CDCACM_TX_EPSIZE bytes in the endpoint.
+    if (tx_unsent > USB_CDCACM_TX_EPSIZE) {
+        tx_unsent = USB_CDCACM_TX_EPSIZE;
+    }
+	// copy the bytes from USB Tx buffer to PMA buffer
+	uint32 *dst = usb_pma_ptr(USB_CDCACM_TX_ADDR);
+    uint16 tmp = 0;
 
-static void vcomDataTxCb(void) {
-    n_unsent_bytes = 0;
-    transmitting = 0;
+	for (uint32 i = 0; i < tx_unsent; i++) {
+		uint16 val = vcomBufferTx[tail];
+		tail = (tail + 1) & CDC_SERIAL_TX_BUFFER_SIZE_MASK;
+		if (i&1) {
+			*dst++ = tmp | (val<<8);
+		} else {
+			tmp = val;
+		}
+	}
+    if ( tx_unsent&1 ) {
+        *dst = tmp;
+    }
+	tx_tail = tail; // store volatile variable
+flush:
+	// enable Tx endpoint
+    usb_set_ep_tx_count(USB_CDCACM_TX_ENDP, tx_unsent);
+    usb_set_ep_tx_stat(USB_CDCACM_TX_ENDP, USB_EP_STAT_TX_VALID);
 }
 
-static void vcomDataRxCb(void) {
-    usb_set_ep_rx_stat(USB_CDCACM_RX_ENDP, USB_EP_STAT_RX_NAK);
-    n_unread_bytes = usb_get_ep_rx_count(USB_CDCACM_RX_ENDP);
-    /* This copy won't overwrite unread bytes, since we've set the RX
-     * endpoint to NAK, and will only set it to VALID when all bytes
-     * have been read. */
-    usb_copy_from_pma((uint8*)vcomBufferRx, n_unread_bytes,
-                      USB_CDCACM_RX_ADDR);
 
+static void vcomDataRxCb(void)
+{
+	uint32 head = rx_head; // load volatile variable
 
-    if (n_unread_bytes == 0) {
-        usb_set_ep_rx_count(USB_CDCACM_RX_ENDP, USB_CDCACM_RX_EPSIZE);
-        usb_set_ep_rx_stat(USB_CDCACM_RX_ENDP, USB_EP_STAT_RX_VALID);
-        rx_offset = 0;
-    }
+	uint32 ep_rx_size = usb_get_ep_rx_count(USB_CDCACM_RX_ENDP);
+	// This copy won't overwrite unread bytes as long as there is 
+	// enough room in the USB Rx buffer for next packet
+	uint32 *src = usb_pma_ptr(USB_CDCACM_RX_ADDR);
+    uint16 tmp = 0;
+	uint8 val;
+	uint32 i;
+	for (i = 0; i < ep_rx_size; i++) {
+		if (i&1) {
+			val = tmp>>8;
+		} else {
+			tmp = *src++;
+			val = tmp&0xFF;
+		}
+		vcomBufferRx[head] = val;
+		head = (head + 1) & CDC_SERIAL_RX_BUFFER_SIZE_MASK;
+	}
+	rx_head = head; // store volatile variable
+
+	uint32 rx_unread = (head - rx_tail) & CDC_SERIAL_RX_BUFFER_SIZE_MASK;
+	// only enable further Rx if there is enough room to receive one more packet
+	if ( rx_unread < (CDC_SERIAL_RX_BUFFER_SIZE-USB_CDCACM_RX_EPSIZE) ) {
+		usb_set_ep_rx_stat(USB_CDCACM_RX_ENDP, USB_EP_STAT_RX_VALID);
+	}
 
     if (rx_hook) {
-        rx_hook(USB_CDCACM_HOOK_RX, 0);
+        rx_hook(0);
     }
 }
 
@@ -564,7 +657,8 @@ static uint8* vcomGetSetLineCoding(uint16 length) {
 static void usbInit(void) {
     pInformation->Current_Configuration = 0;
 
-    USB_BASE->CNTR = USB_CNTR_FRES;
+    // Reset and power up the peripheral.
+    USB_BASE->CNTR = USB_CNTR_FRES; 
 
     USBLIB->irq_mask = 0;
     USB_BASE->CNTR = USBLIB->irq_mask;
@@ -625,9 +719,11 @@ static void usbReset(void) {
     SetDeviceAddress(0);
 
     /* Reset the RX/TX state */
-    n_unread_bytes = 0;
-    n_unsent_bytes = 0;
-    rx_offset = 0;
+	rx_head = 0;
+	rx_tail = 0;
+	tx_head = 0;
+	tx_tail = 0;
+    transmitting = -1;
 }
 
 static RESULT usbDataSetup(uint8 request) {
@@ -647,8 +743,7 @@ static RESULT usbDataSetup(uint8 request) {
 
         /* Call the user hook. */
         if (iface_setup_hook) {
-            uint8 req_copy = request;
-            iface_setup_hook(USB_CDCACM_HOOK_IFACE_SETUP, &req_copy);
+            iface_setup_hook(request);
         }
     }
 
@@ -682,8 +777,7 @@ static RESULT usbNoDataSetup(uint8 request) {
 
         /* Call the user hook. */
         if (iface_setup_hook) {
-            uint8 req_copy = request;
-            iface_setup_hook(USB_CDCACM_HOOK_IFACE_SETUP, &req_copy);
+            iface_setup_hook(request);
         }
     }
     return ret;

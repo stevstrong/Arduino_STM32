@@ -15,8 +15,8 @@
   modified for generic_f303cc 
   2019/06 by stevestrong
  */
-#define Serial SerialUSB
 
+ 
 // the setup function runs once when you press reset or power the board  
 void setup() {
   // initialize pins PE8, PE9 as an output.

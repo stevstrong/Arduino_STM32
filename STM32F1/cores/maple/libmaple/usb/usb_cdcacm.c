@@ -60,12 +60,6 @@
  ******************************************************************************
  *****************************************************************************/
 
-#if !(defined(BOARD_maple) || defined(BOARD_maple_RET6) ||      \
-      defined(BOARD_maple_mini) || defined(BOARD_maple_native))
-//#warning USB CDC ACM relies on LeafLabs board-specific configuration.
-//    You may have problems on non-LeafLabs boards.
-#endif
-
 static void vcomDataTxCb(void);
 static void vcomDataRxCb(void);
 static uint8* vcomGetSetLineCoding(uint16);
@@ -80,6 +74,7 @@ static uint8* usbGetConfigDescriptor(uint16 length);
 static uint8* usbGetStringDescriptor(uint16 length);
 static void usbSetConfiguration(void);
 static void usbSetDeviceAddress(void);
+
 /*
  * Descriptors
  */
@@ -383,12 +378,11 @@ void usb_cdcacm_enable(gpio_dev *disc_dev, uint8 disc_bit) {
     /* Present ourselves to the host. Writing 0 to "disc" pin must
      * pull USB_DP pin up while leaving USB_DM pulled down by the
      * transceiver. See USB 2.0 spec, section 7.1.7.3. */
-	 
-	if (disc_dev!=NULL)
-	{	 
-		gpio_set_mode(disc_dev, disc_bit, GPIO_OUTPUT_PP);
-		gpio_write_bit(disc_dev, disc_bit, 0);
-	}
+	gpio_set_mode(USB_DP, GPIO_OUTPUT);
+	// pull down the USB DP line for 50ms
+	gpio_clear_pin(USB_DP);
+	delay_us(50000);
+	gpio_set_pin(USB_DP);
 	
     /* Initialize the USB peripheral. */
     /* One of the callbacks that will automatically happen from this will be to usbInit(),
@@ -404,6 +398,12 @@ void usb_cdcacm_disable(gpio_dev *disc_dev, uint8 disc_bit) {
 	{
 		gpio_write_bit(disc_dev, disc_bit, 1);
 	}
+    gpio_set_pin(USB_DP);
+		/*
+		 * set USB_DP and USB_DM pins to input floating mode, reset alternate function to system default
+		 */
+		gpio_set_mode(USB_DP, GPIO_INPUT);
+		gpio_set_mode(USB_DM, GPIO_INPUT);
     /* Powerdown the USB peripheral. It gets powered up again with usbInit(), which
        gets called when usb_cdcacm_enable() is called. */
     usb_power_off(); 

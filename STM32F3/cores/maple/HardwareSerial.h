@@ -58,18 +58,27 @@ public:
 
     /* Set up/tear down */
     void begin(uint32 baud);
+    void begin(uint32 baud,uint8_t config);
     void end(void);
 
     /* I/O */
-    uint32 available(void);
-    int read(void);
-    void flush(void);
-    virtual void write(unsigned char);
+    virtual int available(void);
+    virtual int peek(void);
+    virtual int read(void);
+    int availableForWrite(void);
+    virtual void flush(void);
+    virtual size_t write(uint8_t);
+    inline size_t write(unsigned long n) { return write((uint8_t)n); }
+    inline size_t write(long n) { return write((uint8_t)n); }
+    inline size_t write(unsigned int n) { return write((uint8_t)n); }
+    inline size_t write(int n) { return write((uint8_t)n); }
     using Print::write;
 
     /* Pin accessors */
     int txPin(void) { return this->tx_pin; }
     int rxPin(void) { return this->rx_pin; }
+	
+	operator bool() { return true; }
 
     /* Escape hatch into libmaple */
     /* FIXME [0.0.13] documentation */

@@ -56,6 +56,16 @@ void bkp_disable_writes(void) {
     *bb_perip(&PWR_BASE->CR, PWR_CR_DBP_BIT) = 0;
 }
 
+/*
+ * this function needs to be implemented for each series separately
+ */
+static inline __IO uint32* bkp_data_register(uint8 reg) {
+    if (reg < 1 || reg > BKP_NR_DATA_REGS)
+			return NULL;
+		else
+			return (uint32*)BKP_BASE + (reg-1); // regs are accessed from 1-16
+}
+
 uint16 bkp_read(uint8 reg) {
     __IO uint32* dr = bkp_data_register(reg);
     if (!dr) {

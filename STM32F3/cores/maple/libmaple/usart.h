@@ -104,6 +104,10 @@ typedef struct usart_reg_map {
 #define USART_RX_BUF_SIZE               64
 #endif
 
+#ifndef USART_TX_BUF_SIZE
+#define USART_TX_BUF_SIZE               64
+#endif
+
 
 /*
  * Devices
@@ -112,9 +116,11 @@ typedef struct usart_reg_map {
 typedef struct usart_dev {
     usart_reg_map *regs;             /**< Register map */
     ring_buffer *rb;                 /**< RX ring buffer */
+    ring_buffer *wb;                 /**< TX ring buffer */
     uint32 max_baud;                 /**< @brief Deprecated.
                                       * Maximum baud rate. */
 	uint8 *rx_buf;
+	uint8 *tx_buf;
     rcc_clk_id clk_id;               /**< RCC clock information */
     nvic_irq_num irq_num;            /**< USART NVIC interrupt */
 } usart_dev;
@@ -598,13 +604,8 @@ extern const usart_dev uart5;
  * available on UART4, UART5. */
 #define USART_GTPR_PSC                  0xFF
 
-/*
- * Devices
- */
 
-#ifndef USART_RX_BUF_SIZE
-#define USART_RX_BUF_SIZE               64
-#endif
+// Functions
 
 void usart_init(const usart_dev *dev);
 
@@ -686,6 +687,17 @@ static inline void usart_putstr(const usart_dev *dev, const char* str) {
  */
 static inline uint8 usart_getc(const usart_dev *dev) {
     return rb_remove(dev->rb);
+}
+
+/*
+ * Roger Clark. 20141125, 
+ * added peek function.
+ * @param dev Serial port to read from
+ * @return byte read
+ */
+static inline int usart_peek(const usart_dev *dev)
+{
+	return rb_peek(dev->rb);
 }
 
 /**

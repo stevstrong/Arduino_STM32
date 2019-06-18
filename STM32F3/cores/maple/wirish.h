@@ -51,7 +51,7 @@
 #include <HardwareTimer.h>
 #include <usb_serial.h>
 #include <wirish_types.h>
-
+#include <WString.h>
 #include <libmaple/libmaple.h>
 
 #include <stdint.h>

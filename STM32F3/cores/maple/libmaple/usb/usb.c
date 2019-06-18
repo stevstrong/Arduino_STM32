@@ -31,7 +31,7 @@
  * This is a mess.
  */
 
-#include <libmaple/usb.h>
+#include "usb.h"
 
 #include <libmaple/libmaple.h>
 #include <libmaple/rcc.h>
@@ -118,6 +118,12 @@ static void usb_suspend(void) {
 
     USBLIB->prevState = USBLIB->state;
     USBLIB->state = USB_SUSPENDED;
+}
+
+void usb_power_off(void) {
+    USB_BASE->CNTR = USB_CNTR_FRES;
+    USB_BASE->ISTR = 0;
+    USB_BASE->CNTR = USB_CNTR_FRES + USB_CNTR_PDWN;
 }
 
 static void usb_resume_init(void) {
@@ -210,7 +216,7 @@ void __irq_usb_lp_can_rx0(void) {
 
 #if (USB_ISR_MSK & USB_ISTR_WKUP)
     if (istr & USB_ISTR_WKUP & USBLIB->irq_mask) {
-        USB_BASE->ISTR = ~USB_ISTR_WKUP;
+        USB_BASE->ISTR = ~(USB_ISTR_WKUP | USB_ISTR_SUSP);
         usb_resume(RESUME_EXTERNAL);
     }
 #endif
@@ -225,7 +231,7 @@ void __irq_usb_lp_can_rx0(void) {
             usb_resume(RESUME_LATER);
         }
         /* clear of the ISTR bit must be done after setting of CNTR_FSUSP */
-        USB_BASE->ISTR = ~USB_ISTR_SUSP;
+        USB_BASE->ISTR = ~(USB_ISTR_WKUP | USB_ISTR_SUSP);
     }
 #endif
 
@@ -268,6 +274,7 @@ static void handle_out0(void);
 
 static void dispatch_ctr_lp() {
     uint16 istr;
+
     while (((istr = USB_BASE->ISTR) & USB_ISTR_CTR) != 0) {
         /* TODO WTF, figure this out: RM0008 says CTR is read-only,
          * but ST's firmware claims it's clear-only, and emphasizes
@@ -287,6 +294,7 @@ static void dispatch_ctr_lp() {
         }
     }
 }
+
 
 /* FIXME Dataflow on endpoint 0 RX/TX status is based off of ST's
  * code, and is ugly/confusing in its use of SaveRState/SaveTState.

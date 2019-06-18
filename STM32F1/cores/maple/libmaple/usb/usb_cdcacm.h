@@ -134,8 +134,6 @@ int usb_cdcacm_tx_available();
 uint8 usb_cdcacm_get_dtr(void);
 uint8 usb_cdcacm_get_rts(void);
 
-
-
 typedef struct usb_cdcacm_line_coding {
     uint32 dwDTERate;           /* Baud rate */
 
