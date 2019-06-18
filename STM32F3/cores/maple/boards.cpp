@@ -167,7 +167,7 @@ static void setup_nvic(void) {
 
 static void adc_default_config(const adc_dev *dev) {
     adc_enable_single_swstart(dev);
-    adc_set_sample_rate(dev, wirish::priv::w_adc_smp);
+    adc_set_sample_time(dev, wirish::priv::w_adc_smp);
 }
 
 static void setup_adcs(void) {

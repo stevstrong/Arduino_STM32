@@ -130,7 +130,7 @@ void adc_set_resolution(const adc_dev *dev, adc_resolution res) {
     dev->regs->CFGR = cfgr;
 }
 
-void adc_set_sample_rate(const adc_dev *dev, adc_smp_rate smp_rate) {
+void adc_set_sample_time(const adc_dev *dev, adc_smp_rate smp_rate) {
 		adc_check_regular_notongoing(dev);
 		adc_check_injected_notongoing(dev);
 

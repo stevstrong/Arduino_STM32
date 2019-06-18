@@ -770,7 +770,7 @@ extern void adc_set_extsel(const adc_dev *dev, adc_extsel_event event);
  * @param smp_rate sample rate to set
  * @see adc_smp_rate
  */
-extern void adc_set_sample_rate(const adc_dev *dev, adc_smp_rate smp_rate);
+extern void adc_set_sample_time(const adc_dev *dev, adc_smp_rate smp_rate);
 
 /**
  * @brief Enable scan mode for an ADC.
