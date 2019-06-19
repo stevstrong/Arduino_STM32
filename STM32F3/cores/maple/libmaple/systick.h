@@ -113,7 +113,7 @@ static inline uint32 systick_check_underflow(void) {
  *
  * To detach a callback, call this function again with a null argument.
  */
-void systick_attach_callback(void (*callback)(void));
+void systick_attach_callback(voidFuncPtr callback);
 
 #ifdef __cplusplus
 } // extern "C"

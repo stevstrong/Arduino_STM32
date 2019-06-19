@@ -72,9 +72,11 @@ void systick_enable() {
  *
  * To detach a callback, call this function again with a null argument.
  */
-void systick_attach_callback(void (*callback)(void)) {
+void systick_attach_callback(voidFuncPtr callback) {
     systick_user_callback = callback;
 }
+
+
 
 /*
  * SysTick ISR
