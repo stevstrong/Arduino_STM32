@@ -28,30 +28,36 @@
  * @file libmaple/stm32f3/fpu.c
  * @author F3-port by Hanspeter Portner <dev@open-music-kontrollers.ch>
  * @brief STM32F3 FPU.
+ *
+ * revision history:
+ * added comments making the asm codes more readable - andrew, Jun 2019
  */
 
 #include <libmaple/fpu.h>
+
+// Enable the FPU (Cortex-M4 - STM32F4xx and higher)
+// http://infocenter.arm.com/help/topic/com.arm.doc.dui0553a/BEHBJHIG.html
 
 void fpu_enable(void) {
 	/*
 	 * set coprocessor access control registers
 	 */
-	asm("\tLDR.W	R0, =0xE000ED88\n"
-			"\tLDR		R1, [R0]\n"
-			"\tORR		R1, R1, #(0xF << 20)\n"
-			"\tSTR		R1, [R0]\n"
-			"\tDSB\n"
-			"\tISB");
+	asm("\tLDR.W	R0, =0xE000ED88\n" 			/* The FPU enable bits are in the CPACR. */
+		"\tLDR		R1, [R0]\n"					/* read CAPCR */
+		"\tORR		R1, R1, #(0xF << 20)\n"		/* Set bits 20-23 to enable CP10 and CP11 coprocessors */
+		"\tSTR		R1, [R0]\n"					/* Write back the modified value to the CPACR */
+		"\tDSB\n"								/* wait for store to complete */
+		"\tISB");								/* reset pipeline now the FPU is enabled */
 }
 
 void fpu_disable(void) {
 	/*
 	 * clear coprocessor access control registers
 	 */
-	asm("\tLDR.W	R0, =0xE000ED88\n"
-			"\tLDR		R1, [R0]\n"
-			"\tORR		R1, R1, #(0x0 << 20)\n"
-			"\tSTR		R1, [R0]\n"
-			"\tDSB\n"
-			"\tISB");
+	asm("\tLDR.W	R0, =0xE000ED88\n"			/* The FPU enable bits are in the CPACR. */
+		"\tLDR		R1, [R0]\n"					/* read CAPCR */
+		"\tORR		R1, R1, #(0x0 << 20)\n"		/* Set bits 20-23 to enable CP10 and CP11 coprocessors */
+		"\tSTR		R1, [R0]\n"					/* Write back the modified value to the CPACR */
+		"\tDSB\n"								/* wait for store to complete */
+		"\tISB");								/* reset pipeline now the FPU is enabled */
 }
