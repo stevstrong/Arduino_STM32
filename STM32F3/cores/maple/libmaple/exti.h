@@ -59,6 +59,11 @@ typedef struct exti_reg_map {
 
 #define EXTI_BASE ((struct exti_reg_map*)0x40010400)
 
+#define EXTI_RTC_ALARM      BIT(17)
+#define EXTI_RTC_WAKEUP     BIT(20)
+#define EXTI_RTC_TAMPSTAMP  BIT(19)
+
+
 
 /*
  * Types: exti_num, exti_cfg, exti_trigger_mode.
