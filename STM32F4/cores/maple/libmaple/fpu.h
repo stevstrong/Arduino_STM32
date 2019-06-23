@@ -1,7 +1,7 @@
 /******************************************************************************
  * The MIT License
  *
- * Copyright (c) 2010 Perry Hung.
+ * Copyright (c) 2013 OpenMusicKontrollers.
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,52 +25,51 @@
  *****************************************************************************/
 
 /**
- *  @file libmaple/include/libmaple/libmaple_types.h
- *
- *  @brief libmaple's types, and operations on types.
+ * @file libmaple/stm32f3/include/series/fpu.h
+ * @author F3-port by Hanspeter Portner <dev@open-music-kontrollers.ch>
+ * @brief STM32F3 Floating Point Unit support.
  */
 
-#ifndef _LIBMAPLE_LIBMAPLE_TYPES_H_
-#define _LIBMAPLE_LIBMAPLE_TYPES_H_
+#ifndef _LIBMAPLE_STM32F3_FPU_H_
+#define _LIBMAPLE_STM32F3_FPU_H_
 
 #ifdef __cplusplus
-extern "C" {
+extern "C"{
 #endif
 
-#include <sys/cdefs.h>
-#include <inttypes.h>
+#include <libmaple/libmaple_types.h>
+#include <libmaple/scb.h>
 
-typedef unsigned char uint8;
-typedef unsigned short uint16;
-typedef unsigned int uint32;
-typedef unsigned long long uint64;
+/*
+ * FPU register maps and devices
+ */
 
+/** FPU register map type */
+typedef struct fpu_reg_map {
+    __IO uint32 CPACR;          /**< coprocessor access control register */
+    __IO uint32 FPCCR;          /**< floating-point context control register */
+    __IO uint32 FPCAR;          /**< floating-point context address register */
+    __IO uint32 FPDSCR;         /**< floating-point default status control register */
+} fpu_reg_map;
 
-typedef signed char int8;
-typedef short int16;
-typedef int int32;
-typedef long long int64;
+#define FPU_BASE			((struct fpu_reg_map*)(SCB_BASE + 0x88))
 
-typedef void (*voidFuncPtr)(void);
-typedef void (*voidArgumentFuncPtr)(void *);
+/* TODO
+ * give registry bitfields here
+ */
 
-#define __IO volatile
-#define __attr_flash __attribute__((section (".USER_FLASH")))
-#define __packed __attribute__((__packed__))
-#define __deprecated __attribute__((__deprecated__))
-#define __weak __attribute__((weak))
-#define __always_inline inline __attribute__((always_inline))
-#define __unused __attribute__((unused))
+ 
+/**
+ * @brief Enable floating point unit.
+ */
+void fpu_enable(void);
 
-#ifndef NULL
-#define NULL 0
-#endif
+/**
+ * @brief Disable floating point unit.
+ */
+void fpu_disable(void);
 
-#ifndef offsetof
-#define __builtin_offsetof(type, member) __offsetof(type, member)
-#define offsetof(type, member) __builtin_offsetof(type, member)
-#endif
-
+ 
 #ifdef __cplusplus
 }
 #endif

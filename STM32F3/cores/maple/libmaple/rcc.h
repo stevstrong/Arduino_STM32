@@ -72,7 +72,7 @@ typedef struct rcc_reg_map {
     __IO uint32 CFGR3;          /**< Control/status register 3 */
 } rcc_reg_map;
 
-#define RCC_BASE                        ((struct rcc_reg_map*)0x40021000)
+#define RCC_BASE  ((struct rcc_reg_map*)0x40021000)
 
 /*
  * Register bit definitions
@@ -321,15 +321,17 @@ typedef struct rcc_reg_map {
 
 #define RCC_BDCR_BDRST_BIT              16
 #define RCC_BDCR_RTCEN_BIT              15
+#define RCC_BDCR_RTCSEL_BIT             8
 #define RCC_BDCR_LSEBYP_BIT             2
 #define RCC_BDCR_LSERDY_BIT             1
 #define RCC_BDCR_LSEON_BIT              0
 
 #define RCC_BDCR_BDRST                  (1U << RCC_BDCR_BDRST_BIT)
-#define RCC_BDCR_RTCEN                  (1U << RCC_BDCR_RTC_BIT)
-#define RCC_BDCR_RTCSEL                 (0x3 << 8)
+#define RCC_BDCR_RTCEN                  (1U << RCC_BDCR_RTCEN_BIT)
+#define RCC_BDCR_RTCSEL_MASK            (0x3 << 8)
 #define RCC_BDCR_RTCSEL_NONE            (0x0 << 8)
 #define RCC_BDCR_RTCSEL_LSE             (0x1 << 8)
+#define RCC_BDCR_RTCSEL_LSI             (0x2 << 8)
 #define RCC_BDCR_RTCSEL_HSE             (0x3 << 8)
 #define RCC_BDCR_LSEBYP                 (1U << RCC_BDCR_LSEBYP_BIT)
 #define RCC_BDCR_LSERDY                 (1U << RCC_BDCR_LSERDY_BIT)

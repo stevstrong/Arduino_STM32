@@ -87,8 +87,8 @@ namespace wirish {
             /* We need SYSCFG for external interrupts */
             syscfg_init();
 
-						/* enable floating point unit */
-						fpu_enable();
+			/* enable floating point unit */
+			fpu_enable();
         }
     }
 }
