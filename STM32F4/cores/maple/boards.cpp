@@ -40,6 +40,7 @@
 #include <libmaple/gpio.h>
 #include <libmaple/adc.h>
 #include <libmaple/timer.h>
+#include <libmaple/fpu.h>
 #include "usb.h"
 #include "usb_serial.h"
 
@@ -65,6 +66,8 @@ void init(void)
 #ifdef SERIAL_USB
     SerialUSB.begin(); // includes { setupUSB(); }
 #endif
+
+    fpu_enable();
 }
 
 /* You could farm this out to the files in boards/ if e.g. it takes

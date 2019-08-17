@@ -66,7 +66,7 @@ typedef struct bkp_reg_map {
 } bkp_reg_map;
 
 /** Backup peripheral register map base pointer. */
-#define BKP_BASE                        ((struct bkp_reg_map*)0x40002850) //is part of RTC memory map
+#define BKP_BASE  ((struct bkp_reg_map*)0x40002850) //is part of RTC memory map
 
 /** Backup peripheral device type. */
 typedef struct bkp_dev {

@@ -108,6 +108,13 @@ static inline uint32 systick_check_underflow(void) {
     return SYSTICK_BASE->CSR & SYSTICK_CSR_COUNTFLAG;
 }
 
+/**
+ * @brief Attach a callback to be called from the SysTick exception handler.
+ *
+ * To detach a callback, call this function again with a null argument.
+ */
+void systick_attach_callback(voidFuncPtr callback);
+
 #ifdef __cplusplus
 } // extern "C"
 #endif
