@@ -29,128 +29,31 @@
  author : Martin Ayotte, 2015.
  */
 
-#include "RTClock.h"
-#include <wirish_time.h>
-
-voidFuncPtr handlerAlarmA = NULL;
-voidFuncPtr handlerAlarmB = NULL;
-voidFuncPtr handlerPeriodicWakeup = NULL;
+#include <RTClock.h>
 
 
-  char dbg_s[200];
+
 #ifdef RTC_DEBUG
+  char dbg_s[200];
   #define PRINTF(...) { sprintf(dbg_s, __VA_ARGS__); Serial.print(dbg_s); }
 #else
   #define PRINTF(...) 
 #endif
   #define PRINTF1(...) { sprintf(dbg_s, __VA_ARGS__); Serial.print(dbg_s); }
-//-----------------------------------------------------------------------------
-// Clear the register synchronized flag. The flag is then set by hardware after a write to PRL/DIV or CNT.
-//-----------------------------------------------------------------------------
-static inline void rtc_clear_sync() {
-	*bb_perip(&RTC->ISR, RTC_ISR_RSF_BIT) = 0;
-}
 
-#if 0
-//-----------------------------------------------------------------------------
-// Check (wait if necessary) to see RTC registers are synchronized.
-//-----------------------------------------------------------------------------
-void rtc_wait_sync()
-{
-	PRINTF("> rtc_wait_sync\n");
-	uint32 t = millis();
-	while ( !(RTC->ISR & BIT(RTC_ISR_RSF_BIT)) ) 
-	{
-	    if ( (millis()-t)>1500) {
-			PRINTF("Sync Timeout ! ISR = %08X\n", RTC->ISR);
-			break;
-		}
-	}
-	PRINTF("< rtc_wait_sync\n");
-}
-#endif
-//-----------------------------------------------------------------------------
-// Enter configuration mode.
-//-----------------------------------------------------------------------------
-static void rtc_enter_config_mode()
-{
-	PRINTF("> rtc_enter_config_mode\n");
-	noInterrupts();
-	// Unlock Write Protect
-	RTC->WPR = 0xCA;
-	RTC->WPR = 0x53;
-	PRINTF("RTC->ISR(1) = %08X\n", RTC->ISR);
-	//*bb_perip(&RTC->ISR, RTC_ISR_INIT_BIT) = 1;
-	RTC->ISR = 0x1FFFF;
-	PRINTF("RTC->ISR(2) = %08X\n", RTC->ISR);
-	uint32 t = 0;
-	while (!(RTC->ISR & RTC_ISR_INITF))
-	{
-	    if (++t > 10000000) {
-			PRINTF("RTC->ISR.INITF Timeout ! ISR = %08X\n", RTC->ISR);
-			break;;
-		}
-	}
-	PRINTF("< rtc_enter_config_mode\n");
-}
 
-//-----------------------------------------------------------------------------
-// Exit configuration mode.
-//-----------------------------------------------------------------------------
-static inline void rtc_exit_config_mode()
-{
-	*bb_perip(&RTC->ISR, RTC_ISR_INIT_BIT) = 0;
-	interrupts();
-	PRINTF("< rtc_exit_config_mode\n");
-	//delayMicroseconds(100);
-}
-
-//-----------------------------------------------------------------------------
-// Enable an RTC alarm event. Enabling this event allows waking up from deep sleep via WFE.
-//-----------------------------------------------------------------------------
-static void rtc_enable_alarm_event()
-{
-    EXTI_BASE->IMR  |= EXTI_RTC_ALARM;
-	EXTI_BASE->EMR  |= EXTI_RTC_ALARM;
-	EXTI_BASE->RTSR |= EXTI_RTC_ALARM;
-}
-
-//-----------------------------------------------------------------------------
-// Disable the RTC alarm event.
-//-----------------------------------------------------------------------------
-//static void rtc_disable_alarm_event()
-//{
-//	EXTI_BASE->EMR  &= ~(EXTI_RTC_ALARM);
-//	EXTI_BASE->RTSR &= ~(EXTI_RTC_ALARM);
-//}
-
-//-----------------------------------------------------------------------------
-// @brief Enable an RTC Wakeup event. 
-//-----------------------------------------------------------------------------
-static void rtc_enable_wakeup_event()
-{
-    EXTI_BASE->IMR  |= EXTI_RTC_WAKEUP;
-	EXTI_BASE->EMR  |= EXTI_RTC_WAKEUP;
-	EXTI_BASE->RTSR |= EXTI_RTC_WAKEUP;
-}
-//-----------------------------------------------------------------------------
-// @brief Disable the RTC alarm event.
-//-----------------------------------------------------------------------------
-//static void rtc_disable_wakeup_event()
-//{
-//	EXTI_BASE->EMR  &= ~(EXTI_RTC_WAKEUP);
-//	EXTI_BASE->RTSR &= ~(EXTI_RTC_WAKEUP);
-//}
 typedef struct {
 uint16_t s_presc;
 uint16_t as_presc;
 } prescaler_t;
+
 const prescaler_t prescalers[4] = {
 	{   0,   0}, // RTCSEL_NONE	
 	{ 255, 127}, // RTCSEL_LSE
 	{ 249, 127}, // RTCSEL_LSI
 	{7999, 124}, // RTCSEL_HSE
 };
+
 //-----------------------------------------------------------------------------
 void RTClock::begin(rtc_clk_src src, uint16 sync_presc, uint16 async_presc)
 {
@@ -248,99 +151,12 @@ end0:
     PRINTF("< RTClock::begin\n");
 }
 
-/*
-RTClock::~RTClock() {
-    //to implement
-}
-*/	
-	
 //-----------------------------------------------------------------------------
-void RTClock::setTime (tm_t & tm)
-{
-    if (tm.year > 99)
-        tm.year = tm.year % 100;
-    rtc_dr = BUILD_DATE_REGISTER(tm.year, tm.month, tm.day, tm.weekday);
-    rtc_tr = BUILD_TIME_REGISTER(tm.hour, tm.minute, tm.second);
-    rtc_enter_config_mode();
-    RTC->TR = rtc_tr;
-    RTC->DR = rtc_dr;
-    rtc_exit_config_mode();
-	//getTimeStamp(); // fix wrong first read
-    PRINTF("RTClock::setTime DR: %08X, TR: %08X\n", rtc_dr, rtc_tr);
-}
-
-//-----------------------------------------------------------------------------
-void RTClock::setTime (time_t time_stamp)
-{
-	breakTime(time_stamp, _tm); // time will be broken to tm
-    setTime(_tm);
-}
-
-/*============================================================================*/	
-/* functions to convert to and from system time */
-/* These are for interfacing with time serivces and are not normally needed in a sketch */
-
-// leap year calulator expects year argument as years offset from 1970
-#define LEAP_YEAR(Y)     ( ((1970+Y)>0) && !((1970+Y)%4) && ( ((1970+Y)%100) || !((1970+Y)%400) ) )
-
-//static const uint8_t monthDays[]={31,28,31,30,31,30,31,31,30,31,30,31}; // API starts months from 1, this array starts from 0
-
-//-----------------------------------------------------------------------------
-void RTClock::breakTime(time_t timeInput, tm_t & tm)
-{
-// break the given time_t into time components
-// this is a more compact version of the C library localtime function
-// note that year is offset from 1970 !!!
-
-	uint32_t time = (uint32_t)timeInput;
-	tm.second = time % 60;
-	time /= 60; // now it is minutes
-	tm.minute = time % 60;
-	time /= 60; // now it is hours
-	tm.hour = time % 24;
-	time /= 24; // now it is days
-	tm.weekday = ((time + 4) % 7); // Monday is day 1 // (time + 4): Sunday is day 1 
-
-	uint8_t year = 0;
-	uint32_t days = 0;
-	while((unsigned)(days += (LEAP_YEAR(year) ? 366 : 365)) <= time) {
-		year++;
-	}
-	tm.year = year; // year is offset from 1970 
-
-	days -= LEAP_YEAR(year) ? 366 : 365;
-	time -= days; // now it is days in this year, starting at 0
-
-	uint8_t month = 0;
-	uint8_t monthLength = 0;
-	for (month=0; month<12; month++)
-	{
-		if (month==1) { // february
-			if (LEAP_YEAR(year)) {
-				monthLength=29;
-			} else {
-				monthLength=28;
-			}
-		} else {
-			monthLength = monthDays[month];
-		}
-
-		if (time >= monthLength) {
-			time -= monthLength;
-		} else {
-			break;
-		}
-	}
-	tm.month = month + 1;  // jan is month 1  
-	tm.day = time + 1;     // day of month
-}
-
-//-----------------------------------------------------------------------------
-void RTClock::setAlarmATime (tm_t * tm_ptr, bool hours_match, bool mins_match, bool secs_match, bool date_match)
+void RTClock::setAlarmATime (bool hours_match, bool mins_match, bool secs_match, bool date_match)
 {
     rtc_enter_config_mode();
-    unsigned int bits = (bin2bcd(tm_ptr->day)<<24) + (bin2bcd(tm_ptr->hour)<<16) + 
-			(bin2bcd(tm_ptr->minute)<<8) + bin2bcd(tm_ptr->second);
+    unsigned int bits = (bin2bcd(_tm.day)<<24) + (bin2bcd(_tm.hour)<<16) + 
+			(bin2bcd(_tm.minute)<<8) + bin2bcd(_tm.second);
     if (!date_match) bits |= (1 << 31);
     if (!hours_match) bits |= (1 << 23);
     if (!mins_match) bits |= (1 << 15);
@@ -364,8 +180,8 @@ void RTClock::setAlarmATime (tm_t * tm_ptr, bool hours_match, bool mins_match, b
 //-----------------------------------------------------------------------------
 void RTClock::setAlarmATime (time_t alarm_time, bool hours_match, bool mins_match, bool secs_match, bool date_match)
 {	
-    breakTime(alarm_time, _tm);
-    setAlarmATime(&_tm, hours_match, mins_match, secs_match, date_match);
+    breakTime(alarm_time, &_tm);
+    setAlarmATime(hours_match, mins_match, secs_match, date_match);
 }
 
 //-----------------------------------------------------------------------------
@@ -377,11 +193,11 @@ void RTClock::turnOffAlarmA(void)
 }
 
 //-----------------------------------------------------------------------------
-void RTClock::setAlarmBTime (tm_t * tm_ptr, bool hours_match, bool mins_match, bool secs_match, bool date_match)
+void RTClock::setAlarmBTime (bool hours_match, bool mins_match, bool secs_match, bool date_match)
 {
     rtc_enter_config_mode();
-    unsigned int bits = (bin2bcd(tm_ptr->day) << 24) + (bin2bcd(tm_ptr->hour) << 16) + 
-			(bin2bcd(tm_ptr->minute) << 8) + bin2bcd(tm_ptr->second);
+    unsigned int bits = (bin2bcd(_tm.day) << 24) + (bin2bcd(_tm.hour) << 16) + 
+			(bin2bcd(_tm.minute) << 8) + bin2bcd(_tm.second);
     if (!date_match) bits |= (1 << 31);
     if (!hours_match) bits |= (1 << 23);
     if (!mins_match) bits |= (1 << 15);
@@ -405,8 +221,8 @@ void RTClock::setAlarmBTime (tm_t * tm_ptr, bool hours_match, bool mins_match, b
 //-----------------------------------------------------------------------------
 void RTClock::setAlarmBTime (time_t alarm_time, bool hours_match, bool mins_match, bool secs_match, bool date_match)
 {	
-    breakTime(alarm_time, _tm);
-    setAlarmBTime(&_tm, hours_match, mins_match, secs_match, date_match);
+    breakTime(alarm_time, &_tm);
+    setAlarmBTime(hours_match, mins_match, secs_match, date_match);
 }
 
 //-----------------------------------------------------------------------------
@@ -474,49 +290,4 @@ void RTClock::attachPeriodicWakeupInterrupt(voidFuncPtr function) {
 void RTClock::detachPeriodicWakeupInterrupt() {
     handlerPeriodicWakeup = NULL;
 }
-
-
-
-extern "C" {
-//-----------------------------------------------------------------------------
-void __irq_rtc(void)
-{
-	PRINTF("<<__irq_rtc>>\n");
-	rtc_enter_config_mode();
-	*bb_perip(&RTC->ISR, RTC_ISR_WUTF_BIT) = 0;
-	rtc_exit_config_mode();
-	EXTI_BASE->PR = EXTI_RTC_WAKEUP;
-	if (handlerPeriodicWakeup != NULL) {
-		handlerPeriodicWakeup();
-	}
-}
-
-//-----------------------------------------------------------------------------
-void __irq_rtcalarm(void)
-{
-	bool isAlarmA = false;
-	bool isAlarmB = false;
-	PRINTF("<<__irq_rtcalarm>>\n");
-	rtc_enter_config_mode();
-	if (RTC->ISR & BIT(RTC_ISR_ALRAF_BIT)) {
-		isAlarmA = true;
-		PRINTF(">>AlarmA\n");
-		*bb_perip(&RTC->ISR, RTC_ISR_ALRAF_BIT) = 0;
-	}
-	if (RTC->ISR & BIT(RTC_ISR_ALRBF_BIT)) {
-		isAlarmB = true;
-		PRINTF(">>AlarmB\n");
-		*bb_perip(&RTC->ISR, RTC_ISR_ALRBF_BIT) = 0;
-	}
-	rtc_exit_config_mode();
-	EXTI_BASE->PR = EXTI_RTC_ALARM;
-	if (isAlarmA && handlerAlarmA != NULL) {
-		handlerAlarmA();
-	}
-	if (isAlarmB && handlerAlarmB != NULL) {
-		handlerAlarmB();
-	}
-}
-//-----------------------------------------------------------------------------
-} // extern "C"
 
