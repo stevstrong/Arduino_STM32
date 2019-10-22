@@ -418,4 +418,13 @@ private:
 
 extern SPIClass SPI;
 
+/**
+* @brief Waits unti TXE (tx empy) flag set and BSY (busy) flag unset.
+*/
+__attribute__((always_inline)) void waitSpiTxEnd(spi_dev *spi_d)
+{
+    while (spi_is_tx_empty(spi_d) == 0); // wait until TXE=1
+    while (spi_is_busy(spi_d) != 0); // wait until BSY=0
+}
+
 #endif

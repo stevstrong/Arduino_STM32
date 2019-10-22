@@ -106,7 +106,7 @@ extern void spi_release_gpios(uint8 as_master, const spi_pins * pins);
  * @brief Deprecated. Use spi_config_gpios() instead.
  * @see spi_config_gpios()
  */
-static inline void spi_gpio_cfg(uint8 as_master, const spi_pins * pins)
+__attribute__((always_inline)) void spi_gpio_cfg(uint8 as_master, const spi_pins * pins)
 {
     /* We switched style globally to foo_config_gpios() and always
      * taking a foo_dev* argument (that last bit is the important

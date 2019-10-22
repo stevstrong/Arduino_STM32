@@ -35,8 +35,6 @@
 #include <libmaple/nvic.h>
 #include <libmaple/bitband.h>
 
-static inline void dispatch_single_exti(uint32 exti_num);
-static inline void dispatch_extis(uint32 start, uint32 stop);
 
 /*
  * Internal state
@@ -161,9 +159,50 @@ void exti_do_select(__IO uint32 *exti_cr, exti_num num, exti_cfg port) {
     *exti_cr = cr;
 }
 
+/* This dispatch routine is for non-multiplexed EXTI lines only; i.e.,
+ * it doesn't check EXTI_PR. */
+__attribute__((always_inline)) void dispatch_single_exti(uint32 exti) {
+    voidArgumentFuncPtr handler = exti_channels[exti].handler;
+
+    if (!handler) {
+        return;
+    }
+
+    handler(exti_channels[exti].arg);
+    EXTI_BASE->PR = (1U << exti);
+    asm volatile("nop");
+    asm volatile("nop");
+}
+
+/* Dispatch routine for EXTIs which share an IRQ. */
+__attribute__((always_inline)) void dispatch_extis(uint32 start, uint32 stop) {
+    uint32 pr = EXTI_BASE->PR;
+    uint32 handled_msk = 0;
+    uint32 exti;
+
+    /* Dispatch user handlers for pending EXTIs. */
+    for (exti = start; exti <= stop; exti++) {
+        uint32 eb = (1U << exti);
+        if (pr & eb) {
+            voidArgumentFuncPtr handler = exti_channels[exti].handler;
+            if (handler) {
+                handler(exti_channels[exti].arg);
+                handled_msk |= eb;
+            }
+        }
+    }
+
+    /* Clear the pending bits for handled EXTIs. */
+    EXTI_BASE->PR = (handled_msk);
+    asm volatile("nop");
+    asm volatile("nop");
+}
+
+
 /*
  * Auxiliary functions
  */
+
 
 /* Clear the pending bits for EXTIs whose bits are set in exti_msk.
  *

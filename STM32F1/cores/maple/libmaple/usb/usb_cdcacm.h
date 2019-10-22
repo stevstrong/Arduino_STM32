@@ -170,8 +170,8 @@ int usb_cdcacm_get_n_data_bits(void); /* bDataBits */
 
 extern void usb_cdcacm_set_hooks(unsigned hook_flags, void (*hook)(unsigned));
 
-static inline void usb_cdcacm_remove_hooks(unsigned hook_flags) {
-    usb_cdcacm_set_hooks(hook_flags, NULL);
+__attribute__((always_inline)) void usb_cdcacm_remove_hooks(unsigned hook_flags) {
+    usb_cdcacm_set_hooks(hook_flags, 0);
 }
 
 #ifdef __cplusplus
