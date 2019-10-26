@@ -117,12 +117,10 @@ extern bool boardUsesPin(uint8 pin);
 
 /* FIXME HACK put boards/ before these paths once IDE uses make. */
 
-#if defined(BOARD_aeroquad32) || defined(BOARD_aeroquad32f1)
-#include "aeroquad32.h"
-#elif defined(BOARD_aeroquad32mini)
-#include "aeroquad32mini.h"
-#elif defined(VARIANT_discovery_f407)
+#if defined(VARIANT_discovery_f407)
 #include "discovery_f4.h"
+#elif defined(VARIANT_disco_f411)
+#include "disco_f411.h"
 #elif defined(VARIANT_generic_f407v)
 #include "generic_f407v.h"
 #elif defined(VARIANT_arch_max)
