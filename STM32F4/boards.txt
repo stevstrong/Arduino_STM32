@@ -72,12 +72,12 @@ disco_f411.upload.maximum_size=1048576
 disco_f411.upload.maximum_data_size=131072
           
 disco_f411.build.core=maple
-disco_f411.build.extra_flags= -DLED_BUILTIN=PD12 -DCRYSTAL_FREQ=8
+disco_f411.build.extra_flags=-DLED_BUILTIN=PD12 -DCRYSTAL_FREQ=8 -DNO_CCMRAM
 disco_f411.build.ldscript=ld/jtag.ld
 disco_f411.build.variant=disco_f411
 disco_f411.build.variant_system_lib=lib_f407.a
 disco_f411.build.error_led_pin=PD14
-disco_f411.build.board=discovery_f4
+disco_f411.build.board=disco_f411
 disco_f411.build.vect_flags=-DUSER_ADDR_ROM=0x08000000
           
 disco_f411.menu.usb_cfg.usb_serial=USB serial (CDC)
