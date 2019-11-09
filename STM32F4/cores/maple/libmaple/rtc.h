@@ -8,7 +8,7 @@ extern "C" {
 #endif
 
 
-//#include <sys/types.h> // for __time_t_defined
+#include <sys/types.h> // for __time_t_defined
 #include <libmaple/libmaple_types.h>
 #include <libmaple/exti.h>
 #include <ext_interrupts.h>
@@ -17,7 +17,7 @@ extern "C" {
 
 
 #if !defined(__time_t_defined) // avoid conflict with newlib or other posix libc
-  //#warning "Using private time_t definintion"
+  #warning "Using private time_t definintion"
   typedef uint32_t time_t;
 #endif
 

@@ -34,6 +34,8 @@
 
 
 #ifdef RTC_DEBUG
+  #include <stdio.h>
+  #include <usb_serial.h>
   char dbg_s[200];
   #define PRINTF(...) { sprintf(dbg_s, __VA_ARGS__); Serial.print(dbg_s); }
 #else

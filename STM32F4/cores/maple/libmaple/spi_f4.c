@@ -44,13 +44,15 @@
         .irq_num = NVIC_SPI##num,   \
     }
 
-static spi_dev spi1 = SPI_DEV(1);
-static spi_dev spi2 = SPI_DEV(2);
-static spi_dev spi3 = SPI_DEV(3);
-
-spi_dev *SPI1 = &spi1;
-spi_dev *SPI2 = &spi2;
-spi_dev *SPI3 = &spi3;
+spi_dev spi1 = SPI_DEV(1);
+spi_dev spi2 = SPI_DEV(2);
+spi_dev spi3 = SPI_DEV(3);
+#if BOARD_NR_SPI>3
+spi_dev spi4 = SPI_DEV(4);
+#endif
+#if BOARD_NR_SPI>4
+spi_dev spi5 = SPI_DEV(5);
+#endif
 
 
 /*
@@ -71,8 +73,8 @@ void spi_config_gpios(spi_dev *dev,
         gpio_set_mode(pins->mosi, GPIO_INPUT_FLOATING);
     }
 
-	gpio_af_mode af_mode = GPIO_AFMODE_SPI3;
-	if (dev->clk_id <= RCC_SPI2) { af_mode = GPIO_AFMODE_SPI1_2; }
+	gpio_af_mode af_mode = GPIO_AFMODE_SPI1_4;
+	if ((dev->clk_id == RCC_SPI5) || (dev->clk_id == RCC_SPI3)) { af_mode = GPIO_AFMODE_SPI3_5; }
 	if (!as_master) {
 		gpio_set_af_mode(pins->nss, af_mode);
 	}

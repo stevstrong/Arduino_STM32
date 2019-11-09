@@ -38,47 +38,38 @@
 
 #define TX1 BOARD_USART1_TX_PIN
 #define RX1 BOARD_USART1_RX_PIN
-
-#ifdef BOARD_USART2_TX_PIN
-	#define TX2 BOARD_USART2_TX_PIN
-	#define RX2 BOARD_USART2_RX_PIN
-#endif
-
-#ifdef BOARD_USART3_TX_PIN
-	#define TX3 BOARD_USART3_TX_PIN
-	#define RX3 BOARD_USART3_RX_PIN
-#endif
-
-#if !defined(BOARD_maple_RET6)
-#define TX4 BOARD_UART4_TX_PIN
-#define RX4 BOARD_UART4_RX_PIN
-#define TX5 BOARD_UART5_TX_PIN
-#define RX5 BOARD_UART5_RX_PIN
-#endif
-
-#ifdef BOARD_USART6_TX_PIN
-	#define TX6 BOARD_USART6_TX_PIN
-	#define RX6 BOARD_USART6_RX_PIN
-#endif
-
 HardwareSerial Serial1(USART1, TX1, RX1);
 
-#ifdef TX2
+#ifdef BOARD_USART2_TX_PIN
+#define TX2 BOARD_USART2_TX_PIN
+#define RX2 BOARD_USART2_RX_PIN
 HardwareSerial Serial2(USART2, TX2, RX2);
 #endif
 
-#ifdef TX3
+#ifdef BOARD_USART3_TX_PIN
+#define TX3 BOARD_USART3_TX_PIN
+#define RX3 BOARD_USART3_RX_PIN
 HardwareSerial Serial3(USART3, TX3, RX3);
 #endif
 
-#if !defined(BOARD_maple_RET6)
-HardwareSerial Serial4(UART4,  TX4, RX4);
-HardwareSerial Serial5(UART5,  TX5, RX5);
+#ifdef BOARD_UART4_TX_PIN
+#define TX4 BOARD_UART4_TX_PIN
+#define RX4 BOARD_UART4_RX_PIN
+HardwareSerial Serial4(UART4, TX4, RX4);
 #endif
 
-#ifdef TX6
+#ifdef BOARD_UART5_TX_PIN
+#define TX5 BOARD_UART5_TX_PIN
+#define RX5 BOARD_UART5_RX_PIN
+HardwareSerial Serial5(UART5, TX5, RX5);
+#endif
+
+#ifdef BOARD_USART6_TX_PIN
+#define TX6 BOARD_USART6_TX_PIN
+#define RX6 BOARD_USART6_RX_PIN
 HardwareSerial Serial6(USART6, TX6, RX6);
 #endif
+
 
 HardwareSerial::HardwareSerial(usart_dev *usart_device,
                                uint8 tx_pin,
@@ -92,11 +83,10 @@ HardwareSerial::HardwareSerial(usart_dev *usart_device,
  * Set up/tear down
  */
 
-void HardwareSerial::begin(uint32 baud) {
-    ASSERT(baud <= usart_device->max_baud);
-
+void HardwareSerial::begin(uint32 baud)
+{
     if (baud > usart_device->max_baud) {
-        return;
+        baud = usart_device->max_baud;
     }
 
     if (usart_device == UART4 || usart_device == UART5 || usart_device == USART6) {

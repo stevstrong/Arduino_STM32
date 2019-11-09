@@ -177,6 +177,8 @@ typedef enum nvic_irq_num {
     NVIC_CRYPT          = 79,
     NVIC_HASH_RNG       = 80,
     NVIC_FPU            = 81,
+    NVIC_SPI4           = 84,
+    NVIC_SPI5           = 85,
 	NVIC_LAST_IRQ_NUM,
 } nvic_irq_num;
 

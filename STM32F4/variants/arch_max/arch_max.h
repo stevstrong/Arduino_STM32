@@ -38,14 +38,6 @@
 
 #define CYCLES_PER_MICROSECOND  168
 
-
-#undef  STM32_PCLK1
-#undef  STM32_PCLK2
-#define STM32_PCLK1   (CYCLES_PER_MICROSECOND*1000000/4)
-#define STM32_PCLK2   (CYCLES_PER_MICROSECOND*1000000/2)
-
-#define SYSTICK_RELOAD_VAL      (CYCLES_PER_MICROSECOND*1000-1)
-
 //-----------------------------------------------------------------------------
 // Board pin definitions
 //-----------------------------------------------------------------------------

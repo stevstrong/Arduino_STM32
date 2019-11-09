@@ -139,6 +139,7 @@ private:
 public:
     spi_dev * spi_d;
     const dma_dev * spiDmaDev;
+    const spi_pins_t * pins;
     voidFuncPtr dmaIsr;
     u32FuncPtr trxCallback;
     dma_channel spiDmaChannel;
@@ -151,12 +152,14 @@ private:
     BitOrder bitOrder;
     uint8_t dataMode;
 public:
-	uint8_t pin_set;
+	//uint8_t pin_set;
 
     friend class SPIClass;
 };
 
 extern SPISettings _settings[BOARD_NR_SPI];
+extern SPISettings *_currentSetting;
+
 
 /**
  * @brief Wirish SPI interface.
@@ -407,8 +410,6 @@ public:
     void EventCallback(uint16_t spi_num);
 
 private:
-
-    SPISettings *_currentSetting;
 
     void updateSettings(void);
 

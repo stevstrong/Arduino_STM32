@@ -51,7 +51,7 @@
  * @param address Address in the bit-banded SRAM region
  * @param bit     Bit in address to bit-band
  */
-static inline volatile uint32* bb_sramp(volatile void *address, uint32 bit) {
+inline volatile uint32* bb_sramp(volatile void *address, uint32 bit) {
     return __bb_addr(address, bit, BB_SRAM_BASE, BB_SRAM_REF);
 }
 
@@ -61,7 +61,7 @@ static inline volatile uint32* bb_sramp(volatile void *address, uint32 bit) {
  * @param bit Bit in address to read
  * @return bit's value in address.
  */
-static inline uint8 bb_sram_get_bit(volatile void *address, uint32 bit) {
+inline uint8 bb_sram_get_bit(volatile void *address, uint32 bit) {
     return *bb_sramp(address, bit);
 }
 
@@ -71,7 +71,7 @@ static inline uint8 bb_sram_get_bit(volatile void *address, uint32 bit) {
  * @param bit Bit in address to write to
  * @param val Value to write for bit, either 0 or 1.
  */
-static inline void bb_sram_set_bit(volatile void *address,
+inline void bb_sram_set_bit(volatile void *address,
                                    uint32 bit,
                                    uint8 val) {
     *bb_sramp(address, bit) = val;
@@ -83,7 +83,7 @@ static inline void bb_sram_set_bit(volatile void *address,
  * @param address Address in the bit-banded peripheral region
  * @param bit     Bit in address to bit-band
  */
-static inline volatile uint32* bb_perip(volatile void *address, uint32 bit) {
+inline volatile uint32* bb_perip(volatile void *address, uint32 bit) {
     return __bb_addr(address, bit, BB_PERI_BASE, BB_PERI_REF);
 }
 
@@ -93,7 +93,7 @@ static inline volatile uint32* bb_perip(volatile void *address, uint32 bit) {
  * @param bit Bit in address to read
  * @return bit's value in address.
  */
-static inline uint8 bb_peri_get_bit(volatile void *address, uint32 bit) {
+inline uint8 bb_peri_get_bit(volatile void *address, uint32 bit) {
     return *bb_perip(address, bit);
 }
 

@@ -30,8 +30,6 @@
  */
 
 #include "bkp.h"
-#include "pwr.h"
-#include "rcc.h"
 #include "bitband.h"
 
 
@@ -55,36 +53,6 @@ static __IO uint32* data_register(uint8 reg)
         return (uint32*)&(BKP->DR11) + (reg - NR_LOW_DRS - 1);
     }
 #endif
-}
-
-/**
- * @brief Initialize backup interface.
- *
- * Enables the power and backup interface clocks, and resets the
- * backup device.
- */
-void bkp_init(void) {
-    /* Don't call pwr_init(), or you'll reset the device.
-	 * We just need the clock. */
-    rcc_clk_enable(RCC_PWR);
-    //rcc_clk_enable(RCC_BKP);
-    //rcc_reset_dev(RCC_BKP);
-}
-
-/**
- * Enable write access to the backup registers.  Backup interface must
- * be initialized for subsequent register writes to work.
- * @see bkp_init()
- */
-void bkp_enable_writes(void) {
-    *bb_perip(&PWR->CR, PWR_CR_DBP_BIT) = 1;
-}
-
-/**
- * Disable write access to the backup registers.
- */
-void bkp_disable_writes(void) {
-    *bb_perip(&PWR->CR, PWR_CR_DBP_BIT) = 0;
 }
 
 /**

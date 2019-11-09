@@ -39,13 +39,6 @@
 #define CYCLES_PER_MICROSECOND  168
 
 
-#undef  STM32_PCLK1
-#undef  STM32_PCLK2
-#define STM32_PCLK1   (CYCLES_PER_MICROSECOND*1000000/4)
-#define STM32_PCLK2   (CYCLES_PER_MICROSECOND*1000000/2)
-
-#define SYSTICK_RELOAD_VAL      (CYCLES_PER_MICROSECOND*1000-1)
-
 /*****************************************************************************/
 // Board pin definitions
 #define BOARD_USB_DM_PIN		PA11
@@ -57,7 +50,7 @@
 #define BOARD_BUTTON2_PIN       PE4
 #define BOARD_BUTTON3_PIN       PE3
 
-#define BOARD_NR_USARTS         5
+#define BOARD_NR_USARTS         6
 #define BOARD_USART1_TX_PIN     PA9
 #define BOARD_USART1_RX_PIN     PA10
 #define BOARD_USART2_TX_PIN     PA2
@@ -66,8 +59,10 @@
 #define BOARD_USART3_RX_PIN     PB11
 #define BOARD_UART4_TX_PIN      PA0
 #define BOARD_UART4_RX_PIN      PA1
-#define BOARD_UART5_TX_PIN      PC12
-#define BOARD_UART5_RX_PIN      PD2
+#define BOARD_UART5_TX_PIN      PC12 // SDIO_CLK !!
+#define BOARD_UART5_RX_PIN      PD2  // SDIO_CMD
+#define BOARD_USART6_TX_PIN     PC6  // DCMI_D0 !!
+#define BOARD_USART6_RX_PIN     PC7  // DCMI_D1 !!
 
 #define BOARD_NR_I2C            3
 #define BOARD_I2C1_SCL_PIN      PB6
