@@ -34,23 +34,10 @@
  */
 
 #include <string.h>
-#include <libmaple/libmaple_types.h>
-#include <libmaple/usb.h>
 #include <libmaple/nvic.h>
 #include <libmaple/delay.h>
 #include <libmaple/gpio.h>
-#include <usb_lib_globals.h>
-#include <usb_reg_map.h>
-//#include <usb_core.h>
 #include <board/board.h>
-
-
-//uint16 GetEPTxAddr(uint8 /*bEpNum*/);
-
-/* usb_lib headers */
-#include "usb_type.h"
-#include "usb_core.h"
-#include "usb_def.h"
 
 #include "usb_generic.h"
 

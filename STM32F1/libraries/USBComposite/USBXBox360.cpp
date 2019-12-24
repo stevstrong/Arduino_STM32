@@ -22,7 +22,6 @@
 #include <string.h>
 #include <stdint.h>
 #include <libmaple/nvic.h>
-#include <libmaple/usb.h>
 #include "USBComposite.h" 
 #include "usb_x360.h"
 

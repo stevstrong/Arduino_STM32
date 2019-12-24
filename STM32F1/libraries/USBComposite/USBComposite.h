@@ -4,7 +4,6 @@
 #include <boards.h>
 #include "Stream.h"
 #include "usb_generic.h"
-//#include <libmaple/usb.h>
 
 #include <USBCompositeSerial.h>
 #include <USBHID.h>
