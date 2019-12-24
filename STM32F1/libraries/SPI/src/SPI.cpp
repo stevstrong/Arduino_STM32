@@ -160,6 +160,10 @@ static uint16_t ff = 0XFFFF;
 
 SPISettings _settings[BOARD_NR_SPI];
 
+/**
+* @brief Waits unti TXE (tx empy) flag set and BSY (busy) flag unset.
+*/
+#define waitSpiTxEnd(spi_d) { while (spi_is_tx_empty(spi_d) == 0); while (spi_is_busy(spi_d) != 0); }
 //-----------------------------------------------------------------------------
 //  This function will be called after the stream finished to transfer
 //  (read or write) the programmed number of data (bytes or words).
@@ -188,8 +192,7 @@ void spiEventCallback(uint32 spi_num)
 	// transfer complete. stop the DMA if not in circular mode
 	if (!(ccr&DMA_CCR_CIRC))
 	{
-		while (spi_is_tx_empty(crtSetting->spi_d) == 0); // "5. Wait until TXE=1 ..."
-		while (spi_is_busy(crtSetting->spi_d) != 0); // "... and then wait until BSY=0"
+		waitSpiTxEnd(crtSetting->spi_d); // Wait until TXE=1 and then wait until BSY=0"
 		//while (spi_is_rx_nonempty(crtSetting->spi_d));
 		spi_tx_dma_disable(crtSetting->spi_d);
 		spi_rx_dma_disable(crtSetting->spi_d);

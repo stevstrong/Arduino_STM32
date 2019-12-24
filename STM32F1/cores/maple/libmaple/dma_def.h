@@ -515,32 +515,6 @@ typedef enum dma_request_src {
 #define dma_is_channel_enabled dma_is_enabled
 
 #define DMA_CHANNEL_NREGS 5     /* accounts for reserved word */
-static inline dma_tube_reg_map* dma_tube_regs(dma_dev *dev, dma_tube tube) {
-    __IO uint32 *ccr1 = &dev->regs->CCR1;
-    return (dma_channel_reg_map*)(ccr1 + DMA_CHANNEL_NREGS * (tube - 1));
-}
-
-/**
- * @brief On STM32F1, dma_channel_regs() is an alias for dma_tube_regs().
- * This is for backwards compatibility. */
-#define dma_channel_regs(dev, ch) dma_tube_regs(dev, ch)
-
-static inline uint8 dma_is_enabled(dma_dev *dev, dma_tube tube) {
-    return (uint8)(dma_tube_regs(dev, tube)->CCR & DMA_CCR_EN);
-}
-
-static inline uint8 dma_get_isr_bits(dma_dev *dev, dma_tube tube) {
-    uint8 shift = (tube - 1) * 4;
-    return (dev->regs->ISR >> shift) & 0xF;
-}
-
-static inline void dma_clear_isr_bits(dma_dev *dev, dma_tube tube) {
-    dev->regs->IFCR = (1U << (4 * (tube - 1)));
-}
-
-static inline uint16 dma_get_count(dma_dev *dev, dma_tube tube) {
-    return dma_channel_regs(dev, tube)->CNDTR;
-}
 
 /**
  * @brief Deprecated

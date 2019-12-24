@@ -61,6 +61,10 @@ typedef void (*voidArgumentFuncPtr)(void *);
 #define __unused __attribute__((unused))
 #endif
 
+#ifndef __always_inline
+  #define __always_inline inline __attribute__((always_inline))
+#endif
+
 #ifndef NULL
 #define NULL 0
 #endif

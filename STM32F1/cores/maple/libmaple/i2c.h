@@ -79,7 +79,7 @@ extern "C" {
  * - Reg. map base pointers, device pointer declarations.
  */
 
-#include <series/i2c.h>
+#include "series/i2c.h"
 #include <libmaple/i2c_common.h>
 
 #include <libmaple/libmaple_types.h>

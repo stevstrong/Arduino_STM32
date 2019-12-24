@@ -42,7 +42,7 @@
  *
  * @see enableDebugPorts()
  */
-void disableDebugPorts(void);
+inline void disableDebugPorts() { afio_cfg_debug_ports(AFIO_DEBUG_NONE); }
 
 /**
  * @brief Enable the JTAG and Serial Wire (SW) debug ports.
@@ -52,6 +52,6 @@ void disableDebugPorts(void);
  *
  * @see disableDebugPorts()
  */
-void enableDebugPorts(void);
+inline void enableDebugPorts() { afio_cfg_debug_ports(AFIO_DEBUG_SW_ONLY); }
 
 #endif
