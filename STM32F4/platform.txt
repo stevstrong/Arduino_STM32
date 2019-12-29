@@ -28,7 +28,6 @@ compiler.size.cmd=arm-none-eabi-size
 compiler.define=-DARDUINO=
 
 # this can be overriden in boards.txt
-build.f_cpu=168000000L
 build.mcu=cortex-m4
 build.cpu_flags=
 build.hs_flag=

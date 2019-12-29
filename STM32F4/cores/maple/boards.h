@@ -103,6 +103,8 @@ extern bool boardUsesPin(uint8 pin);
 
 #if defined(VARIANT_discovery_f407)
 #include "discovery_f4.h"
+#elif defined(VARIANT_blackpill_f401)
+#include "blackpill_f401.h"
 #elif defined(VARIANT_disco_f411)
 #include "disco_f411.h"
 #elif defined(VARIANT_generic_f407v)
