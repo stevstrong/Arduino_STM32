@@ -40,19 +40,20 @@
 #include "string.h"
 #include "systick.h"
 
-static i2c_dev i2c_dev1 = {
+/** I2C1 device */
+i2c_dev i2c_dev1 = {
     .regs         = I2C1_BASE,
-    .sda_pin      = PB7,
+    .sda_pin      = PB7, // PB8
     .scl_pin      = PB6,
     .clk_id       = RCC_I2C1,
     .ev_nvic_line = NVIC_I2C1_EV,
     .er_nvic_line = NVIC_I2C1_ER,
     .state        = I2C_STATE_DISABLED
 };
-/** I2C1 device */
-i2c_dev* const I2C1 = &i2c_dev1;
 
-static i2c_dev i2c_dev2 = {
+#ifdef PB11
+/** I2C2 device */
+i2c_dev i2c_dev2 = {
     .regs         = I2C2_BASE,
     .sda_pin      = PB11,
     .scl_pin      = PB10,
@@ -61,8 +62,7 @@ static i2c_dev i2c_dev2 = {
     .er_nvic_line = NVIC_I2C2_ER,
     .state        = I2C_STATE_DISABLED
 };
-/** I2C2 device */
-i2c_dev* const I2C2 = &i2c_dev2;
+#endif
 
 static inline int32 wait_for_state_change(i2c_dev *dev,
                                           i2c_state state,
@@ -507,11 +507,11 @@ static void i2c_irq_handler(i2c_dev *dev) {
 void __irq_i2c1_ev(void) {
    i2c_irq_handler(&i2c_dev1);
 }
-
+#ifdef PB11
 void __irq_i2c2_ev(void) {
    i2c_irq_handler(&i2c_dev2);
 }
-
+#endif
 /**
  * @brief Interrupt handler for I2C error conditions
  * @param dev I2C device
@@ -536,11 +536,11 @@ static void i2c_irq_error_handler(i2c_dev *dev) {
 void __irq_i2c1_er(void) {
     i2c_irq_error_handler(&i2c_dev1);
 }
-
+#ifdef PB11
 void __irq_i2c2_er(void) {
     i2c_irq_error_handler(&i2c_dev2);
 }
-
+#endif
 /*
  * CCR/TRISE configuration helper
  */
