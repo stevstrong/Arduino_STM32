@@ -28,9 +28,10 @@
 #define _WIRISH_ARDUINO_H_
 
 
-#include "WProgram.h"
+#include "wirish.h"
 
-
+void setup();
+void loop();
 #ifdef __cplusplus
 extern "C"{
 #endif // __cplusplus

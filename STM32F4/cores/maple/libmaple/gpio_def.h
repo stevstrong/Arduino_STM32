@@ -55,7 +55,7 @@ typedef struct gpio_reg_map {
     __IO uint32 ODR;      /*!< GPIO port output data register,        Address offset: 0x14      */
     __IO uint32 BSRR;     /*!< GPIO port bit set/reset register,      Address offset: 0x18      */
     __IO uint32 LCKR;     /*!< GPIO port configuration lock register, Address offset: 0x1C      */
-    __IO uint32 AFR[2];   /*!< GPIO alternate function registers,     Address offset: 0x20-0x24 */
+    __IO uint32 AFR[2];   /*!< GPIO alternate function registers,     Address offset: 0x24-0x28 */
 } gpio_reg_map;
 
 
