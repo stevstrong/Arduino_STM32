@@ -65,6 +65,7 @@ public:
     uint32 pending(void);
     virtual int read(void);
     virtual size_t write(unsigned char);
+    virtual size_t write(const uint8 * dataptr, uint32 len) { return usart_tx(usart_device, dataptr, len); }
     using Print::write;
 
     /* Pin accessors */
