@@ -37,10 +37,14 @@
 extern "C" {
 #endif
 
+#include <sys/cdefs.h>
+#include <inttypes.h>
+
 typedef unsigned char uint8;
 typedef unsigned short uint16;
 typedef unsigned int uint32;
 typedef unsigned long long uint64;
+
 
 typedef signed char int8;
 typedef short int16;
@@ -63,6 +67,7 @@ typedef void (*voidArgumentFuncPtr)(void *);
 #endif
 
 #ifndef offsetof
+#define __builtin_offsetof(type, member) __offsetof(type, member)
 #define offsetof(type, member) __builtin_offsetof(type, member)
 #endif
 
