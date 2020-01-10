@@ -80,11 +80,23 @@ extern "C"{
  *   definitions, dma_dev pointer declarations, and any other
  *   convenience functions useful for the series. */
 
-#include "series/dma.h"
+#include "dma_def.h"
 
 /* <libmaple/dma_common.h> buys us dma_dev and other necessities. */
 #include <libmaple/dma_common.h>
 #include <libmaple/libmaple_types.h>
+
+/*
+ * Conveniences for dealing with tube sources/destinations
+ */
+
+enum dma_atype {
+    DMA_ATYPE_MEM,
+    DMA_ATYPE_PER,
+    DMA_ATYPE_OTHER,
+};
+
+enum dma_atype _dma_addr_type(__IO void *addr);
 
 /*
  * Declarations/documentation for some of the series-provided types.
@@ -356,14 +368,6 @@ extern void dma_enable(dma_dev *dev, dma_tube tube);
  */
 extern void dma_disable(dma_dev *dev, dma_tube tube);
 
-/**
- * @brief Check if a DMA tube is enabled.
- * @param dev DMA device.
- * @param tube Tube to check.
- * @return 0 if the tube is disabled, >0 if it is enabled.
- */
-static inline uint8 dma_is_enabled(dma_dev *dev, dma_tube tube);
-
 /* Other conveniences */
 
 /**
@@ -377,7 +381,29 @@ static inline uint8 dma_is_enabled(dma_dev *dev, dma_tube tube);
  * @param tube DMA tube whose register map to obtain.
  * @return (Series-specific) tube register map.
  */
-static inline dma_tube_reg_map* dma_tube_regs(dma_dev *dev, dma_tube tube);
+inline dma_tube_reg_map* dma_tube_regs(dma_dev *dev, dma_tube tube) {
+    __IO uint32 *ccr1 = &dev->regs->CCR1;
+    return (dma_channel_reg_map*)(ccr1 + DMA_CHANNEL_NREGS * (tube - 1));
+}
+
+/**
+ * @brief Check if a DMA tube is enabled.
+ * @param dev DMA device.
+ * @param tube Tube to check.
+ * @return 0 if the tube is disabled, >0 if it is enabled.
+ */
+inline uint8 dma_is_enabled(dma_dev *dev, dma_tube tube) {
+    return (uint8)(dma_tube_regs(dev, tube)->CCR & DMA_CCR_EN);
+}
+
+/**
+ * @brief On STM32F1, dma_channel_regs() is an alias for dma_tube_regs().
+ * This is for backwards compatibility. */
+#define dma_channel_regs(dev, ch) dma_tube_regs(dev, ch)
+
+inline uint16 dma_get_count(dma_dev *dev, dma_tube tube) {
+    return dma_channel_regs(dev, tube)->CNDTR;
+}
 
 /**
  * Encodes the reason why a DMA interrupt was called.
@@ -425,7 +451,10 @@ extern dma_irq_cause dma_get_irq_cause(dma_dev *dev, dma_tube tube);
  * @param tube Tube whose ISR bits to return.
  * @see dma_get_irq_cause().
  */
-static inline uint8 dma_get_isr_bits(dma_dev *dev, dma_tube tube);
+inline uint8 dma_get_isr_bits(dma_dev *dev, dma_tube tube) {
+    uint8 shift = (tube - 1) * 4;
+    return (dev->regs->ISR >> shift) & 0xF;
+}
 
 /**
  * @brief Clear the ISR status bits for a given DMA tube.
@@ -437,7 +466,7 @@ static inline uint8 dma_get_isr_bits(dma_dev *dev, dma_tube tube);
  * @param tube Tube whose ISR bits to clear.
  * @see dma_get_irq_cause()
  */
-static inline void dma_clear_isr_bits(dma_dev *dev, dma_tube tube);
+inline void dma_clear_isr_bits(dma_dev *dev, dma_tube tube) { dev->regs->IFCR = (1U << (4 * (tube - 1))); }
 
 #ifdef __cplusplus
 } // extern "C"

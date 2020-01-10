@@ -32,7 +32,7 @@
 #include "fsmc.h"
 #include "gpio.h"
 
-#ifdef VARIANT_generic_f407v // pins not yet defined for disco F407
+#ifdef FSMC_D0
 
 /**
  * Configure FSMC GPIOs for use with LCDs.

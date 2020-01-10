@@ -65,6 +65,7 @@ public:
     uint32 pending(void);
     virtual int read(void);
     virtual size_t write(unsigned char);
+    virtual size_t write(const uint8 * dataptr, uint32 len) { return usart_tx(usart_device, dataptr, len); }
     using Print::write;
 
     /* Pin accessors */
@@ -78,9 +79,13 @@ private:
 
 extern HardwareSerial Serial1;
 extern HardwareSerial Serial2;
-#if !defined(BOARD_maple_RET6)
+#ifdef BOARD_USART3_TX_PIN
 extern HardwareSerial Serial3;
+#endif
+#ifdef BOARD_UART4_TX_PIN
 extern HardwareSerial Serial4;
+#endif
+#ifdef BOARD_UART5_TX_PIN
 extern HardwareSerial Serial5;
 #endif
 extern HardwareSerial Serial6;

@@ -1,23 +1,13 @@
 #include <string.h>
 
-#include "usb_generic.h"
 #include "usb_mass.h"
 #include "usb_scsi.h"
 #include "usb_mass_internal.h"
 
-#include <libmaple/usb.h>
 #include <libmaple/nvic.h>
 #include <libmaple/delay.h>
 
-/* Private headers */
-#include "usb_lib_globals.h"
-#include "usb_reg_map.h"
-#include "usb_regs.h"
-
-/* usb_lib headers */
-#include "usb_type.h"
-#include "usb_core.h"
-#include "usb_def.h"
+#include <libmaple/usb/usb_regs.h>
 
 static void usb_mass_bot_cbw_decode();
 

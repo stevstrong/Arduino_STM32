@@ -558,7 +558,9 @@ typedef enum rcc_clk_id {
 //  RCC_SRAM1,
 //  RCC_SRAM2,
 //  RCC_BKPSRAM,
+#ifdef __CCMRAM__
     RCC_CCMRAM,
+#endif
     RCC_DMA1,
     RCC_DMA2,
     RCC_ETHMAC,
@@ -589,6 +591,8 @@ typedef enum rcc_clk_id {
     RCC_SPI1,
     RCC_SPI2,
     RCC_SPI3,
+    RCC_SPI4,
+    RCC_SPI5,
 
     RCC_USART1,
     RCC_USART2,
@@ -619,9 +623,6 @@ void rcc_reset_dev(rcc_clk_id device);
 
 extern uint32_t SystemCoreClock;          // System Clock Frequency (Core Clock)
 
-void SetupClock72MHz();
-void SetupClock120MHz();
-void SetupClock168MHz();
 
 typedef enum rcc_clk_domain {
     RCC_APB1,

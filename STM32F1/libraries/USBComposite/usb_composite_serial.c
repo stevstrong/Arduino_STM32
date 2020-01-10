@@ -34,26 +34,15 @@
  */
 
 #include "usb_composite_serial.h"
-#include "usb_generic.h"
 #include <string.h>
-#include <libmaple/usb.h>
 #include <libmaple/nvic.h>
 #include <libmaple/delay.h>
-
-/* Private headers */
-#include "usb_lib_globals.h"
-#include "usb_reg_map.h"
 
 #define CDCACM_ENDPOINT_TX         0
 #define CDCACM_ENDPOINT_MANAGEMENT 1
 #define CDCACM_ENDPOINT_RX         2
 
 uint16 GetEPTxAddr(uint8 /*bEpNum*/);
-
-/* usb_lib headers */
-#include "usb_type.h"
-#include "usb_core.h"
-#include "usb_def.h"
 
 static void serialUSBReset(void);
 static RESULT serialUSBDataSetup(uint8 request);

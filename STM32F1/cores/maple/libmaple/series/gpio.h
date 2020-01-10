@@ -405,7 +405,7 @@ typedef enum afio_debug_cfg {
  * @param config Desired debug port configuration
  * @see afio_debug_cfg
  */
-static inline void afio_cfg_debug_ports(afio_debug_cfg config) {
+inline void afio_cfg_debug_ports(afio_debug_cfg config) {
     __IO uint32 *mapr = &AFIO_BASE->MAPR;
     *mapr = (*mapr & ~AFIO_MAPR_SWJ_CFG) | config;
 }
@@ -486,9 +486,7 @@ typedef exti_num afio_exti_num;
 /**
  * @brief Deprecated. Use exti_select(exti, port) instead.
  */
-static inline void afio_exti_select(exti_num exti, exti_cfg port) {
-    exti_select(exti, port);
-}
+inline void afio_exti_select(exti_num exti, exti_cfg port) { exti_select((exti), (port)); }
 
 #ifdef __cplusplus
 }

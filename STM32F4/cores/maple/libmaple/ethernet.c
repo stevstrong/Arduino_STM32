@@ -8,7 +8,7 @@
  extern "C" {
 #endif // __cplusplus
 
-#ifdef VARIANT_arch_max
+#ifdef ETH_TX_D0
 
 // RMII interface IO pins
 const uint8_t eth_pins[] = {

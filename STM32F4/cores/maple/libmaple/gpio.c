@@ -138,10 +138,10 @@ void gpio_set_mode(uint8_t io_pin, gpio_pin_mode mode) {
     gpio_reg_map *regs = digitalPinToPort(io_pin)->regs;
     uint8_t pin = io_pin&0x0f;
 
-    regs->MODER      = (regs->MODER      & ~( 3 << (pin<<1)))     | (((mode >> 0) & 3)  << (pin<<1));
-    regs->PUPDR      = (regs->PUPDR      & ~( 3 << (pin<<1)))     | (((mode >> 2) & 3)  << (pin<<1));
-    regs->OSPEEDR    = (regs->OSPEEDR    & ~( 3 << (pin<<1)))     | (((mode >> 4) & 3)  << (pin<<1));
-    regs->OTYPER     = (regs->OTYPER     & ~( 1 << (pin<<0)))     | (((mode >> 6) & 1)  << (pin<<0));
+    regs->MODER      = (regs->MODER   & ~( 3 << (pin<<1)))  |  (((mode >> 0) & 3)  << (pin<<1));
+    regs->PUPDR      = (regs->PUPDR   & ~( 3 << (pin<<1)))  |  (((mode >> 2) & 3)  << (pin<<1));
+    regs->OSPEEDR    = (regs->OSPEEDR & ~( 3 << (pin<<1)))  |  (((mode >> 4) & 3)  << (pin<<1));
+    regs->OTYPER     = (regs->OTYPER  & ~( 1 << (pin<<0)))  |  (((mode >> 6) & 1)  << (pin<<0));
 }
 
 /**

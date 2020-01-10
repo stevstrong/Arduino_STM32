@@ -7,7 +7,7 @@
 #include "gpio.h"
 
 
-#ifdef VARIANT_generic_f407v // pins not yet defined for disco F407
+#ifdef DCMI_D0 // pins not yet defined for disco F407
 
 
 voidFuncPtr dcmi_irq_handler = NULL;

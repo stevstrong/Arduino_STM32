@@ -35,18 +35,9 @@
 
 #include <string.h>
 
-#include <libmaple/usb.h>
 #include <libmaple/nvic.h>
 #include <libmaple/delay.h>
 
-/* Private headers */
-#include "usb_lib_globals.h"
-#include "usb_reg_map.h"
-
-/* usb_lib headers */
-#include "usb_type.h"
-#include "usb_core.h"
-#include "usb_def.h"
 
 typedef enum _HID_REQUESTS
 {

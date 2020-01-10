@@ -122,6 +122,7 @@ static void setupADC()
 
 static void timerDefaultConfig(const timer_dev *dev)
 {
+return;
     timer_adv_reg_map *regs = (dev->regs).adv;
     const uint16 full_overflow = 0xFFFF;
     const uint16 half_duty = 0x8FFF;

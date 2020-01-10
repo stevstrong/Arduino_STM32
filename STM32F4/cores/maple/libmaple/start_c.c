@@ -53,7 +53,6 @@ extern void exit(int) __attribute__((noreturn, weak));
 /* The linker must ensure that these are at least 4-byte aligned. */
 extern char __data_start__, __data_end__;
 extern char __bss_start__, __bss_end__;
-extern char __ccmdata_start__, __ccmdata_end__;
 
 struct rom_img_cfg {
     int *img_start;
@@ -75,7 +74,8 @@ void __attribute__((noreturn)) start_c(void) {
             *dst++ = *src++;
         }
     }
-    
+#ifdef __CCMRAM__
+extern char __ccmdata_start__, __ccmdata_end__;
     /* Initialize .ccm, if necessary. */    
     src = img_cfg->ccmimg_start;
     dst = (int*)&__ccmdata_start__;
@@ -84,7 +84,7 @@ void __attribute__((noreturn)) start_c(void) {
             *dst++ = *src++;
         }
     }
-
+#endif
     /* Zero .bss. */
     dst = (int*)&__bss_start__;
     while (dst < (int*)&__bss_end__) {

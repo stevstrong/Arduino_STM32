@@ -32,11 +32,14 @@
 #ifndef _BKP_H_
 #define _BKP_H_
 
-#include "libmaple.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+#include "libmaple.h"
+#include "pwr.h"
+#include "rcc.h"
 
 
 #define NR_LOW_DRS 10
@@ -143,9 +146,36 @@ typedef struct bkp_reg_map {
  * Convenience functions
  */
 
-void bkp_init(void);
-void bkp_enable_writes(void);
-void bkp_disable_writes(void);
+/**
+ * @brief Initialize backup interface.
+ *
+ * Enables the power and backup interface clocks, and resets the
+ * backup device.
+ */
+__always_inline void bkp_init(void) {
+    /* Don't call pwr_init(), or you'll reset the device.
+	 * We just need the clock. */
+    rcc_clk_enable(RCC_PWR);
+    //rcc_clk_enable(RCC_BKP);
+    //rcc_reset_dev(RCC_BKP);
+}
+
+/**
+ * Enable write access to the backup registers.  Backup interface must
+ * be initialized for subsequent register writes to work.
+ * @see bkp_init()
+ */
+__always_inline void bkp_enable_writes(void) {
+    *bb_perip(&PWR->CR, PWR_CR_DBP_BIT) = 1;
+}
+
+/**
+ * Disable write access to the backup registers.
+ */
+__always_inline void bkp_disable_writes(void) {
+    *bb_perip(&PWR->CR, PWR_CR_DBP_BIT) = 0;
+}
+
 uint16 bkp_read(uint8 reg);
 void bkp_write(uint8 reg, uint16 val);
 

@@ -1,11 +1,11 @@
 #ifndef UTIL_ADC_H
 #define UTIL_ADC_H
 
-#include <libmaple/adc.h>
-
 #ifdef __cplusplus
-extern "C"{
+extern "C" {
 #endif
+
+#include <libmaple/adc.h>
 
 void start_single_convert(adc_dev* dev, uint8 channel);
 

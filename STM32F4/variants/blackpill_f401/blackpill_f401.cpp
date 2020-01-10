@@ -1,7 +1,7 @@
 /******************************************************************************
  * The MIT License
  *
- * Copyright (c) 2012 LeafLabs, LLC.
+ * Copyright (c) 2011 LeafLabs, LLC.
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -22,41 +22,39 @@
  * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
-*****************************************************************************/
+ *****************************************************************************/
 
-#ifndef _LIBMAPLE_DMA_PRIVATE_H_
-#define _LIBMAPLE_DMA_PRIVATE_H_
+/**
+ * @file   blackpill_f401.cpp
+ * @author stevestrong
+ * @brief  blackpill_f401 board file.
+ */
 
-#include <libmaple/dma.h>
+#include "blackpill_f401.h"
+
+#include <libmaple/gpio.h>
+#include <libmaple/rcc.h>
+
 #include <libmaple/libmaple_types.h>
 
-/*
- * IRQ handling
- */
 
-/* Wrap this in an ifdef to shut up GCC. (We provide DMA_GET_HANDLER
- * in the series support files, which need dma_irq_handler().) */
-#ifdef DMA_GET_HANDLER
-static inline __always_inline void dma_irq_handler(dma_dev *dev, dma_tube tube) {
-
-    void (*handler)(void) = DMA_GET_HANDLER(dev, tube);
-    if (handler) {
-        handler();
-	    dma_clear_isr_bits(dev, tube); /* in case handler doesn't */
-    }
+void boardInit(void)
+{
 }
-#endif
 
-/*
- * Conveniences for dealing with tube sources/destinations
- */
 
-enum dma_atype {
-    DMA_ATYPE_MEM,
-    DMA_ATYPE_PER,
-    DMA_ATYPE_OTHER,
-};
+//extern const uint8 boardPWMPins[BOARD_NR_PWM_PINS] __FLASH__ = {
+//    0, 1, 2, 3, 15, 16, 17, 19, 20, 21, 38, 39, 49, 41, 60, 61, 62, 63, 73, 75, 77, 78
+//};
+//
+//extern const uint8 boardADCPins[BOARD_NR_ADC_PINS] __FLASH__ = {
+//    0, 1, 2, 3, 4, 5, 6, 7, 16, 17, 32, 33, 34, 35, 36, 37
+//};
+//
+//extern const uint8 boardUsedPins[BOARD_NR_USED_PINS] __FLASH__ = {
+//    BOARD_LED_PIN, BOARD_BUTTON_PIN, BOARD_JTMS_SWDIO_PIN,
+//    BOARD_JTCK_SWCLK_PIN, BOARD_JTDI_PIN, BOARD_JTDO_PIN, BOARD_NJTRST_PIN,
+//    56, 58, 59, 61, 62, 64, 65, 67, 68, 70, 71, 73, 74, 76, 77, 78, 79, 81,
+//    82, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100
+//};
 
-enum dma_atype _dma_addr_type(__IO void *addr);
-
-#endif

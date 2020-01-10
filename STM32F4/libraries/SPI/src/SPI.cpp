@@ -45,16 +45,8 @@
 #define PRINTF(...)
 //#define PRINTF(...) Serial.print(__VA_ARGS__)
 
-#define SPI1_ALTERNATE_CONFIG 1 // use alternate SPI1 on SPI3 pins
+//#define SPI1_ALTERNATE_CONFIG 1 // use alternate SPI1 on SPI3 pins
 
-#if CYCLES_PER_MICROSECOND != 168
-/* TODO [0.2.0?] something smarter than this */
-#warning "Unexpected clock speed; SPI frequency calculation will be incorrect"
-#endif
-
-#if (BOARD_NR_SPI > 3)
-#error "The SPI library is misconfigured: 3 SPI ports only available on foundation line STM32F4 devices"
-#endif
 
 static const spi_pins_t board_spi_pins[BOARD_NR_SPI] __FLASH__ =
 {
@@ -70,6 +62,18 @@ static const spi_pins_t board_spi_pins[BOARD_NR_SPI] __FLASH__ =
      BOARD_SPI3_SCK_PIN,
      BOARD_SPI3_MISO_PIN,
      BOARD_SPI3_MOSI_PIN},
+#if (BOARD_NR_SPI>3)
+    {BOARD_SPI4_NSS_PIN,
+     BOARD_SPI4_SCK_PIN,
+     BOARD_SPI4_MISO_PIN,
+     BOARD_SPI4_MOSI_PIN},
+#endif
+#if (BOARD_NR_SPI>4)
+    {BOARD_SPI5_NSS_PIN,
+     BOARD_SPI5_SCK_PIN,
+     BOARD_SPI5_MISO_PIN,
+     BOARD_SPI5_MOSI_PIN},
+#endif
 };
 #if defined(BOARD_SPI1A_NSS_PIN) && defined(BOARD_SPI2A_NSS_PIN) && defined(BOARD_SPI3A_NSS_PIN)
 #define SPI_ALT_PINS 1
@@ -93,17 +97,14 @@ static const spi_pins_t board_spi_alt_pins[BOARD_NR_SPI] __FLASH__ =
 #endif
 
 //-----------------------------------------------------------------------------
+static uint16_t ff = 0XFFFF;
+
+SPISettings _settings[BOARD_NR_SPI];
+SPISettings *_currentSetting;
+int spi_port;
+//-----------------------------------------------------------------------------
 //  Auxiliary functions
 //-----------------------------------------------------------------------------
-static const spi_pins_t * dev_to_spi_pins(spi_dev *dev)
-{
-	uint8_t dev_nr = (dev->clk_id==RCC_SPI3) ? 2 : ((dev->clk_id==RCC_SPI2) ? 1 : 0);
-#if SPI_ALT_PINS
- 	return (_settings[dev_nr].pin_set) ? &board_spi_alt_pins[dev_nr] : &board_spi_pins[dev_nr];
-#else
- 	return &board_spi_pins[dev_nr];
-#endif
-}
 
 static void disable_pwm(uint8_t pin)
 {
@@ -114,16 +115,15 @@ static void disable_pwm(uint8_t pin)
     }
 }
 
-static void configure_gpios(spi_dev *dev, bool as_master)
+static void configure_gpios(bool as_master)
 {
-    const spi_pins_t *pins = dev_to_spi_pins(dev);
-
+	const spi_pins_t *pins = _currentSetting->pins;
     disable_pwm(pins->nss);
     disable_pwm(pins->sck);
     disable_pwm(pins->miso);
     disable_pwm(pins->mosi);
 
-    spi_config_gpios(dev, as_master, pins);
+    spi_config_gpios(_currentSetting->spi_d, as_master, pins);
 }
 
 static const spi_baud_rate baud_rates[8] __FLASH__ =
@@ -140,7 +140,7 @@ static const spi_baud_rate baud_rates[8] __FLASH__ =
 
 //-----------------------------------------------------------------------------
 //  Note: This assumes you're on a LeafLabs-style board
-//  (CYCLES_PER_MICROSECOND == 168, APB2 at 84MHz, APB1 at 42MHz).
+//  APB2 = CYCLES_PER_MICROSECOND/2 [MHz], APB1 = APB2/2.
 //-----------------------------------------------------------------------------
 static spi_baud_rate determine_baud_rate(spi_dev *dev, uint32_t freq)
 {
@@ -160,11 +160,6 @@ static spi_baud_rate determine_baud_rate(spi_dev *dev, uint32_t freq)
     }
     return baud_rates[i];
 }
-
-//-----------------------------------------------------------------------------
-static uint16_t ff = 0XFFFF;
-
-SPISettings _settings[BOARD_NR_SPI];
 
 //-----------------------------------------------------------------------------
 //  This function will be called after the stream finished to transfer
@@ -220,14 +215,15 @@ void _spi2EventCallback(void) { spiEventCallback(1); }
 
 void _spi3EventCallback(void) { spiEventCallback(2); }
 
+void _spi4EventCallback(void) { spiEventCallback(3); }
+
+void _spi5EventCallback(void) { spiEventCallback(4); }
+
 //-----------------------------------------------------------------------------
 void SPIClass::setModule(int spi_num, uint8_t alt_pins)
 {
-	spi_num --; // SPI channels are called 1 2 and 3 but the array is zero indexed
-#if SPI_ALT_PINS
-	_settings[spi_num].pin_set = alt_pins; // alternate pins selection possible
-#endif
-	_currentSetting = &_settings[spi_num];
+	spi_port = spi_num - 1; // SPI channels are called 1 2 and 3 but the array is zero indexed
+	_currentSetting = &_settings[spi_port];
 }
 
 //-----------------------------------------------------------------------------
@@ -251,31 +247,53 @@ SPIClass::SPIClass(uint32 spi_num)
 	{
 		_settings[0].spi_d = SPI1;
 		_settings[0].spiDmaDev = DMA2;
+		_settings[0].pins = &board_spi_pins[0];
 		_settings[0].dmaIsr = _spi1EventCallback;
 		_settings[0].clockDivider = determine_baud_rate(_settings[0].spi_d, _settings[0].clock);
 		_settings[0].spiDmaChannel = DMA_CH3;
 		_settings[0].spiRxDmaStream  = DMA_STREAM0; // alternative: DMA_STREAM2
 		_settings[0].spiTxDmaStream  = DMA_STREAM3; // alternative: DMA_STREAM5
 		_settings[0].state = SPI_STATE_IDLE;
-		_settings[0].pin_set = 0;
 		_settings[1].spi_d = SPI2;
 		_settings[1].spiDmaDev = DMA1;
+		_settings[1].pins = &board_spi_pins[1];
 		_settings[1].dmaIsr = _spi2EventCallback;
 		_settings[1].clockDivider = determine_baud_rate(_settings[1].spi_d, _settings[1].clock);
 		_settings[1].spiDmaChannel = DMA_CH0;
 		_settings[1].spiRxDmaStream  = DMA_STREAM3; // alternative: -
 		_settings[1].spiTxDmaStream  = DMA_STREAM4; // alternative: -
 		_settings[1].state = SPI_STATE_IDLE;
-		_settings[1].pin_set = 0;
 		_settings[2].spi_d = SPI3;
 		_settings[2].spiDmaDev = DMA1;
+		_settings[2].pins = &board_spi_pins[2];
 		_settings[2].dmaIsr = _spi3EventCallback;
 		_settings[2].clockDivider = determine_baud_rate(_settings[2].spi_d, _settings[2].clock);
 		_settings[2].spiDmaChannel = DMA_CH0;
 		_settings[2].spiRxDmaStream  = DMA_STREAM0; // alternative: DMA_STREAM2
 		_settings[2].spiTxDmaStream  = DMA_STREAM5; // alternative: DMA_STREAM7
 		_settings[2].state = SPI_STATE_IDLE;
-		_settings[2].pin_set = 0;
+#if (BOARD_NR_SPI>3)
+		_settings[3].spi_d = SPI4;
+		_settings[3].spiDmaDev = DMA2;
+		_settings[3].pins = &board_spi_pins[3];
+		_settings[3].dmaIsr = _spi4EventCallback;
+		_settings[3].clockDivider = determine_baud_rate(_settings[3].spi_d, _settings[3].clock);
+		_settings[3].spiDmaChannel = DMA_CH4;
+		_settings[3].spiRxDmaStream  = DMA_STREAM0; // alternative: DMA_STREAM4
+		_settings[3].spiTxDmaStream  = DMA_STREAM1; // alternative: DMA_STREAM4, DMA_CH5
+		_settings[3].state = SPI_STATE_IDLE;
+#endif
+#if (BOARD_NR_SPI>4)
+		_settings[4].spi_d = SPI5;
+		_settings[4].spiDmaDev = DMA2;
+		_settings[4].pins = &board_spi_pins[4];
+		_settings[4].dmaIsr = _spi5EventCallback;
+		_settings[4].clockDivider = determine_baud_rate(_settings[4].spi_d, _settings[4].clock);
+		_settings[4].spiDmaChannel = DMA_CH2;
+		_settings[4].spiRxDmaStream  = DMA_STREAM3; // alternative: CH7 & STREAM5
+		_settings[4].spiTxDmaStream  = DMA_STREAM4; // alternative: CH5 & STREAM5
+		_settings[4].state = SPI_STATE_IDLE;
+#endif
 	}
 }
 
@@ -291,7 +309,7 @@ void SPIClass::begin(void)
 {
     PRINTF("<b-");
     spi_init(_currentSetting->spi_d);
-    configure_gpios(_currentSetting->spi_d, 1);
+    configure_gpios(1);
     updateSettings();
     // added for DMA callbacks.
     _currentSetting->state = SPI_STATE_READY;
@@ -312,7 +330,7 @@ void SPIClass::beginSlave(void)
 {
     PRINTF("<bS-");
     spi_init(_currentSetting->spi_d);
-    configure_gpios(_currentSetting->spi_d, 0);
+    configure_gpios(0);
     uint32 flags = ((_currentSetting->bitOrder == MSBFIRST ? SPI_FRAME_MSB : SPI_FRAME_LSB) | _currentSetting->dataSize);
     spi_slave_enable(_currentSetting->spi_d, (spi_mode)_currentSetting->dataMode, flags);
     // added for DMA callbacks.
@@ -457,6 +475,7 @@ uint16 SPIClass::read(void)
 //-----------------------------------------------------------------------------
 void SPIClass::write(const uint16 data)
 {
+	//Serial.write('.');
     spi_tx_reg(_currentSetting->spi_d, data); // write the data to be transmitted into the SPI_DR register (this clears the TXE flag)
     while (spi_is_tx_empty(_currentSetting->spi_d) == 0); // "5. Wait until TXE=1 ..."
     while (spi_is_busy(_currentSetting->spi_d) != 0); // "... and then wait until BSY=0 before disabling the SPI." 
@@ -877,19 +896,19 @@ void SPIClass::detachInterrupt(void) {
  */
 
 uint8 SPIClass::misoPin(void) {
-    return dev_to_spi_pins(_currentSetting->spi_d)->miso;
+    return (_currentSetting->pins)->miso;
 }
 
 uint8 SPIClass::mosiPin(void) {
-    return dev_to_spi_pins(_currentSetting->spi_d)->mosi;
+    return (_currentSetting->pins)->mosi;
 }
 
 uint8 SPIClass::sckPin(void) {
-    return dev_to_spi_pins(_currentSetting->spi_d)->sck;
+    return (_currentSetting->pins)->sck;
 }
 
 uint8 SPIClass::nssPin(void) {
-    return dev_to_spi_pins(_currentSetting->spi_d)->nss;
+    return (_currentSetting->pins)->nss;
 }
 
 /*

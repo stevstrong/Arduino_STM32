@@ -32,12 +32,11 @@
  * @brief STM32F1 DMA support.
  */
 
-#include <libmaple/dma.h>
-#include <libmaple/bitband.h>
+#include "dma.h"
+#include "bitband.h"
 
 /* Hack to ensure inlining in dma_irq_handler() */
 #define DMA_GET_HANDLER(dev, tube) (dev->handlers[tube - 1].handler)
-#include "dma_private.h"
 
 /*
  * Devices
@@ -347,6 +346,14 @@ void dma_setup_transfer(dma_dev       *dev,
 /*
  * IRQ handlers
  */
+__always_inline void dma_irq_handler(dma_dev *dev, dma_tube tube)
+{
+    void (*handler)(void) = DMA_GET_HANDLER(dev, tube);
+    if (handler) {
+        handler();
+	    dma_clear_isr_bits(dev, tube); /* in case handler doesn't */
+    }
+}
 
 __weak void __irq_dma1_channel1(void) {
     dma_irq_handler(DMA1, DMA_CH1);

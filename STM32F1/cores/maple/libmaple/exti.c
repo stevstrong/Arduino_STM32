@@ -35,14 +35,12 @@
 #include <libmaple/nvic.h>
 #include <libmaple/bitband.h>
 
-static inline void dispatch_single_exti(uint32 exti_num);
-static inline void dispatch_extis(uint32 start, uint32 stop);
 
 /*
  * Internal state
  */
 
-static voidFuncPtr exti_handlers[16] = { NULL };
+voidFuncPtr exti_handlers[16] = { NULL };
 
 
 /*
@@ -161,9 +159,11 @@ void exti_do_select(__IO uint32 *exti_cr, exti_num num, exti_cfg port) {
     *exti_cr = cr;
 }
 
+
 /*
  * Auxiliary functions
  */
+
 
 /* Clear the pending bits for EXTIs whose bits are set in exti_msk.
  *
@@ -171,7 +171,7 @@ void exti_do_select(__IO uint32 *exti_cr, exti_num num, exti_cfg port) {
  * won't actually be cleared in time and the ISR will fire again.  To
  * compensate, this function NOPs for 2 cycles after clearing the
  * pending bits to ensure it takes effect. */
-static inline __always_inline void clear_pending_msk(uint32 exti_msk) {
+__always_inline void clear_pending_msk(uint32 exti_msk) {
     EXTI_BASE->PR = exti_msk;
     asm volatile("nop");
     asm volatile("nop");
@@ -179,7 +179,7 @@ static inline __always_inline void clear_pending_msk(uint32 exti_msk) {
 
 /* This dispatch routine is for non-multiplexed EXTI lines only; i.e.,
  * it doesn't check EXTI_PR. */
-static inline __always_inline void dispatch_single_exti(uint32 exti)
+__always_inline void dispatch_single_exti(uint32 exti)
 {
     voidFuncPtr handler = exti_handlers[exti];
     if (handler)
@@ -188,7 +188,7 @@ static inline __always_inline void dispatch_single_exti(uint32 exti)
 }
 
 /* Dispatch routine for EXTIs which share an IRQ. */
-static inline __always_inline void dispatch_extis(uint32 start, uint32 stop) {
+__always_inline void dispatch_extis(uint32 start, uint32 stop) {
     uint32 pr = EXTI_BASE->PR;
     uint32 handled_msk = 0;
     uint32 exti;

@@ -94,8 +94,12 @@ typedef struct i2c_dev {
  * Devices
  */
 
-extern i2c_dev* const I2C1;
-extern i2c_dev* const I2C2;
+extern i2c_dev i2c_dev1;
+#define I2C1 (&i2c_dev1)
+#ifdef PB11
+extern i2c_dev i2c_dev2;
+#define I2C2 (&i2c_dev2)
+#endif
 
 /*
  * Register map base pointers

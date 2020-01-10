@@ -34,8 +34,6 @@
 #ifndef _USB_SERIAL_H_
 #define _USB_SERIAL_H_
 
-#include <libmaple/libmaple_types.h>
-#include <libmaple/usb.h>
 #include "usb_generic.h"
 
 #ifdef __cplusplus
@@ -148,7 +146,7 @@ int composite_cdcacm_get_n_data_bits(void); /* bDataBits */
 
 void composite_cdcacm_set_hooks(unsigned hook_flags, void (*hook)(unsigned, void*));
 
-#define composite_cdcacm_remove_hooks(hook_flags) composite_cdcacm_remove_hooks(hook_flags, 0)
+#define composite_cdcacm_remove_hooks(hook_flags) composite_cdcacm_set_hooks(hook_flags, 0)
 
 #ifdef __cplusplus
 }

@@ -78,6 +78,12 @@ public:
     virtual void begin(uint8 = 0x00);
 
     /*
+     * Deinitialises the class interface
+     */
+     // Allow derived classes to overwrite end function
+    virtual void end();
+
+    /*
      * Sets up the transmission message to be processed
      */
     void beginTransmission(uint8);
@@ -98,12 +104,13 @@ public:
      * Request bytes from a slave device and process the request,
      * storing into the receiving buffer.
      */
-    uint8 requestFrom(uint8, int);
+    uint8 requestFrom(uint8, int,bool stop=false);
 
     /*
      * Allow only 8 bit addresses to be used when requesting bytes
      */
-    uint8 requestFrom(int, int);
+    uint8 requestFrom(int address, int numBytes, bool stop=true);
+	
 
     /*
      * Stack up bytes to be sent when transmitting

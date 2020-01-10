@@ -97,25 +97,10 @@ typedef struct spi_pins {
  * Routines
  */
 
-/* spi_gpio_cfg(): Backwards compatibility shim to spi_config_gpios() */
 struct gpio_dev;
 extern void spi_config_gpios(uint8 as_master, const spi_pins * pins);
 extern void spi_release_gpios(uint8 as_master, const spi_pins * pins);
 
-/**
- * @brief Deprecated. Use spi_config_gpios() instead.
- * @see spi_config_gpios()
- */
-static inline void spi_gpio_cfg(uint8 as_master, const spi_pins * pins)
-{
-    /* We switched style globally to foo_config_gpios() and always
-     * taking a foo_dev* argument (that last bit is the important
-     * part) after this function was written.
-     *
-     * However, spi_config_gpios() just ignores the spi_dev* on F1, so
-     * we can still keep this around for older code. */
-    spi_config_gpios(as_master, pins);
-}
 
 #ifdef __cplusplus
 }

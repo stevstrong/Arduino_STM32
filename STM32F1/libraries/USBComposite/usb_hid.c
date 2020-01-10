@@ -35,20 +35,11 @@
 
 #include "usb_hid.h"
 #include <string.h>
-#include <libmaple/usb.h>
 #include <libmaple/nvic.h>
 #include <libmaple/delay.h>
 
-/* Private headers */
-#include "usb_lib_globals.h"
-#include "usb_reg_map.h"
 
 uint16 GetEPTxAddr(uint8 /*bEpNum*/);
-
-/* usb_lib headers */
-#include "usb_type.h"
-#include "usb_core.h"
-#include "usb_def.h"
 
 static uint32 ProtocolValue = 0;
 static uint32 txEPSize = 64;

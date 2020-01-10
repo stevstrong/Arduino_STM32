@@ -19,7 +19,6 @@
 #include <string.h>
 #include <stdint.h>
 #include <libmaple/nvic.h>
-#include <libmaple/usb.h>
 #include <string.h>
 #include <libmaple/iwdg.h>
 

@@ -117,13 +117,7 @@ static inline void gpio_clear_pin(uint8_t pin) {
 	(digitalPinToPort(pin))->regs->BSRR = (uint32_t)BIT(pin&0x0F)<<16;
 }
 
-static inline void gpio_write_pin(uint8_t pin, uint8 val) {
-    if (val) {
-        gpio_set_pin(pin);
-    } else {
-        gpio_clear_pin(pin);
-    }
-}
+#define gpio_write_pin(pin,val) { if (val) gpio_set_pin(pin); else gpio_clear_pin(pin); }
 
 /**
  * Determine whether or not a GPIO pin is set.
