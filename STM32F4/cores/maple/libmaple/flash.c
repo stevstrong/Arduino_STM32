@@ -34,10 +34,16 @@
 #include "bitband.h"
 
 /**
- * @brief Turn on the hardware prefetcher.
+ * @brief Turn on the hardware 'ART accelerator' i.e. prefetch + data & instruction cache
  */
-void flash_enable_prefetch(void) {
-    *bb_perip(&FLASH_BASE->ACR, FLASH_ACR_PRFTBE_BIT) = 1;
+void flash_enable_ART(void) {
+	/* enable prefetch buffer, instruction cache and data cache */
+	FLASH_BASE->ACR |= FLASH_ACR_PRFTEN | FLASH_ACR_ICEN | FLASH_ACR_DCEN ;
+}
+
+void flash_disable_ART(void) {
+	/* disable flash prefetch and instruction, data cache */
+	FLASH_BASE->ACR &= ~ (FLASH_ACR_PRFTEN | FLASH_ACR_ICEN | FLASH_ACR_DCEN );
 }
 
 /**
@@ -47,13 +53,13 @@ void flash_enable_prefetch(void) {
  * of wait_states for a given SYSCLK configuration.
  *
  * @param wait_states number of wait states (one of
- *                    FLASH_WAIT_STATE_0, FLASH_WAIT_STATE_1,
- *                    FLASH_WAIT_STATE_2).
+ *                    FLASH_ACR_LATENCY_0WS .. FLASH_ACR_LATENCY_7WS
  */
+
 void flash_set_latency(uint32 wait_states) {
     uint32 val = FLASH_BASE->ACR;
 
-    val &= ~FLASH_ACR_LATENCY;
+    val &= ~FLASH_ACR_LATENCY_Msk;
     val |= wait_states;
 
     FLASH_BASE->ACR = val;
