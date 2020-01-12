@@ -52,7 +52,7 @@ typedef struct flash_reg_map {
 } flash_reg_map;
 
 /** Flash register map base pointer */
-#define FLASH_BASE                      ((struct flash_reg_map*)0x40023C00)
+#define FLASH_BASE                     ((struct flash_reg_map*)0x40023C00)
 
 // taken from CMSIS
 #define UID_BASE         0x1FFF7A10U // Unique device ID register base address
@@ -91,9 +91,9 @@ typedef struct flash_reg_map {
 #define FLASH_ACR_PRFTEN_Pos           (8U)
 #define FLASH_ACR_PRFTEN               BIT(FLASH_ACR_PRFTEN_Pos)
 #define FLASH_ACR_ICEN_Pos             (9U)
-#define FLASH_ACR_ICEN				   BIT(FLASH_ACR_ICEN_Pos)
+#define FLASH_ACR_ICEN                 BIT(FLASH_ACR_ICEN_Pos)
 #define FLASH_ACR_DCEN_Pos             (10U)
-#define FLASH_ACR_DCEN				   BIT(FLASH_ACR_DCEN_Pos)
+#define FLASH_ACR_DCEN                 BIT(FLASH_ACR_DCEN_Pos)
 #define FLASH_ACR_ICRST_Pos            (11U)
 #define FLASH_ACR_ICRST                BIT(FLASH_ACR_ICRST_Pos)
 #define FLASH_ACR_DCRST_Pos            (12U)
@@ -101,13 +101,13 @@ typedef struct flash_reg_map {
 
 /* Flash KEYR */
 
-#define FLASH_KEYR_KEY1				   0x45670123
-#define FLASH_KEYR_KEY2				   0xCDEF89AB
+#define FLASH_KEYR_KEY1                0x45670123
+#define FLASH_KEYR_KEY2                0xCDEF89AB
 
 /* FLASH_OPTKEYR */
 
-#define FLASH_OPTKEYR_KEY1			   0x08192A3B
-#define FLASH_OPTKEYR_KEY2			   0x4C5D6E7F
+#define FLASH_OPTKEYR_KEY1             0x08192A3B
+#define FLASH_OPTKEYR_KEY2             0x4C5D6E7F
 
 /* Status register */
 
@@ -143,10 +143,10 @@ typedef struct flash_reg_map {
 #define FLASH_CR_SNB_Msk               BIT_MASK_SHIFT(0x1FUL, FLASH_CR_SNB_Pos)
 #define FLASH_CR_PSIZE_Pos             (8U)
 #define FLASH_CR_PSIZE_Msk             BIT_MASK_SHIFT(0x3UL, FLASH_CR_PSIZE_Pos)
-#define FLASH_CR_PSIZE8X			   BIT_MASK_SHIFT(0, FLASH_CR_PSIZE_Pos)
-#define FLASH_CR_PSIZE16X			   BIT_MASK_SHIFT(1U, FLASH_CR_PSIZE_Pos)
-#define FLASH_CR_PSIZE32X			   BIT_MASK_SHIFT(2U, FLASH_CR_PSIZE_Pos)
-#define FLASH_CR_PSIZE64X			   BIT_MASK_SHIFT(3U, FLASH_CR_PSIZE_Pos)
+#define FLASH_CR_PSIZE8X               BIT_MASK_SHIFT(0, FLASH_CR_PSIZE_Pos)
+#define FLASH_CR_PSIZE16X              BIT_MASK_SHIFT(1U, FLASH_CR_PSIZE_Pos)
+#define FLASH_CR_PSIZE32X              BIT_MASK_SHIFT(2U, FLASH_CR_PSIZE_Pos)
+#define FLASH_CR_PSIZE64X              BIT_MASK_SHIFT(3U, FLASH_CR_PSIZE_Pos)
 #define FLASH_CR_STRT_Pos              (16U)
 #define FLASH_CR_STRT                  BIT(FLASH_CR_STRT_Pos)
 #define FLASH_CR_EOPIE_Pos             (24U)
@@ -179,8 +179,8 @@ typedef struct flash_reg_map {
 #define FLASH_OPTCR_nRST_STDBY         BIT(FLASH_OPTCR_nRST_STDBY_Pos)
 #define FLASH_OPTCR_RDP_Pos            (8U)
 #define FLASH_OPTCR_RDP_Msk            BIT_MASK_SHIFT(0xFFUL, FLASH_OPTCR_RDP_Pos)
-#define FLASH_OPTCR_RDP_LVL0		   BIT_MASK_SHIFT(0xAAU, FLASH_OPTCR_RDP_Pos)
-#define FLASH_OPTCR_RDP_LVL2		   BIT_MASK_SHIFT(0xCCU, FLASH_OPTCR_RDP_Pos)
+#define FLASH_OPTCR_RDP_LVL0           BIT_MASK_SHIFT(0xAAU, FLASH_OPTCR_RDP_Pos)
+#define FLASH_OPTCR_RDP_LVL2           BIT_MASK_SHIFT(0xCCU, FLASH_OPTCR_RDP_Pos)
 #define FLASH_OPTCR_nWRP_Pos           (16U)
 #define FLASH_OPTCR_nWRP_Msk           BIT_MASK_SHIFT(0xFFFUL, FLASH_OPTCR_nWRP_Pos)
 #define FLASH_OPTCR_nWRP_0             0x00010000U
