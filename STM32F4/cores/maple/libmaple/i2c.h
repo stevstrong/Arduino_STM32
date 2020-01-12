@@ -96,7 +96,7 @@ typedef struct i2c_dev {
 
 extern i2c_dev i2c_dev1;
 #define I2C1 (&i2c_dev1)
-#ifdef PB11
+#if BOARD_NR_I2C>1
 extern i2c_dev i2c_dev2;
 #define I2C2 (&i2c_dev2)
 #endif

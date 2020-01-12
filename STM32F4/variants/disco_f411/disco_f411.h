@@ -59,6 +59,24 @@
 #define BOARD_USART6_TX_PIN     PC6
 #define BOARD_USART6_RX_PIN     PC7
 
+#define BOARD_NR_I2C            3
+#define BOARD_I2C1_SCL_PIN      PB6
+#define BOARD_I2C1_SDA_PIN      PB7
+#define BOARD_I2C1A_SCL_PIN     PB8
+#define BOARD_I2C1A_SDA_PIN     PB9
+#define BOARD_I2C2_SCL_PIN      PB10
+#define BOARD_I2C2_SDA_PIN      PB11
+#ifdef PACKAGE_LQFP144
+#define BOARD_I2C2A_SCL_PIN     PF1
+#define BOARD_I2C2A_SDA_PIN     PF0
+#endif
+#define BOARD_I2C3_SCL_PIN      PA8
+#define BOARD_I2C3_SDA_PIN      PC9
+#ifdef PACKAGE_LQFP144
+#define BOARD_I2C3A_SCL_PIN     PH7
+#define BOARD_I2C3A_SDA_PIN     PH8
+#endif
+
 #define BOARD_NR_SPI            5
 #define BOARD_SPI1_NSS_PIN      PA4
 #define BOARD_SPI1_SCK_PIN      PA5

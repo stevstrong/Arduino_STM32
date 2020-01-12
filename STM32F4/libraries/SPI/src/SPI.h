@@ -152,13 +152,11 @@ private:
     BitOrder bitOrder;
     uint8_t dataMode;
 public:
-	//uint8_t pin_set;
 
     friend class SPIClass;
 };
 
 extern SPISettings _settings[BOARD_NR_SPI];
-extern SPISettings *_currentSetting;
 
 
 /**
@@ -410,6 +408,7 @@ public:
     void EventCallback(uint16_t spi_num);
 
 private:
+    SPISettings *_currentSetting;
 
     void updateSettings(void);
 

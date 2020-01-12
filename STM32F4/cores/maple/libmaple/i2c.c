@@ -51,7 +51,7 @@ i2c_dev i2c_dev1 = {
     .state        = I2C_STATE_DISABLED
 };
 
-#ifdef PB11
+#if BOARD_NR_I2C>1
 /** I2C2 device */
 i2c_dev i2c_dev2 = {
     .regs         = I2C2_BASE,
@@ -507,7 +507,7 @@ static void i2c_irq_handler(i2c_dev *dev) {
 void __irq_i2c1_ev(void) {
    i2c_irq_handler(&i2c_dev1);
 }
-#ifdef PB11
+#if BOARD_NR_I2C>1
 void __irq_i2c2_ev(void) {
    i2c_irq_handler(&i2c_dev2);
 }
@@ -536,7 +536,7 @@ static void i2c_irq_error_handler(i2c_dev *dev) {
 void __irq_i2c1_er(void) {
     i2c_irq_error_handler(&i2c_dev1);
 }
-#ifdef PB11
+#if BOARD_NR_I2C>1
 void __irq_i2c2_er(void) {
     i2c_irq_error_handler(&i2c_dev2);
 }

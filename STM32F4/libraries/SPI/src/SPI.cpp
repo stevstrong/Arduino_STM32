@@ -100,8 +100,7 @@ static const spi_pins_t board_spi_alt_pins[BOARD_NR_SPI] __FLASH__ =
 static uint16_t ff = 0XFFFF;
 
 SPISettings _settings[BOARD_NR_SPI];
-SPISettings *_currentSetting;
-int spi_port;
+
 //-----------------------------------------------------------------------------
 //  Auxiliary functions
 //-----------------------------------------------------------------------------
@@ -115,15 +114,15 @@ static void disable_pwm(uint8_t pin)
     }
 }
 
-static void configure_gpios(bool as_master)
+static void configure_gpios(SPISettings * crtSetting, bool as_master)
 {
-	const spi_pins_t *pins = _currentSetting->pins;
+	const spi_pins_t *pins = crtSetting->pins;
     disable_pwm(pins->nss);
     disable_pwm(pins->sck);
     disable_pwm(pins->miso);
     disable_pwm(pins->mosi);
 
-    spi_config_gpios(_currentSetting->spi_d, as_master, pins);
+    spi_config_gpios(crtSetting->spi_d, as_master, pins);
 }
 
 static const spi_baud_rate baud_rates[8] __FLASH__ =
@@ -222,7 +221,7 @@ void _spi5EventCallback(void) { spiEventCallback(4); }
 //-----------------------------------------------------------------------------
 void SPIClass::setModule(int spi_num, uint8_t alt_pins)
 {
-	spi_port = spi_num - 1; // SPI channels are called 1 2 and 3 but the array is zero indexed
+	int spi_port = spi_num - 1; // SPI channels are called 1 2 and 3 but the array is zero indexed
 	_currentSetting = &_settings[spi_port];
 }
 
@@ -309,7 +308,7 @@ void SPIClass::begin(void)
 {
     PRINTF("<b-");
     spi_init(_currentSetting->spi_d);
-    configure_gpios(1);
+    configure_gpios(_currentSetting, 1);
     updateSettings();
     // added for DMA callbacks.
     _currentSetting->state = SPI_STATE_READY;
@@ -330,7 +329,7 @@ void SPIClass::beginSlave(void)
 {
     PRINTF("<bS-");
     spi_init(_currentSetting->spi_d);
-    configure_gpios(0);
+    configure_gpios(_currentSetting, 0);
     uint32 flags = ((_currentSetting->bitOrder == MSBFIRST ? SPI_FRAME_MSB : SPI_FRAME_LSB) | _currentSetting->dataSize);
     spi_slave_enable(_currentSetting->spi_d, (spi_mode)_currentSetting->dataMode, flags);
     // added for DMA callbacks.
