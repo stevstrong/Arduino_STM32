@@ -134,38 +134,6 @@ static const struct rcc_dev_info rcc_dev_table[] = {
  * @param pll_mul pll multiplier
  */
 
-/*******************  Bits definition for FLASH_ACR register  *****************/
-//#define FLASH_ACR_LATENCY                    ((uint32_t)0x00000007)
-#define FLASH_ACR_LATENCY_0WS                ((uint32)0x00000000)
-#define FLASH_ACR_LATENCY_1WS                ((uint32)0x00000001)
-#define FLASH_ACR_LATENCY_2WS                ((uint32)0x00000002)
-#define FLASH_ACR_LATENCY_3WS                ((uint32)0x00000003)
-#define FLASH_ACR_LATENCY_4WS                ((uint32)0x00000004)
-#define FLASH_ACR_LATENCY_5WS                ((uint32)0x00000005)
-#define FLASH_ACR_LATENCY_6WS                ((uint32)0x00000006)
-#define FLASH_ACR_LATENCY_7WS                ((uint32)0x00000007)
-
-#define FLASH_ACR_PRFTEN                     ((uint32)0x00000100)
-#define FLASH_ACR_ICEN                       ((uint32)0x00000200)
-#define FLASH_ACR_DCEN                       ((uint32)0x00000400)
-#define FLASH_ACR_ICRST                      ((uint32)0x00000800)
-#define FLASH_ACR_DCRST                      ((uint32)0x00001000)
-#define FLASH_ACR_BYTE0_ADDRESS              ((uint32)0x40023C00)
-#define FLASH_ACR_BYTE2_ADDRESS              ((uint32)0x40023C03)
-
-typedef struct
-{
-  __IO uint32 ACR;      /*!< FLASH access control register, Address offset: 0x00 */
-  __IO uint32 KEYR;     /*!< FLASH key register,            Address offset: 0x04 */
-  __IO uint32 OPTKEYR;  /*!< FLASH option key register,     Address offset: 0x08 */
-  __IO uint32 SR;       /*!< FLASH status register,         Address offset: 0x0C */
-  __IO uint32 CR;       /*!< FLASH control register,        Address offset: 0x10 */
-  __IO uint32 OPTCR;    /*!< FLASH option control register, Address offset: 0x14 */
-} FLASH_TypeDef;
-
-#define FLASH_R_BASE          (0x40023C00)
-#define FLASH               ((FLASH_TypeDef *) FLASH_R_BASE)
-#define RESET 0
 
 //-----------------------------------------------------------------------------
 void InitMCO1()
@@ -232,7 +200,7 @@ void SetupClock72MHz()
 	while((RCC->CR & RCC_CR_PLLRDY) == 0);
 
 	/* Configure Flash prefetch, Instruction cache, Data cache and wait state */
-	FLASH->ACR = FLASH_ACR_ICEN |FLASH_ACR_DCEN |FLASH_ACR_LATENCY_2WS;
+	flash_init(FLASH_ACR_LATENCY_2WS);
 
 	/* Select the main PLL as system clock source */
 	RCC->CFGR &= ~(RCC_CFGR_SW_MASK);
@@ -295,7 +263,7 @@ void SetupClock84MHz()
 	while((RCC->CR & RCC_CR_PLLRDY) == 0);
 
 	/* Configure Flash prefetch, Instruction cache, Data cache and wait state */
-	FLASH->ACR = FLASH_ACR_ICEN |FLASH_ACR_DCEN |FLASH_ACR_LATENCY_3WS;
+	flash_init(FLASH_ACR_LATENCY_3WS);
 
 	/* Select the main PLL as system clock source */
 	RCC->CFGR &= ~(RCC_CFGR_SW_MASK);
@@ -358,7 +326,7 @@ void SetupClock96MHz()
 	while((RCC->CR & RCC_CR_PLLRDY) == 0);
 
 	/* Configure Flash prefetch, Instruction cache, Data cache and wait state */
-	FLASH->ACR = FLASH_ACR_ICEN |FLASH_ACR_DCEN |FLASH_ACR_LATENCY_3WS;
+	flash_init(FLASH_ACR_LATENCY_3WS);
 
 	/* Select the main PLL as system clock source */
 	RCC->CFGR &= ~(RCC_CFGR_SW_MASK);
@@ -421,7 +389,7 @@ void SetupClock120MHz()
 	while((RCC->CR & RCC_CR_PLLRDY) == 0);
 
 	/* Configure Flash prefetch, Instruction cache, Data cache and wait state */
-	FLASH->ACR = FLASH_ACR_ICEN |FLASH_ACR_DCEN |FLASH_ACR_LATENCY_3WS;
+	flash_init(FLASH_ACR_LATENCY_3WS);
 
 	/* Select the main PLL as system clock source */
 	RCC->CFGR &= (uint32_t)~(RCC_CFGR_SW_MASK);
@@ -494,7 +462,7 @@ void SetupClock168MHz()
 	while((RCC->CR & RCC_CR_PLLRDY) == 0);
 
 	/* Configure Flash prefetch, Instruction cache, Data cache and wait state */
-	FLASH->ACR = FLASH_ACR_ICEN |FLASH_ACR_DCEN |FLASH_ACR_LATENCY_5WS;
+	flash_init(FLASH_ACR_LATENCY_5WS);
 
 	/* Select the main PLL as system clock source */
 	RCC->CFGR &= (uint32_t)~(RCC_CFGR_SW_MASK);

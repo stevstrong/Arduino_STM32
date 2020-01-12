@@ -52,7 +52,7 @@ typedef struct flash_reg_map {
 } flash_reg_map;
 
 /** Flash register map base pointer */
-#define FLASH_BASE                     ((struct flash_reg_map*)0x40023C00)
+#define FLASH                          ((struct flash_reg_map*)0x40023C00)
 
 // taken from CMSIS
 #define UID_BASE         0x1FFF7A10U // Unique device ID register base address
@@ -224,9 +224,35 @@ typedef struct flash_reg_map {
  * Setup routines
  */
 
-void flash_enable_ART(void);
-void flash_disable_ART(void);
-void flash_set_latency(uint32 wait_states);
+// Turn on the hardware 'ART accelerator' i.e. prefetch + data & instruction cache
+static inline void flash_init(uint32 acr_latency) {
+	FLASH->ACR = (FLASH_ACR_PRFTEN | FLASH_ACR_ICEN | FLASH_ACR_DCEN) | acr_latency;
+}
+
+// Enable prefetch buffer, instruction cache and data cache
+static inline void flash_enable_ART(void) {
+	FLASH->ACR |= FLASH_ACR_PRFTEN;
+}
+
+// Disable prefetch buffer, instruction cache and data cache
+static inline void flash_disable_ART(void) {
+	FLASH->ACR &= ~(FLASH_ACR_PRFTEN);
+}
+
+/**
+ * @brief Set flash wait states
+ *
+ * See ST PM0042, section 3.1 for restrictions on the acceptable value
+ * of wait_states for a given SYSCLK configuration.
+ *
+ * @param wait_states number of wait states (one of
+ *                    FLASH_ACR_LATENCY_0WS .. FLASH_ACR_LATENCY_7WS
+ */
+static inline void flash_set_latency(uint32 wait_states) {
+    uint32 val = FLASH->ACR & ~(FLASH_ACR_LATENCY_Msk);
+    FLASH->ACR = val | wait_states;
+}
+
 
 #ifdef __cplusplus
 }
