@@ -36,7 +36,7 @@
 #define _BOARD_ARCH_MAX_H_
 
 
-#define CYCLES_PER_MICROSECOND  168
+#define CLOCK_SPEED_MHZ  168
 
 //-----------------------------------------------------------------------------
 // Board pin definitions

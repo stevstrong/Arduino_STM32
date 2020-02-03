@@ -36,7 +36,7 @@
 #define _BOARD_GENERIC_F407V_H_
 
 
-#define CYCLES_PER_MICROSECOND  168
+#define CLOCK_SPEED_MHZ  168
 
 
 /*****************************************************************************/
