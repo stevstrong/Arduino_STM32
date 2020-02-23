@@ -181,23 +181,24 @@ private:
 #endif
 };
 
-#ifdef BOARD_HAVE_USART1
+
+#if BOARD_HAVE_USART1
 extern HardwareSerial Serial1;
 #endif
-#ifdef BOARD_HAVE_USART2
+#if BOARD_HAVE_USART2
 extern HardwareSerial Serial2;
 #endif
-#ifdef BOARD_HAVE_USART3
+#if BOARD_HAVE_USART3
 extern HardwareSerial Serial3;
 #endif
-#ifdef BOARD_HAVE_UART4
+#if BOARD_HAVE_UART4
 extern HardwareSerial Serial4;
 #endif
-#ifdef BOARD_HAVE_UART5
+#if BOARD_HAVE_UART5
 extern HardwareSerial Serial5;
 #endif
-#ifdef BOARD_HAVE_USART6
+#if BOARD_HAVE_USART6
 extern HardwareSerial Serial6;
 #endif
 
-#endif
+#endif	//_WIRISH_HARDWARESERIAL_H_

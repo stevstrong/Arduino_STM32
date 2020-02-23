@@ -23,6 +23,8 @@ compiler.objcopy.cmd=arm-none-eabi-objcopy
 compiler.objcopy.eep.flags=-O ihex -j .eeprom --set-section-flags=.eeprom=alloc,load --no-change-warnings --change-section-lma .eeprom=0
 compiler.elf2hex.flags=-O binary
 compiler.elf2hex.cmd=arm-none-eabi-objcopy
+compiler.elf2lst.flags=-M reg-names-std -d -C
+compiler.elf2lst.cmd=arm-none-eabi-objdump
 compiler.ldflags={build.flags.ldspecs}
 compiler.size.cmd=arm-none-eabi-size
 compiler.define=-DARDUINO=
@@ -76,8 +78,8 @@ recipe.S.o.pattern="{compiler.path}{compiler.c.cmd}" {compiler.S.flags} -mcpu={b
 recipe.ar.pattern="{compiler.path}{compiler.ar.cmd}" {compiler.ar.flags} {compiler.ar.extra_flags} "{archive_file_path}" "{object_file}"
 
 ## Combine gc-sections, archives, and objects
-recipe.c.combine.pattern="{compiler.path}{compiler.c.elf.cmd}" {compiler.c.elf.flags} -mcpu={build.mcu} "-T{build.variant.path}/{build.ldscript}" "-Wl,-Map,{build.path}/{build.project_name}.map" {compiler.c.elf.extra_flags} -o "{build.path}/{build.project_name}.elf" "-L{build.path}" -lm -lgcc -mthumb -Wl,--cref -Wl,--check-sections -Wl,--gc-sections -Wl,--unresolved-symbols=report-all -Wl,--warn-common -Wl,--warn-section-align -Wl,--warn-unresolved-symbols -Wl,--start-group {object_files} -Wl,--whole-archive {archive_file_path} -Wl,--no-whole-archive -Wl,--end-group
 #recipe.c.combine.pattern="{compiler.path}{compiler.c.elf.cmd}" {compiler.c.elf.flags} -mcpu={build.mcu} "-T{build.variant.path}/{build.ldscript}" "-Wl,-Map,{build.path}/{build.project_name}.map" {compiler.c.elf.extra_flags} -o "{build.path}/{build.project_name}.elf" "-L{build.path}" -lm -lgcc -mthumb -Wl,--cref -Wl,--check-sections -Wl,--gc-sections -Wl,--unresolved-symbols=report-all -Wl,--warn-common -Wl,--warn-section-align -Wl,--warn-unresolved-symbols -Wl,--start-group {object_files} -Wl,--whole-archive "{build.path}/{archive_file}" -Wl,--no-whole-archive -Wl,--end-group
+recipe.c.combine.pattern="{compiler.path}{compiler.c.elf.cmd}" {compiler.c.elf.flags} -mcpu={build.mcu} "-T{build.variant.path}/{build.ldscript}" "-Wl,-Map,{build.path}/{build.project_name}.map" {compiler.c.elf.extra_flags} -o "{build.path}/{build.project_name}.elf" "-L{build.path}" -lm -lgcc -mthumb -Wl,--cref -Wl,--check-sections -Wl,--gc-sections -Wl,--unresolved-symbols=report-all -Wl,--warn-common -Wl,--warn-section-align -Wl,--warn-unresolved-symbols -Wl,--start-group {object_files} -Wl,--whole-archive {archive_file_path} -Wl,--no-whole-archive -Wl,--end-group
 
 
 ## Create eeprom
@@ -85,6 +87,9 @@ recipe.objcopy.eep.pattern=
 
 ## Create hex
 recipe.objcopy.hex.pattern="{compiler.path}{compiler.elf2hex.cmd}" {compiler.elf2hex.flags} {compiler.elf2hex.extra_flags} "{build.path}/{build.project_name}.elf" "{build.path}/{build.project_name}.bin"
+
+## Create assembly S file
+recipe.objcopy.lst.pattern=cmd /C "{compiler.path}{compiler.elf2lst.cmd}" {compiler.elf2lst.flags} "{build.path}/{build.project_name}.elf" > "{build.path}/{build.project_name}.lst"
 
 ## Compute size
 recipe.size.pattern="{compiler.path}{compiler.size.cmd}" -A "{build.path}/{build.project_name}.elf"
