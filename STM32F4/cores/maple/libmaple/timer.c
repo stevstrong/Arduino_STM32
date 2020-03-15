@@ -326,15 +326,18 @@ static inline void dispatch_general(const timer_dev *dev);
 static inline void dispatch_basic(const timer_dev *dev);
 
 void __irq_tim1_brk(void) {
-    dispatch_adv_brk(TIMER1);
+	dispatch_adv_brk(TIMER1);
+	dispatch_general(TIMER9);
 }
 
 void __irq_tim1_up(void) {
-    dispatch_adv_up(TIMER1);
+	dispatch_adv_up(TIMER1);
+	dispatch_general(TIMER10);
 }
 
 void __irq_tim1_trg_com(void) {
-    dispatch_adv_trg_com(TIMER1);
+	dispatch_adv_trg_com(TIMER1);
+	dispatch_general(TIMER11);
 }
 
 void __irq_tim1_cc(void) {
@@ -366,15 +369,18 @@ void __irq_tim7(void) {
 }
 
 void __irq_tim8_brk(void) {
-    dispatch_adv_brk(TIMER8);
+	dispatch_adv_brk(TIMER8);
+	dispatch_general(TIMER12);
 }
 
 void __irq_tim8_up(void) {
-    dispatch_adv_up(TIMER8);
+	dispatch_adv_up(TIMER8);
+	dispatch_general(TIMER13);
 }
 
 void __irq_tim8_trg_com(void) {
-    dispatch_adv_trg_com(TIMER8);
+	dispatch_adv_trg_com(TIMER8);
+	dispatch_general(TIMER14);
 }
 
 void __irq_tim8_cc(void) {
