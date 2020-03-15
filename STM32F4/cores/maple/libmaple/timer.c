@@ -549,8 +549,25 @@ static void enable_nonmuxed_irq(const timer_dev *dev) {
     case RCC_TIMER7:
         nvic_irq_enable(NVIC_TIMER7);
         break;
+    case RCC_TIMER9:
+        nvic_irq_enable(NVIC_TIMER1_BRK);
+        break;
+    case RCC_TIMER10:
+        nvic_irq_enable(NVIC_TIMER1_UP);
+        break;
+    case RCC_TIMER11:
+        nvic_irq_enable(NVIC_TIMER1_TRG);
+        break;
+    case RCC_TIMER12:
+        nvic_irq_enable(NVIC_TIMER8_BRK);
+        break;
+    case RCC_TIMER13:
+        nvic_irq_enable(NVIC_TIMER8_UP);
+        break;
+    case RCC_TIMER14:
+        nvic_irq_enable(NVIC_TIMER8_TRG);
+        break;
     default:
-        ASSERT_FAULT(0);
         break;
     }
 }
