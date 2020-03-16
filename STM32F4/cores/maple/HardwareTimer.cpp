@@ -82,6 +82,8 @@ HardwareTimer Timer8(8);
 HardwareTimer Timer9(9);
 HardwareTimer Timer10(10);
 HardwareTimer Timer11(11);
+#ifdef BOARD_TIMERS_12_14
 HardwareTimer Timer12(12);
 HardwareTimer Timer13(13);
 HardwareTimer Timer14(14);
+#endif

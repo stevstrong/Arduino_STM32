@@ -316,9 +316,10 @@ extern HardwareTimer Timer8;
 extern HardwareTimer Timer9;
 extern HardwareTimer Timer10;
 extern HardwareTimer Timer11;
+#ifdef BOARD_TIMERS_12_14
 extern HardwareTimer Timer12;
 extern HardwareTimer Timer13;
 extern HardwareTimer Timer14;
-
+#endif
 
 #endif

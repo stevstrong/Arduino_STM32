@@ -192,9 +192,6 @@ extern const timer_dev timer8;
 extern const timer_dev timer9;
 extern const timer_dev timer10;
 extern const timer_dev timer11;
-extern const timer_dev timer12;
-extern const timer_dev timer13;
-extern const timer_dev timer14;
 #define TIMER1 (&timer1)
 #define TIMER2 (&timer2)
 #define TIMER3 (&timer3)
@@ -206,9 +203,14 @@ extern const timer_dev timer14;
 #define TIMER9 (&timer9)
 #define TIMER10 (&timer10)
 #define TIMER11 (&timer11)
+#ifdef BOARD_TIMERS_12_14
+extern const timer_dev timer12;
+extern const timer_dev timer13;
+extern const timer_dev timer14;
 #define TIMER12 (&timer12)
 #define TIMER13 (&timer13)
 #define TIMER14 (&timer14)
+#endif
 
 extern const timer_dev * const timer_devices[];
 

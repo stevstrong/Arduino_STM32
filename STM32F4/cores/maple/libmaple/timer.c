@@ -153,7 +153,7 @@ const timer_dev timer11 = {
 	.af_mode      = GPIO_AFMODE_TIM8_11,
     .handler_p    = &timer11_handlers,
 };
-
+#ifdef BOARD_TIMERS_12_14
 /** Timer 12 device (general-purpose) */
 voidFuncPtr timer12_handlers[] = { [NR_GEN_HANDLERS - 1] = 0 };
 const timer_dev timer12 = {
@@ -183,7 +183,7 @@ const timer_dev timer14 = {
 	.af_mode      = GPIO_AFMODE_TIM12_14,
     .handler_p    = &timer14_handlers,
 };
-
+#endif
 
 /*
  * Convenience routines
@@ -277,9 +277,11 @@ void timer_foreach(void (*fn)(const timer_dev*)) {
     fn(TIMER9);
     fn(TIMER10);
     fn(TIMER11);
+#ifdef BOARD_TIMERS_12_14
     fn(TIMER12);
     fn(TIMER13);
     fn(TIMER14);
+#endif
 }
 
 /**
@@ -370,17 +372,23 @@ void __irq_tim7(void) {
 
 void __irq_tim8_brk(void) {
 	dispatch_adv_brk(TIMER8);
+#ifdef BOARD_TIMERS_12_14
 	dispatch_general(TIMER12);
+#endif
 }
 
 void __irq_tim8_up(void) {
 	dispatch_adv_up(TIMER8);
+#ifdef BOARD_TIMERS_12_14
 	dispatch_general(TIMER13);
+#endif
 }
 
 void __irq_tim8_trg_com(void) {
 	dispatch_adv_trg_com(TIMER8);
+#ifdef BOARD_TIMERS_12_14
 	dispatch_general(TIMER14);
+#endif
 }
 
 void __irq_tim8_cc(void) {

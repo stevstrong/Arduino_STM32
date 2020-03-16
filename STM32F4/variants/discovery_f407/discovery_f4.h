@@ -46,6 +46,8 @@
 #define BOARD_USB_DM_PIN		PA11
 #define BOARD_USB_DP_PIN		PA12
 
+#define BOARD_TIMERS_12_14      1
+
 #define BOARD_NR_USARTS         5
 #define BOARD_USART1_TX_PIN     PA9
 #define BOARD_USART1_RX_PIN     PA10
