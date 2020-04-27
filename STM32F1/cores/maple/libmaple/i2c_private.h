@@ -30,15 +30,12 @@
 #include <libmaple/i2c_common.h>
 
 /* For old-style definitions (SDA/SCL on same GPIO device) */
-#define I2C_DEV_OLD(num, port, sda, scl)          \
+#define I2C_DEV_OLD(num, sda, scl)          \
     {                                             \
         .regs         = I2C##num##_BASE,          \
         .msg          = NULL,                     \
         .error_flags  = 0,                        \
         .timestamp    = 0,                        \
-        .gpio_port    = port,                     \
-        .sda_port     = NULL,                     \
-        .scl_port     = NULL,                     \
         .msgs_left    = 0,                        \
         .sda_pin      = sda,                      \
         .scl_pin      = scl,                      \
@@ -54,18 +51,15 @@
     }
 
 /* For new-style definitions (SDA/SCL may be on different GPIO devices) */
-#define I2C_DEV_NEW(num, sdaport, sdabit, sclport, sclbit)          \
+#define I2C_DEV_NEW(num, sdapin, sclpin)          \
     {                                                               \
         .regs         = I2C##num##_BASE,                            \
         .msg          = NULL,                                       \
         .error_flags  = 0,                                          \
         .timestamp    = 0,                                          \
-        .gpio_port    = NULL,                                       \
-        .sda_port     = sdaport,                                    \
-        .scl_port     = sclport,                                    \
         .msgs_left    = 0,                                          \
-        .sda_pin      = sdabit,                                     \
-        .scl_pin      = sclbit,                                     \
+        .sda_pin      = sdapin,                                     \
+        .scl_pin      = sclpin,                                     \
         .clk_id       = RCC_I2C##num,                               \
         .ev_nvic_line = NVIC_I2C##num##_EV,                         \
         .er_nvic_line = NVIC_I2C##num##_ER,                         \
@@ -80,14 +74,5 @@
 void _i2c_irq_handler(i2c_dev *dev);
 void _i2c_irq_error_handler(i2c_dev *dev);
 
-struct gpio_dev;
-
-static inline struct gpio_dev* scl_port(const i2c_dev *dev) {
-    return (dev->gpio_port == NULL) ? dev->scl_port : dev->gpio_port;
-}
-
-static inline struct gpio_dev* sda_port(const i2c_dev *dev) {
-    return (dev->gpio_port == NULL) ? dev->sda_port : dev->gpio_port;
-}
 
 #endif  /* _LIBMAPLE_I2C_PRIVATE_H_ */

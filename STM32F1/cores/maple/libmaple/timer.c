@@ -30,7 +30,7 @@
  * @author Marti Bolivar <mbolivar@leaflabs.com>
  * @brief  Portable timer routines.
  */
-
+#include "libmaple_types.h"
 #include <libmaple/timer.h>
 #include <libmaple/stm32.h>
 #include "timer_private.h"
@@ -78,6 +78,65 @@ timer_dev timer13 = RESTRICTED_GENERAL_TIMER(13, TIMER_DIER_CC1IE_BIT);
 /** Timer 14 device (general-purpose) */
 timer_dev timer14 = RESTRICTED_GENERAL_TIMER(14, TIMER_DIER_CC1IE_BIT);
 #endif
+
+
+//-----------------------------------------------------------------------------
+timer_info const timer_map[32] =
+{
+	(uint32)TIMER2 + 1, // PA0
+	(uint32)TIMER2 + 2, // PA1
+	(uint32)TIMER2 + 3, // PA2
+	(uint32)TIMER2 + 4, // PA3
+	(uint32)NULL, // PA4
+	(uint32)NULL, // PA5
+	(uint32)TIMER3 + 1, // PA6
+	(uint32)TIMER3 + 2, // PA7
+	(uint32)TIMER1 + 1, // PA8
+	(uint32)TIMER1 + 2, // PA9
+	(uint32)TIMER1 + 3, // PA10
+	(uint32)TIMER1 + 4, // PA11
+	(uint32)NULL, // PA12
+	(uint32)NULL, // PA13
+	(uint32)NULL, // PA14
+	(uint32)NULL, // PA15
+
+	(uint32)TIMER3 + 3, // PB0
+	(uint32)TIMER3 + 4, // PB1
+	(uint32)NULL, // PB2
+	(uint32)NULL, // PB3
+	(uint32)NULL, // PB4
+	(uint32)NULL, // PB5
+	(uint32)TIMER4 + 1, // PB6
+	(uint32)TIMER4 + 2, // PB7
+	(uint32)TIMER4 + 3, // PB8
+	(uint32)TIMER4 + 4, // PB9
+	(uint32)NULL, // PB10
+	(uint32)NULL, // PB11
+	(uint32)NULL, // PB12
+	(uint32)NULL, // PB13
+	(uint32)NULL, // PB14
+	(uint32)NULL, // PB15
+/*
+    {NULL, 0}, // PC0 
+    {NULL, 0}, // PC1 
+    {NULL, 0}, // PC2 
+    {NULL, 0}, // PC3 
+    {NULL, 0}, // PC4 
+    {NULL, 0}, // PC5 
+    {NULL, 0}, // PC6 
+    {NULL, 0}, // PC7 
+    {NULL, 0}, // PC8 
+    {NULL, 0}, // PC9 
+    {NULL, 0}, // PC10
+    {NULL, 0}, // PC11
+    {NULL, 0}, // PC12
+    {NULL, 0}, // PC13	
+    {NULL, 0}, // PC14
+    {NULL, 0}, // PC15
+*/
+};
+
+
 
 /*
  * Routines

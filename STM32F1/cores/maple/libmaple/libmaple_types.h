@@ -34,6 +34,7 @@
 #define _LIBMAPLE_LIBMAPLE_TYPES_H_
 
 #include <stdint.h>
+#include <stdbool.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -41,7 +42,7 @@ extern "C" {
 
 typedef unsigned char uint8;
 typedef unsigned short uint16;
-typedef uint32_t uint32;
+typedef unsigned int uint32;
 typedef unsigned long long uint64;
 
 typedef signed char int8;
@@ -68,7 +69,12 @@ typedef void (*voidArgumentFuncPtr)(void *);
 #ifndef NULL
 #define NULL 0
 #endif
-
+#ifndef true
+#define true 1
+#endif
+#ifndef false
+#define false 0
+#endif
 #ifndef offsetof
 #define offsetof(type, member) __builtin_offsetof(type, member)
 #endif
@@ -76,5 +82,6 @@ typedef void (*voidArgumentFuncPtr)(void *);
 #ifdef __cplusplus
 }
 #endif
+
 
 #endif

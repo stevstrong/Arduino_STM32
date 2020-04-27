@@ -58,10 +58,10 @@ static inline void rcc_do_reset_dev(__IO uint32** reset_regs,
 static inline void rcc_do_set_prescaler(const uint32 *masks,
                                         rcc_prescaler prescaler,
                                         uint32 divider) {
-    uint32 cfgr = RCC_BASE->CFGR;
+    uint32 cfgr = RCC->CFGR;
     cfgr &= ~masks[prescaler];
     cfgr |= divider;
-    RCC_BASE->CFGR = cfgr;
+    RCC->CFGR = cfgr;
 }
 
 static inline void rcc_do_clk_disable(__IO uint32** enable_regs,

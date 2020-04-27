@@ -37,11 +37,11 @@
 /* Unlike Wiring and Arduino, this assumes that the pin's mode is set
  * to INPUT_ANALOG. That's faster, but it does require some extra work
  * on the user's part. Not too much, we think ;). */
-uint16 analogRead(uint8 pin) {
-    uint8 adc_chan = PIN_MAP[pin].adc_channel;
-    if (adc_chan == ADCx) {
+uint16 analogRead(uint8 pin)
+{
+    if ( (pin>PB1) || ((pin<PB0) && (pin>PA7)) ) {
         return 0;
     }
-
+    uint8 adc_chan = (pin<PA8) ? pin : (pin-8);
     return adc_read(ADC1, adc_chan);
 }

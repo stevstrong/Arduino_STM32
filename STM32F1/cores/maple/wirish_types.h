@@ -44,18 +44,6 @@
 #define ADCx 0xFF
 
 /**
- * @brief Stores STM32-specific information related to a given Maple pin.
- * @see PIN_MAP
- */
-typedef struct stm32_pin_info {
-    gpio_dev *gpio_device;      /**< Maple pin's GPIO device */
-    timer_dev *timer_device;    /**< Pin's timer device, if any. */
-    uint8 gpio_bit;             /**< Pin's GPIO port bit. */
-    uint8 timer_channel;        /**< Timer channel, or 0 if none. */
-    uint8 adc_channel;          /**< Pin ADC channel, or ADCx if none. */
-} stm32_pin_info;
-
-/**
  * Variable attribute, instructs the linker to place the marked
  * variable in Flash instead of RAM. */
 #define __FLASH__ __attr_flash

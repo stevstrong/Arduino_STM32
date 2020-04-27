@@ -127,7 +127,7 @@ typedef struct timer_dev {
     rcc_clk_id clk_id;          /**< RCC clock information */
     timer_type type;            /**< Timer's type */
     voidFuncPtr handlers[];     /**< User IRQ handlers */
-} timer_dev;
+} timer_dev __attribute__((aligned (8))); // needed because of timer_map
 
 extern timer_dev timer1;
 #define TIMER1 (&timer1)
@@ -162,6 +162,7 @@ extern timer_dev timer14;
 #define TIMER14 (&timer14)
 #endif
 
+extern timer_dev * const timer_devs[];
 /*
  * Register bit definitions
  */
@@ -549,6 +550,12 @@ typedef enum timer_channel {
     TIMER_CH3 = 3, /**< Channel 3 */
     TIMER_CH4 = 4  /**< Channel 4 */
 } timer_channel;
+
+typedef uint32 timer_info;
+extern timer_info const timer_map[];
+
+#define PinTimerDevice(pin) ((pin>PB15)?NULL:(timer_dev*)(timer_map[pin]&0xFFFFFFF8))
+#define PinTimerChannel(pin) ((pin>PB15)?0:(timer_map[pin]&0x07))
 
 /*
  * Note: Don't require timer_channel arguments! We want to be able to say

@@ -139,29 +139,29 @@ void i2c_bus_reset(const i2c_dev *dev) {
      * Make sure the bus is free by clocking it until any slaves release the
      * bus.
      */
-    while (!gpio_read_bit(sda_port(dev), dev->sda_pin)) {
+    while (!gpio_read_pin(dev->sda_pin)) {
         /* Wait for any clock stretching to finish */
-        while (!gpio_read_bit(scl_port(dev), dev->scl_pin))
+        while (!gpio_read_pin(dev->scl_pin))
             ;
         delay_us(10);
 
         /* Pull low */
-        gpio_write_bit(scl_port(dev), dev->scl_pin, 0);
+        gpio_write_pin(dev->scl_pin, 0);
         delay_us(10);
 
         /* Release high again */
-        gpio_write_bit(scl_port(dev), dev->scl_pin, 1);
+        gpio_write_pin(dev->scl_pin, 1);
         delay_us(10);
     }
 
     /* Generate start then stop condition */
-    gpio_write_bit(sda_port(dev), dev->sda_pin, 0);
+    gpio_write_pin(dev->sda_pin, 0);
     delay_us(10);
-    gpio_write_bit(scl_port(dev), dev->scl_pin, 0);
+    gpio_write_pin(dev->scl_pin, 0);
     delay_us(10);
-    gpio_write_bit(scl_port(dev), dev->scl_pin, 1);
+    gpio_write_pin(dev->scl_pin, 1);
     delay_us(10);
-    gpio_write_bit(sda_port(dev), dev->sda_pin, 1);
+    gpio_write_pin(dev->sda_pin, 1);
 
     /* Release Software Reset: */
     dev->regs->CR1 = 0;
@@ -190,32 +190,32 @@ static void i2c_clear_busy_flag_erratum(const i2c_dev *dev) {
     i2c_master_release_bus(dev);
 
     // 3. Check SCL and SDA High level in GPIOx_IDR.
-    while (gpio_read_bit(scl_port(dev), dev->scl_pin) == 0) { }
-    while (gpio_read_bit(sda_port(dev), dev->sda_pin) == 0) { }
+    while (gpio_read_pin(dev->scl_pin) == 0) { }
+    while (gpio_read_pin(dev->sda_pin) == 0) { }
 
     // 4. Configure the SDA I/O as General Purpose Output Open-Drain, Low level (Write 0 to GPIOx_ODR).
-    gpio_write_bit(sda_port(dev), dev->sda_pin, 0);
+    gpio_write_pin(dev->sda_pin, 0);
 
     // 5. Check SDA Low level in GPIOx_IDR.
-    while (gpio_read_bit(sda_port(dev), dev->sda_pin)) { }
+    while (gpio_read_pin(dev->sda_pin)) { }
 
     // 6. Configure the SCL I/O as General Purpose Output Open-Drain, Low level (Write 0 to GPIOx_ODR).
-    gpio_write_bit(scl_port(dev), dev->scl_pin, 0);
+    gpio_write_pin(dev->scl_pin, 0);
 
     // 7. Check SCL Low level in GPIOx_IDR.
-    while (gpio_read_bit(scl_port(dev), dev->scl_pin)) { }
+    while (gpio_read_pin(dev->scl_pin)) { }
 
     // 8. Configure the SCL I/O as General Purpose Output Open-Drain, High level (Write 1 to GPIOx_ODR).
-    gpio_write_bit(scl_port(dev), dev->scl_pin, 1);
+    gpio_write_pin(dev->scl_pin, 1);
 
     // 9. Check SCL High level in GPIOx_IDR.
-    while (gpio_read_bit(scl_port(dev), dev->scl_pin) == 0) { }
+    while (gpio_read_pin(dev->scl_pin) == 0) { }
 
     // 10. Configure the SDA I/O as General Purpose Output Open-Drain , High level (Write 1 to GPIOx_ODR).
-    gpio_write_bit(sda_port(dev), dev->sda_pin, 1);
+    gpio_write_pin(dev->sda_pin, 1);
 
     // 11. Check SDA High level in GPIOx_IDR.
-    while (gpio_read_bit(sda_port(dev), dev->sda_pin) == 0) { }
+    while (gpio_read_pin(dev->sda_pin) == 0) { }
 
     // 12. Configure the SCL and SDA I/Os as Alternate function Open-Drain.
     i2c_config_gpios(dev);

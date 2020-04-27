@@ -31,13 +31,14 @@
 
 #include "i2c_private.h"
 #include <libmaple/i2c.h>
+#include "board/board.h"
 
 /*
  * Devices
  */
 
-static i2c_dev i2c1 = I2C_DEV_OLD(1, &gpiob, 7, 6);
-static i2c_dev i2c2 = I2C_DEV_OLD(2, &gpiob, 11, 10);
+static i2c_dev i2c1 = I2C_DEV_OLD(1, 7, 6);
+static i2c_dev i2c2 = I2C_DEV_OLD(2, 11, 10);
 
 /** STM32F1 I2C device 1 */
 i2c_dev* const I2C1 = &i2c1;
@@ -51,25 +52,23 @@ i2c_dev* const I2C2 = &i2c2;
 static int i2c1_wants_remap(const i2c_dev *dev) {
     /* Check if we've got I2C1 configured for SDA/SCL remap on PB9/PB8 */
     return (dev->clk_id == RCC_I2C1) &&
-        (scl_port(dev)->clk_id == RCC_GPIOB) &&
-        (sda_port(dev)->clk_id == RCC_GPIOB) &&
-        (dev->sda_pin == 9) &&
-        (dev->scl_pin == 8);
+        (dev->sda_pin == PB9) &&
+        (dev->scl_pin == PB8);
 }
 
 void i2c_config_gpios(const i2c_dev *dev) {
     if (i2c1_wants_remap(dev)) {
         afio_remap(AFIO_REMAP_I2C1);
     }
-    gpio_set_mode(sda_port(dev), dev->sda_pin, GPIO_AF_OUTPUT_OD);
-    gpio_set_mode(scl_port(dev), dev->scl_pin, GPIO_AF_OUTPUT_OD);
+    gpio_set_pin_mode(dev->sda_pin, GPIO_AF_OUTPUT_OD);
+    gpio_set_pin_mode(dev->scl_pin, GPIO_AF_OUTPUT_OD);
 }
 
 void i2c_master_release_bus(const i2c_dev *dev) {
-    gpio_write_bit(scl_port(dev), dev->scl_pin, 1);
-    gpio_write_bit(sda_port(dev), dev->sda_pin, 1);
-    gpio_set_mode(scl_port(dev), dev->scl_pin, GPIO_OUTPUT_OD);
-    gpio_set_mode(sda_port(dev), dev->sda_pin, GPIO_OUTPUT_OD);
+    gpio_write_pin(dev->scl_pin, 1);
+    gpio_write_pin(dev->sda_pin, 1);
+    gpio_set_pin_mode(dev->scl_pin, GPIO_OUTPUT_OD);
+    gpio_set_pin_mode(dev->sda_pin, GPIO_OUTPUT_OD);
 }
 
 /*

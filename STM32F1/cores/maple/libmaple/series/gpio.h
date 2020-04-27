@@ -59,24 +59,6 @@ typedef struct gpio_reg_map {
 } gpio_reg_map;
 
 
-struct gpio_dev;
-extern struct gpio_dev gpioa;
-extern struct gpio_dev* const GPIOA;
-extern struct gpio_dev gpiob;
-extern struct gpio_dev* const GPIOB;
-extern struct gpio_dev gpioc;
-extern struct gpio_dev* const GPIOC;
-extern struct gpio_dev gpiod;
-extern struct gpio_dev* const GPIOD;
-#if STM32_NR_GPIO_PORTS > 4
-extern struct gpio_dev gpioe;
-extern struct gpio_dev* const GPIOE;
-extern struct gpio_dev gpiof;
-extern struct gpio_dev* const GPIOF;
-extern struct gpio_dev gpiog;
-extern struct gpio_dev* const GPIOG;
-#endif
-
 /** GPIO port A register map base pointer */
 #define GPIOA_BASE                      ((struct gpio_reg_map*)0x40010800)
 /** GPIO port B register map base pointer */

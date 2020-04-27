@@ -53,11 +53,6 @@ enum {
     D92, D93, D94, D95, D96, D97, D98, D99, D100, D101, D102, D103, D104, D105,
     D106, D107, D108, D109, D110, D111, };
 
-/**
- * @brief Maps each Maple pin to a corresponding stm32_pin_info.
- * @see stm32_pin_info
- */
-extern const stm32_pin_info PIN_MAP[];
 
 /**
  * @brief Pins capable of PWM output.
@@ -135,17 +130,17 @@ uint8 boardUsesPin(uint8 pin);
  */
 #define BOARD_HAVE_USART(n) (defined(BOARD_USART##n##_TX_PIN) && \
                              defined(BOARD_USART##n##_RX_PIN))
-/** Feature test: nonzero iff the board has USART1. */
+/** Feature test: nonzero if the board has USART1. */
 #define BOARD_HAVE_USART1               BOARD_HAVE_USART(1)
-/** Feature test: nonzero iff the board has USART2, 0 otherwise. */
+/** Feature test: nonzero if the board has USART2, 0 otherwise. */
 #define BOARD_HAVE_USART2               BOARD_HAVE_USART(2)
-/** Feature test: nonzero iff the board has USART3, 0 otherwise. */
+/** Feature test: nonzero if the board has USART3, 0 otherwise. */
 #define BOARD_HAVE_USART3               BOARD_HAVE_USART(3)
-/** Feature test: nonzero iff the board has UART4, 0 otherwise. */
+/** Feature test: nonzero if the board has UART4, 0 otherwise. */
 #define BOARD_HAVE_UART4                BOARD_HAVE_USART(4)
-/** Feature test: nonzero iff the board has UART5, 0 otherwise. */
+/** Feature test: nonzero if the board has UART5, 0 otherwise. */
 #define BOARD_HAVE_UART5                BOARD_HAVE_USART(5)
-/** Feature test: nonzero iff the board has USART6, 0 otherwise. */
+/** Feature test: nonzero if the board has USART6, 0 otherwise. */
 #define BOARD_HAVE_USART6               BOARD_HAVE_USART(6)
 
 /**

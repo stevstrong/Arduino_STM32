@@ -56,7 +56,6 @@
 #include <bit_constants.h>
 #include <pwm.h>
 #include <ext_interrupts.h>
-#include <wirish_debug.h>
 #include <wirish_math.h>
 #include <wirish_time.h>
 #include <wirish_constants.h>
@@ -82,9 +81,6 @@ typedef unsigned int word;
 // typedef uint16 word;// definition from Arduino website, now appears to be incorrect for 32 bit devices
 
 /* Wiring macros and bit defines */
-
-#define true 0x1
-#define false 0x0
 
 #define lowByte(w)                     ((w) & 0xFF)
 #define highByte(w)                    (((w) >> 8) & 0xFF)

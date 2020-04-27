@@ -31,17 +31,19 @@
 #ifndef _WIRISH_USB_SERIAL_H_
 #define _WIRISH_USB_SERIAL_H_
 
-#include <libmaple/usb/usb_cdcacm.h>
+#include <libmaple/usb/usb.h>
 #include "Print.h"
 #include "boards.h"
 #include "Stream.h"
+
+#if BOARD_HAVE_SERIALUSB
 
 /**
  * @brief Virtual serial terminal.
  */
 class USBSerial : public Stream {
 public:
-    USBSerial(void);
+    USBSerial(void) {}
 
     void begin(void);
 
@@ -50,30 +52,30 @@ public:
     void begin(unsigned long, uint8_t);
     void end(void);
 
-    virtual int available(void) { return usb_cdcacm_data_available(); }
-    int availableForWrite(void) { return usb_cdcacm_tx_available(); }
+    virtual int available(void) { return usb_cdcacm_read_available(); }
+    int availableForWrite(void) { return usb_cdcacm_write_available(); }
 
-    size_t readBytes(char *buf, const size_t& len);
+    size_t readBytes(char *buf, const size_t len);
     uint32 read(uint8 * buf, uint32 len);
-    // uint8  read(void);
 
-    // Roger Clark. added functions to support Arduino 1.0 API
-    virtual int peek(void);
-    virtual int read(void);
-    virtual void flush(void);
+	// Roger Clark. added functions to support Arduino 1.0 API
+	virtual int peek(void);
+	// Blocks forever until 1 byte is received
+	virtual int read(void) { return usb_cdcacm_read(); } // returns -1 if nothing received
+	virtual void flush(void);
 
 
     size_t write(uint8);
     size_t write(const char *str);
     size_t write(const uint8*, uint32);
 
-    uint8 getRTS();
-    uint8 getDTR();
-    uint8 pending();
-	
-	
-	void enableBlockingTx(void);
-	void disableBlockingTx(void);
+    uint8 getRTS(void) { return usb_cdcacm_get_rts(); }
+    uint8 getDTR(void) { return usb_cdcacm_get_dtr(); }
+    uint8 pending(void) { return usb_cdcacm_get_pending(); }
+
+	void enableBlockingTx(void)	{ isBlocking=true; }
+	void disableBlockingTx(void) { isBlocking=false; }
+
 
     /* SukkoPera: This is the Arduino way to check if an USB CDC serial
      * connection is open.
@@ -89,12 +91,14 @@ public:
     uint8 isConnected() __attribute__((deprecated("Use !Serial instead"))) { return (bool) *this; }
 
 protected:
-    static bool _hasBegun;
-	static bool _isBlocking;
+	bool _hasBegun = false;
+	bool isBlocking = false;
 };
 
 #ifdef SERIAL_USB
     extern USBSerial Serial;
 #endif
 
-#endif
+#endif // BOARD_HAVE_SERIALUSB
+
+#endif // _WIRISH_USB_SERIAL_H_

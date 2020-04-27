@@ -62,16 +62,45 @@ typedef struct gpio_dev {
     exti_cfg      exti_port;
 } gpio_dev;
 
+extern const gpio_dev gpioa;
+#define GPIOA (&gpioa)
+extern const gpio_dev gpiob;
+#define GPIOB (&gpiob)
+extern const gpio_dev gpioc;
+#define GPIOC (&gpioc)
+#if STM32_NR_GPIO_PORTS > 3
+extern const gpio_dev gpiod;
+#define GPIOD (&gpiod)
+#endif
+#if STM32_NR_GPIO_PORTS > 4
+extern const gpio_dev gpioe;
+#define GPIOE (&gpioe)
+extern const gpio_dev gpiof;
+#define GPIOF (&gpiof)
+extern const gpio_dev gpiog;
+#define GPIOG (&gpiog)
+#endif
+
+extern const gpio_dev * const gpio_devs[3];
+
 /*
  * Portable routines
  */
+static inline void enableDebugPorts() { afio_cfg_debug_ports(AFIO_DEBUG_SW_ONLY); }
 
-void gpio_init(gpio_dev *dev);
+inline void gpio_init(const gpio_dev *dev) {
+    rcc_clk_enable(dev->clk_id);
+    rcc_reset_dev(dev->clk_id);
+}
+
 void gpio_init_all(void);
 /* TODO flags argument version? */
-void gpio_set_mode(gpio_dev *dev, uint8 bit, gpio_pin_mode mode);
-gpio_pin_mode gpio_get_mode(gpio_dev *dev, uint8 bit);
-void gpio_set_pin_mode(uint8 pin, gpio_pin_mode mode);
+void gpio_set_mode(const gpio_dev *dev, uint8 bit, gpio_pin_mode mode);
+gpio_pin_mode gpio_get_mode(const gpio_dev *dev, uint8 bit);
+
+static inline void gpio_set_pin_mode(uint8 pin, gpio_pin_mode mode) {
+	gpio_set_mode(gpio_devs[pin/16], pin%16, mode);
+}
 /**
  * @brief Get a GPIO port's corresponding EXTI port configuration.
  * @param dev GPIO port whose exti_cfg to return.
@@ -89,9 +118,13 @@ static inline exti_cfg gpio_exti_port(gpio_dev *dev) {
  * @param pin Pin on to set or reset
  * @param val If true, set the pin.  If false, reset the pin.
  */
-static inline void gpio_write_bit(gpio_dev *dev, uint8 pin, uint8 val) {
+static inline void gpio_write_bit(const gpio_dev *dev, uint8 bit, uint8 val) {
     val = !val;          /* "set" bits are lower than "reset" bits  */
-    dev->regs->BSRR = (1U << pin) << (16 * val);
+    dev->regs->BSRR = (1U << bit) << (16 * val);
+}
+
+static inline void gpio_write_pin(uint8 pin, uint8 val) {
+   gpio_write_bit(gpio_devs[pin/16], pin%16, val);
 }
 
 /**
@@ -103,8 +136,12 @@ static inline void gpio_write_bit(gpio_dev *dev, uint8 pin, uint8 val) {
  * @param pin Pin on dev to test.
  * @return True if the pin is set, false otherwise.
  */
-static inline uint32 gpio_read_bit(gpio_dev *dev, uint8 pin) {
+static inline uint32 gpio_read_bit(const gpio_dev *dev, uint8 pin) {
     return dev->regs->IDR & (1U << pin);
+}
+
+static inline uint32 gpio_read_pin(uint8 pin) {
+   return gpio_read_bit(gpio_devs[pin/16], pin%16);
 }
 
 /**
@@ -112,8 +149,12 @@ static inline uint32 gpio_read_bit(gpio_dev *dev, uint8 pin) {
  * @param dev GPIO device.
  * @param pin Pin on dev to toggle.
  */
-static inline void gpio_toggle_bit(gpio_dev *dev, uint8 pin) {
-    dev->regs->ODR = dev->regs->ODR ^ (1U << pin);
+static inline void gpio_toggle_bit(const gpio_dev *dev, uint8 bit) {
+    dev->regs->ODR = dev->regs->ODR ^ (1U << bit);
+}
+
+static inline void gpio_toggle_pin(uint8 pin) {
+	gpio_toggle_bit(gpio_devs[pin/16], (pin%16));
 }
 
 #ifdef __cplusplus

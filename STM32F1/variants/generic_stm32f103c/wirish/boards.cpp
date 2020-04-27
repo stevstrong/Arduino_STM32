@@ -112,14 +112,14 @@ static void setup_clocks(void) {
     // Turn off and reset the clock subsystems we'll be using, as well
     // as the clock security subsystem (CSS). Note that resetting CFGR
     // to its default value of 0 implies a switch to HSI for SYSCLK.
-    RCC_BASE->CFGR = 0x00000000;
+    RCC->CFGR = 0x00000000;
     rcc_disable_css();
     rcc_turn_off_clk(RCC_CLK_PLL);
     rcc_turn_off_clk(RCC_CLK_HSE);
     wirish::priv::board_reset_pll();
     // Clear clock readiness interrupt flags and turn off clock
     // readiness interrupts.
-    RCC_BASE->CIR = 0x00000000;
+    RCC->CIR = 0x00000000;
 #if !USE_HSI_CLOCK
     // Enable HSE, and wait until it's ready.
     rcc_turn_on_clk(RCC_CLK_HSE);

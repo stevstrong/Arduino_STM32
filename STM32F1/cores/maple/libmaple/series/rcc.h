@@ -58,7 +58,7 @@ typedef struct rcc_reg_map {
     __IO uint32 CSR;            /**< Control/status register */
 } rcc_reg_map;
 
-#define RCC_BASE                        ((struct rcc_reg_map*)0x40021000)
+#define RCC                        ((struct rcc_reg_map*)0x40021000)
 
 /*
  * Register bit definitions
@@ -393,52 +393,52 @@ typedef struct rcc_reg_map {
  * @brief STM32F1 rcc_clk_id.
  */
 typedef enum rcc_clk_id {
-    RCC_ADC1,
-    RCC_ADC2,
-    RCC_ADC3,
-    RCC_AFIO,
-    RCC_BKP,
-    RCC_CRC,
-    RCC_DAC,
-    RCC_DMA1,
-    RCC_DMA2,
-    RCC_FLITF,
-    RCC_FSMC,
     RCC_GPIOA,
     RCC_GPIOB,
     RCC_GPIOC,
-    RCC_GPIOD,
-    RCC_GPIOE,
-    RCC_GPIOF,
-    RCC_GPIOG,
-    RCC_I2C1,
-    RCC_I2C2,
-    RCC_PWR,
-    RCC_SDIO,
-    RCC_SPI1,
-    RCC_SPI2,
-    RCC_SPI3,
-    RCC_SRAM,
+    RCC_AFIO,
+    RCC_ADC1,
+    RCC_ADC2,
+    RCC_ADC3,
+    RCC_USART1,
+    RCC_USART2,
+    RCC_USART3,
     RCC_TIMER1,
     RCC_TIMER2,
     RCC_TIMER3,
     RCC_TIMER4,
+    RCC_SPI1,
+    RCC_SPI2,
+    RCC_DMA1,
+    RCC_PWR,
+    RCC_BKP,
+    RCC_I2C1,
+    RCC_I2C2,
+    RCC_CRC,
+    RCC_FLITF,
+    RCC_SRAM,
+    RCC_USB,
+    RCC_GPIOD,
+    RCC_GPIOE,
+    RCC_GPIOF,
+    RCC_GPIOG,
+    RCC_UART4,
+    RCC_UART5,
     RCC_TIMER5,
     RCC_TIMER6,
     RCC_TIMER7,
     RCC_TIMER8,
+    RCC_FSMC,
+    RCC_DAC,
+    RCC_DMA2,
+    RCC_SDIO,
+    RCC_SPI3,
     RCC_TIMER9,
     RCC_TIMER10,
     RCC_TIMER11,
     RCC_TIMER12,
     RCC_TIMER13,
     RCC_TIMER14,
-    RCC_USART1,
-    RCC_USART2,
-    RCC_USART3,
-    RCC_UART4,
-    RCC_UART5,
-    RCC_USB,
 } rcc_clk_id;
 
 /**
@@ -547,8 +547,8 @@ typedef enum rcc_usb_divider {
  * @brief Start the low speed internal oscillator
  */
 static inline void rcc_start_lsi(void) {
-	*bb_perip(&RCC_BASE->CSR, RCC_CSR_LSION_BIT) = 1;
-	while (*bb_perip(&RCC_BASE->CSR, RCC_CSR_LSIRDY_BIT) == 0);
+	*bb_perip(&RCC->CSR, RCC_CSR_LSION_BIT) = 1;
+	while (*bb_perip(&RCC->CSR, RCC_CSR_LSIRDY_BIT) == 0);
 }
 
 /**
@@ -596,9 +596,9 @@ typedef enum rcc_pll_multiplier {
  * @brief Start the low speed external oscillatior
  */
 static inline void rcc_start_lse(void) {
-	bb_peri_set_bit(&RCC_BASE->BDCR, RCC_BDCR_LSEBYP_BIT, 0);
-	bb_peri_set_bit(&RCC_BASE->BDCR, RCC_BDCR_LSEON_BIT, 1);
-	while (bb_peri_get_bit(&RCC_BASE->BDCR, RCC_BDCR_LSERDY_BIT ) == 0);
+	bb_peri_set_bit(&RCC->BDCR, RCC_BDCR_LSEBYP_BIT, 0);
+	bb_peri_set_bit(&RCC->BDCR, RCC_BDCR_LSEON_BIT, 1);
+	while (bb_peri_get_bit(&RCC->BDCR, RCC_BDCR_LSERDY_BIT ) == 0);
 }
 
 /**
@@ -615,7 +615,7 @@ typedef struct stm32f1_rcc_pll_data {
  */
 static inline void rcc_start_hse(void) {				// Added to support RTClock
 //	*bb_perip(&RCC_BASE->CR, RCC_CR_HSEON_BIT) = 1;
-	while (bb_peri_get_bit(&RCC_BASE->CR, RCC_CR_HSERDY_BIT) == 0);
+	while (bb_peri_get_bit(&RCC->CR, RCC_CR_HSERDY_BIT) == 0);
 }
 
 /**

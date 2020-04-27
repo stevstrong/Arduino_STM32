@@ -31,8 +31,8 @@
 
 #include <io.h>
 
-#include <libmaple/gpio.h>
 #include <libmaple/timer.h>
+#include <libmaple/gpio.h>
 
 #include <boards.h>
 
@@ -77,16 +77,15 @@ void pinMode(uint8 pin, WiringPinMode mode) {
         return;
     }
 
-    gpio_set_mode(PIN_MAP[pin].gpio_device, PIN_MAP[pin].gpio_bit, outputMode);
+    gpio_set_pin_mode(pin, outputMode);
 
-    if (PIN_MAP[pin].timer_device != NULL) {
+    uint8 channel = PinTimerChannel(pin);
+    timer_dev * tdev = PinTimerDevice(pin);
+    if (tdev != NULL) {
         if ( pwm ) { // we're switching into PWM, enable timer channels
-        timer_set_mode(PIN_MAP[pin].timer_device,
-                       PIN_MAP[pin].timer_channel,
-                       TIMER_PWM );
+        	timer_set_mode(tdev, channel, TIMER_PWM );
         } else {  // disable channel output in non pwm-Mode             
-            timer_cc_disable(PIN_MAP[pin].timer_device, 
-                            PIN_MAP[pin].timer_channel); 
+            timer_cc_disable(tdev, channel);
         }
     }
 }

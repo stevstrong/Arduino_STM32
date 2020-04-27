@@ -59,10 +59,7 @@ void attachInterrupt(uint8 pin, voidFuncPtr handler, ExtIntTriggerMode mode) {
 
     exti_trigger_mode outMode = exti_out_mode(mode);
 
-    exti_attach_interrupt((exti_num)(PIN_MAP[pin].gpio_bit),
-                          gpio_exti_port(PIN_MAP[pin].gpio_device),
-                          handler,
-                          outMode);
+    exti_attach_interrupt((exti_num)(pin%16), (exti_cfg)(pin/16), handler, outMode);
 }
 
 void detachInterrupt(uint8 pin) {
@@ -70,5 +67,5 @@ void detachInterrupt(uint8 pin) {
         return;
     }
 
-    exti_detach_interrupt((exti_num)(PIN_MAP[pin].gpio_bit));
+    exti_detach_interrupt((exti_num)(pin%16));
 }

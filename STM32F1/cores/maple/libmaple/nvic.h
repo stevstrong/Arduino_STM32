@@ -115,6 +115,10 @@ inline void nvic_globalirq_enable() { asm volatile("cpsie i"); }
  */
 inline void nvic_globalirq_disable() { asm volatile("cpsid i"); }
 
+inline void interrupts() { nvic_globalirq_enable(); }
+
+inline void noInterrupts() { nvic_globalirq_disable(); }
+
 /**
  * @brief Enable interrupt irq_num
  * @param irq_num Interrupt to enable

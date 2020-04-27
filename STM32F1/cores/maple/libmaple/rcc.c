@@ -54,12 +54,12 @@ rcc_clk_domain rcc_dev_clk(rcc_clk_id id) {
  */
 void rcc_switch_sysclk(rcc_sysclk_src sysclk_src)
 {
-    uint32 cfgr = RCC_BASE->CFGR & (~RCC_CFGR_SW);
+    uint32 cfgr = RCC->CFGR & (~RCC_CFGR_SW);
     /* Switch SYSCLK source. */
-    RCC_BASE->CFGR = cfgr | sysclk_src;
+    RCC->CFGR = cfgr | sysclk_src;
 
     /* Wait for new source to come into use. */
-    while ((RCC_BASE->CFGR & RCC_CFGR_SWS) != (uint32)(sysclk_src << 2))
+    while ((RCC->CFGR & RCC_CFGR_SWS) != (uint32)(sysclk_src << 2))
         ;
 }
 
@@ -93,7 +93,7 @@ void rcc_switch_sysclk(rcc_sysclk_src sysclk_src)
 
 /* Returns the RCC register which controls the clock source. */
 static inline __IO uint32* rcc_clk_reg(rcc_clk clock) {
-    return (__IO uint32*)((__IO uint8*)RCC_BASE + (clock >> 8));
+    return (__IO uint32*)((__IO uint8*)RCC + (clock >> 8));
 }
 
 /* Returns a mask in rcc_clk_reg(clock) to be used for turning the

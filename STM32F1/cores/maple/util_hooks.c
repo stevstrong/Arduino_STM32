@@ -38,13 +38,13 @@
 #include <libmaple/timer.h>
 #include <libmaple/adc.h>
 #include <libmaple/usart.h>
+#include "board/board.h"
 
 /* Failed ASSERT()s send out a message using this USART config. */
 #ifndef ERROR_USART
 #define ERROR_USART            USART2
 #define ERROR_USART_BAUD       9600
-#define ERROR_TX_PORT          GPIOA
-#define ERROR_TX_PIN           2
+#define ERROR_TX_PIN           PA2
 #endif
 
 /*
@@ -76,8 +76,8 @@ void __lm_error(void) {
  * Enable the error USART for writing.
  */
 usart_dev* __lm_enable_error_usart() {
-    gpio_set_mode(ERROR_TX_PORT, ERROR_TX_PIN, GPIO_AF_OUTPUT_PP);
+    gpio_set_pin_mode(ERROR_TX_PIN, GPIO_AF_OUTPUT_PP);
     usart_init(ERROR_USART);
-    usart_set_baud_rate(ERROR_USART, USART_USE_PCLK, ERROR_USART_BAUD);
+    usart_set_baud_rate(ERROR_USART, ERROR_USART_BAUD);
     return ERROR_USART;
 }

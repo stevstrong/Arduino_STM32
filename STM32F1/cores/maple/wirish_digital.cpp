@@ -42,7 +42,7 @@ uint32 digitalRead(uint8 pin) {
         return 0;
     }
 
-    return gpio_read_bit(PIN_MAP[pin].gpio_device, PIN_MAP[pin].gpio_bit) ?
+    return gpio_read_pin(pin) ?
         HIGH : LOW;
 }
 
@@ -51,7 +51,7 @@ void digitalWrite(uint8 pin, uint8 val) {
         return;
     }
 
-    gpio_write_bit(PIN_MAP[pin].gpio_device, PIN_MAP[pin].gpio_bit, val);
+    gpio_write_pin(pin, val);
 }
 
 #if FALSE
