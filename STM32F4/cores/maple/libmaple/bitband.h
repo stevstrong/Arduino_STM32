@@ -41,7 +41,7 @@
 #define BB_PERI_BASE     0x42000000
 
 
-#define __bb_addr(addr, bit, bb_base, bb_ref) \
+#define __bb_addr(address, bit, bb_base, bb_ref) \
 	(volatile uint32*)((bb_base) + (((uint32)((uint32)(address) - (bb_ref))) * 32) + ((bit) * 4))
 
 
