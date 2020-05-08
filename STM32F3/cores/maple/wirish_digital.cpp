@@ -84,7 +84,7 @@ void pinMode(uint8 pin, WiringPinMode w_mode) {
 		const timer_info *info = &timer_map[pin];
         /* If enabling PWM, tell the timer to do PWM, and tell the pin
          * to listen to the right timer. */
-        if (info->index == NULL) {
+        if (info->index == 0) {
             return;
         }
         timer_set_mode(timer_devices[info->index], info->channel, TIMER_PWM);

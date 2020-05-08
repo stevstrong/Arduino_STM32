@@ -78,7 +78,7 @@ uint16 analogRead(uint8 pin)
 	const adc_info * info = &adc_map[pin];
 	const adc_dev * dev = info->device;
     uint8 channel = info->channel;
-    if ( dev==NULL || channel==NULL )
+    if ( dev==0 || channel==0 )
         return 0;
 
     return adc_read(dev, channel);

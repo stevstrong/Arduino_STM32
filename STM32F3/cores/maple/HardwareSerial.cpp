@@ -65,13 +65,8 @@ HardwareSerial::HardwareSerial(const usart_dev *usart_device,
 
 #define disable_timer_if_necessary(pin) ((void)0)
 
-void HardwareSerial::begin(uint32 baud) {
-    ASSERT(baud <= this->usart_device->max_baud);
-
-    if (baud > this->usart_device->max_baud) {
-        return;
-    }
-
+void HardwareSerial::begin(uint32 baud)
+{
     disable_timer_if_necessary(tx_pin);
 
     usart_config_gpios_async(this->usart_device, rx_pin, tx_pin);
@@ -89,7 +84,7 @@ void HardwareSerial::end(void) {
  */
 
 int HardwareSerial::read(void) {
-	if(usart_data_available(usart_device) > 0) {
+	if(usart_read_available(usart_device) > 0) {
 		return usart_getc(usart_device);
 	} else {
 		return -1;
@@ -97,7 +92,7 @@ int HardwareSerial::read(void) {
 }
 
 int HardwareSerial::available(void) {
-    return usart_data_available(this->usart_device);
+    return usart_read_available(this->usart_device);
 }
 
 /* Roger Clark. Added function missing from LibMaple code */
@@ -109,7 +104,7 @@ int HardwareSerial::peek(void)
 
 int HardwareSerial::availableForWrite(void)
 {
-    return this->usart_device->wb->size-rb_full_count(this->usart_device->wb);
+    return usart_write_available(this->usart_device);
 }
 
 size_t HardwareSerial::write(unsigned char ch)

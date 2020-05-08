@@ -135,6 +135,17 @@ tools.stlink_upload.upload.params.verbose=-d
 tools.stlink_upload.upload.params.quiet=
 tools.stlink_upload.upload.pattern="{path}/{cmd}" "{build.path}/{build.project_name}.bin"
 
+# cdc upload
+tools.cdc_upload.cmd=cdc_upload
+tools.cdc_upload.cmd.windows=cdc_upload.bat
+tools.cdc_upload.path.windows={runtime.hardware.path}/tools/win
+#tools.cdc_upload.path.macosx={runtime.hardware.path}/tools/macosx
+#tools.cdc_upload.path.linux={runtime.hardware.path}/tools/linux
+#tools.cdc_upload.path.linux64={runtime.hardware.path}/tools/linux64
+tools.cdc_upload.upload.params.verbose=
+tools.cdc_upload.upload.params.quiet=
+tools.cdc_upload.upload.pattern="{path}/{cmd}" "{build.path}/{build.project_name}.bin" {serial.port.file} 2
+
 #
 tools.upload_router.cmd=upload_router
 tools.upload_router.cmd.windows=upload_router.bat

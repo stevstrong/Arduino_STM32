@@ -194,16 +194,42 @@ void nvic_sys_reset();
 /**
  * Enables interrupts and configurable fault handlers (clear PRIMASK).
  */
-static __always_inline void nvic_globalirq_enable() {
+static inline void nvic_globalirq_enable() {
     asm volatile("cpsie i");
 }
+/**
+ * Re-enable interrupts.
+ *
+ * Call this after noInterrupts() to re-enable interrupt handling,
+ * after you have finished with a timing-critical section of code.
+ *
+ * @see noInterrupts()
+ */
+static inline void interrupts() {
+    nvic_globalirq_enable();
+}
+
 
 /**
  * Disable interrupts and configurable fault handlers (set PRIMASK).
  */
-static __always_inline void nvic_globalirq_disable() {
+static inline void nvic_globalirq_disable() {
     asm volatile("cpsid i");
 }
+/**
+ * Disable interrupts.
+ *
+ * After calling this function, all user-programmable interrupts will
+ * be disabled.  You can call this function before a timing-critical
+ * section of code, then call interrupts() to re-enable interrupt
+ * handling.
+ *
+ * @see interrupts()
+ */
+static inline void noInterrupts() {
+    nvic_globalirq_disable();
+}
+
 
 /**
  * @brief Enable interrupt irq_num

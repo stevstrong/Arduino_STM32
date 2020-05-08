@@ -115,12 +115,8 @@ typedef struct usart_reg_map {
 /** USART device type */
 typedef struct usart_dev {
     usart_reg_map *regs;             /**< Register map */
-    ring_buffer *rb;                 /**< RX ring buffer */
-    ring_buffer *wb;                 /**< TX ring buffer */
-    uint32 max_baud;                 /**< @brief Deprecated.
-                                      * Maximum baud rate. */
-	uint8 *rx_buf;
-	uint8 *tx_buf;
+    ring_buffer_t *rb;                 /**< RX ring buffer */
+    ring_buffer_t *wb;                 /**< TX ring buffer */
     rcc_clk_id clk_id;               /**< RCC clock information */
     nvic_irq_num irq_num;            /**< USART NVIC interrupt */
 } usart_dev;
@@ -678,15 +674,14 @@ static inline void usart_putstr(const usart_dev *dev, const char* str) {
 /**
  * @brief Read one character from a serial port.
  *
- * It's not safe to call this function if the serial port has no data
- * available.
+ * It's not safe to call this function if the serial port has no data available
  *
  * @param dev Serial port to read from
  * @return byte read
  * @see usart_data_available()
  */
 static inline uint8 usart_getc(const usart_dev *dev) {
-    return rb_remove(dev->rb);
+    return rb_read(dev->rb);
 }
 
 /*
@@ -705,8 +700,12 @@ static inline int usart_peek(const usart_dev *dev)
  * @param dev Serial port to check
  * @return Number of bytes in dev's RX buffer.
  */
-static inline uint32 usart_data_available(const usart_dev *dev) {
-    return rb_full_count(dev->rb);
+static inline uint32 usart_read_available(const usart_dev *dev) {
+    return rb_read_available(dev->rb);
+}
+
+static inline uint32 usart_write_available(const usart_dev *dev) {
+    return rb_write_available(dev->rb);
 }
 
 /**

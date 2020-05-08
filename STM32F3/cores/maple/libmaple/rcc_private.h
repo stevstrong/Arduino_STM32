@@ -39,29 +39,17 @@ struct rcc_dev_info {
 };
 
 extern const struct rcc_dev_info rcc_dev_table[];
-
-static inline void rcc_do_clk_enable(__IO uint32** enable_regs,
-                                     rcc_clk_id id) {
-    __IO uint32 *enable_reg = enable_regs[rcc_dev_clk(id)];
-    uint8 line_num = rcc_dev_table[id].line_num;
-    bb_peri_set_bit(enable_reg, line_num, 1);
+/**
+ * @brief Get a peripheral's clock domain
+ * @param id Clock ID of the peripheral whose clock domain to return
+ * @return Clock source for the given clock ID
+ */
+static inline rcc_clk_domain rcc_dev_clk(rcc_clk_id id) {
+    return rcc_dev_table[id].clk_domain;
 }
 
-static inline void rcc_do_reset_dev(__IO uint32** reset_regs,
-                                    rcc_clk_id id) {
-    __IO uint32 *reset_reg = reset_regs[rcc_dev_clk(id)];
-    uint8 line_num = rcc_dev_table[id].line_num;
-    bb_peri_set_bit(reset_reg, line_num, 1);
-    bb_peri_set_bit(reset_reg, line_num, 0);
-}
-
-static inline void rcc_do_set_prescaler(const uint32 *masks,
-                                        rcc_prescaler prescaler,
-                                        uint32 divider) {
-    uint32 cfgr = RCC_BASE->CFGR;
-    cfgr &= ~masks[prescaler];
-    cfgr |= divider;
-    RCC_BASE->CFGR = cfgr;
-}
+extern void rcc_do_clk_enable(rcc_clk_id id);
+extern void rcc_do_reset_dev(rcc_clk_id id);
+extern void rcc_do_set_prescaler(rcc_prescaler prescaler, uint32 divider);
 
 #endif

@@ -175,19 +175,21 @@ static void setup_adcs(void) {
     adc_foreach(adc_default_config);
 }
 
-static void timer_default_config(const timer_dev *dev) {
-    timer_adv_reg_map *regs = (dev->regs).adv;
-    const uint16 full_overflow = 0xFFFF;
-    const uint16 half_duty = 0x8FFF;
+static void timer_default_config(const timer_dev *dev)
+{
+	timer_init(dev);
+	timer_pause(dev);
+return;
 
-    timer_init(dev);
-    timer_pause(dev);
+	timer_adv_reg_map *regs = (dev->regs).adv;
+	const uint16 full_overflow = 0xFFFF;
+	const uint16 half_duty = 0x8FFF;
 
-    regs->CR1 = TIMER_CR1_ARPE;
-    regs->PSC = 1;
-    regs->SR = 0;
-    regs->DIER = 0;
-    regs->EGR = TIMER_EGR_UG;
+	regs->CR1 = TIMER_CR1_ARPE;
+	regs->PSC = 1;
+	regs->SR = 0;
+	regs->DIER = 0;
+	regs->EGR = TIMER_EGR_UG;
     switch (dev->type) {
     case TIMER_ADVANCED:
         regs->BDTR = TIMER_BDTR_MOE | TIMER_BDTR_LOCK_OFF;
@@ -203,6 +205,7 @@ static void timer_default_config(const timer_dev *dev) {
         }
         // fall-through
     case TIMER_BASIC:
+    default:
         break;
     }
 

@@ -39,49 +39,34 @@
  */
 
 /** USART1 device */
-static ring_buffer usart1_rb;
-static ring_buffer usart1_wb;
-static uint8 rx1_buf[USART_RX_BUF_SIZE];
-static uint8 tx1_buf[USART_TX_BUF_SIZE];
+RING_BUFFER(usart1_rb, USART_RX_BUF_SIZE);
+RING_BUFFER(usart1_wb, USART_TX_BUF_SIZE);
 const usart_dev usart1 = {
     .regs     = USART1_BASE,
     .rb       = &usart1_rb,
     .wb       = &usart1_wb,
-    .max_baud = 4500000UL,
-    .rx_buf   = rx1_buf,
-    .tx_buf   = tx1_buf,
     .clk_id   = RCC_USART1,
     .irq_num  = NVIC_USART1,
 };
 
 /** USART2 device */
-static ring_buffer usart2_rb;
-static ring_buffer usart2_wb;
-static uint8 rx2_buf[USART_RX_BUF_SIZE];
-static uint8 tx2_buf[USART_TX_BUF_SIZE];
+RING_BUFFER(usart2_rb, USART_RX_BUF_SIZE);
+RING_BUFFER(usart2_wb, USART_TX_BUF_SIZE);
 const usart_dev usart2 = {
     .regs     = USART2_BASE,
     .rb       = &usart2_rb,
     .wb       = &usart2_wb,
-    .max_baud = 2250000UL,
-    .rx_buf   = rx2_buf,
-    .tx_buf   = tx2_buf,
     .clk_id   = RCC_USART2,
     .irq_num  = NVIC_USART2,
 };
 
 /** USART3 device */
-static ring_buffer usart3_rb;
-static ring_buffer usart3_wb;
-static uint8 rx3_buf[USART_RX_BUF_SIZE];
-static uint8 tx3_buf[USART_TX_BUF_SIZE];
+RING_BUFFER(usart3_rb, USART_RX_BUF_SIZE);
+RING_BUFFER(usart3_wb, USART_TX_BUF_SIZE);
 const usart_dev usart3 = {
     .regs     = USART3_BASE,
     .rb       = &usart3_rb,
     .wb       = &usart3_wb,
-    .max_baud = 2250000UL,
-    .rx_buf   = rx3_buf,
-    .tx_buf   = tx3_buf,
     .clk_id   = RCC_USART3,
     .irq_num  = NVIC_USART3,
 };
@@ -192,7 +177,8 @@ gpio_af usart_get_af(const usart_dev *dev) {
  * @param dev         Serial port to be initialized
  */
 void usart_init(const usart_dev *dev) {
-    rb_init(dev->rb, USART_RX_BUF_SIZE, dev->rx_buf);
+    rb_reset(dev->rb);
+    rb_reset(dev->wb);
     rcc_clk_enable(dev->clk_id);
     nvic_irq_enable(dev->irq_num);
 }
@@ -243,7 +229,7 @@ void usart_disable(const usart_dev *dev) {
  */
 uint32 usart_rx(const usart_dev *dev, uint8 *buf, uint32 len) {
     uint32 rxed = 0;
-    while (usart_data_available(dev) && rxed < len) {
+    while (usart_read_available(dev) && rxed < len) {
         *buf++ = usart_getc(dev);
         rxed++;
     }
@@ -278,27 +264,47 @@ void usart_putudec(const usart_dev *dev, uint32 val) {
  * Interrupt handlers.
  */
 
-static __always_inline void usart_irq(ring_buffer *rb, usart_reg_map *regs) {
-#ifdef USART_SAFE_INSERT
-    /* If the buffer is full and the user defines USART_SAFE_INSERT,
-     * ignore new bytes. */
-    rb_safe_insert(rb, regs->RDR & USART_RDR_RDR);
-#else
-    /* By default, push bytes around in the ring buffer. */
-    rb_push_insert(rb, regs->RDR & USART_RDR_RDR);
-#endif
+static inline void usart_irq(const usart_dev * udev)
+{
+    /* Handling RXNEIE and TXEIE interrupts.
+	 * See table 198 (sec 27.4, p809) in STM document RM0008 rev 15.
+	 * We enable RXNEIE. */
+
+	register usart_reg_map * regs = udev->regs;
+
+	// Receive part.. RXNE signifies availability of a byte in DR.
+	if (regs->CR1 & USART_CR1_RXNEIE)
+	{ // check error flags
+		if ( regs->SR & (USART_SR_ORE | USART_SR_FE | USART_SR_PE) )
+		{ // overrun, framing or parity error: clear the error flags
+			regs->ICR = (USART_ICR_ORECF | USART_ICR_FECF | USART_ICR_PECF);
+		}
+		if (regs->SR & USART_SR_RXNE)
+		{ // push bytes around in the ring buffer
+			rb_write_safe(udev->rb, (uint8) regs->RDR);
+		}
+	}
+	// Transmit part. TXE signifies readiness to send a byte to DR
+	if ((regs->CR1 & USART_CR1_TXEIE) && (regs->SR & USART_SR_TXE))
+	{
+		register int val = rb_read_safe(udev->wb);
+		if (val!=-1)
+			regs->TDR = (uint8_t)val;
+		else
+			regs->CR1 &= ~((uint32)USART_CR1_TXEIE); // disable TXEIE
+	}
 }
 
 void __irq_usart1(void) {
-    usart_irq(&usart1_rb, USART1_BASE);
+    usart_irq(USART1);
 }
 
 void __irq_usart2(void) {
-    usart_irq(&usart2_rb, USART2_BASE);
+    usart_irq(USART2);
 }
 
 void __irq_usart3(void) {
-    usart_irq(&usart3_rb, USART3_BASE);
+    usart_irq(USART3);
 }
 
 #ifdef STM32_HIGH_DENSITY

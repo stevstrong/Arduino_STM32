@@ -95,51 +95,59 @@ const struct rcc_dev_info rcc_dev_table[] = {
 };
 
 /* pll_cfg->data must point to a valid struct stm32f3_rcc_pll_data. */
-void rcc_configure_pll(rcc_pll_cfg *pll_cfg) {
-    stm32f3_rcc_pll_data *data = pll_cfg->data;
-    rcc_pll_multiplier pll_mul = data->pll_mul;
-		rcc_prediv_divider pclk_prediv = data->pclk_prediv; //TODO use this!!!
-    uint32 cfgr;
-		uint32 cfgr2;
+void rcc_configure_pll(rcc_pll_cfg *pll_cfg)
+{
+	stm32f3_rcc_pll_data *data = pll_cfg->data;
+	rcc_pll_multiplier pll_mul = data->pll_mul;
+	rcc_prediv_divider pclk_prediv = data->pclk_prediv; //TODO use this!!!
 
-    /* Check that the PLL is disabled. */
-    ASSERT_FAULT(!rcc_is_clk_on(RCC_CLK_PLL));
+	/* Check that the PLL is disabled. */
+	ASSERT_FAULT(!rcc_is_clk_on(RCC_CLK_PLL));
 
-		cfgr2 = RCC_BASE->CFGR2;
-		cfgr2 &= ~(RCC_CFGR2_PREDIV);
-		cfgr2 |= pclk_prediv;
-		RCC_BASE->CFGR2 = cfgr2;
+	uint32 cfgr2 = RCC_BASE->CFGR2;
+	cfgr2 &= ~(RCC_CFGR2_PREDIV);
+	cfgr2 |= pclk_prediv;
+	RCC_BASE->CFGR2 = cfgr2;
 
-    cfgr = RCC_BASE->CFGR;
-    cfgr &= ~(RCC_CFGR_PLLSRC | RCC_CFGR_PLLMUL);
-    cfgr |= pll_cfg->pllsrc | pll_mul;
+	uint32 cfgr = RCC_BASE->CFGR;
+	cfgr &= ~(RCC_CFGR_PLLSRC | RCC_CFGR_PLLMUL);
+	cfgr |= pll_cfg->pllsrc | pll_mul;
+	RCC_BASE->CFGR = cfgr;
+}
+
+static __IO uint32* rcc_enable_regs[] = {
+	[APB1] = &RCC_BASE->APB1ENR,
+	[APB2] = &RCC_BASE->APB2ENR,
+	[AHB] = &RCC_BASE->AHBENR,
+};
+void rcc_do_clk_enable(rcc_clk_id id) {
+    __IO uint32 *enable_reg = rcc_enable_regs[rcc_dev_clk(id)];
+    uint8 line_num = rcc_dev_table[id].line_num;
+    bb_peri_set_bit(enable_reg, line_num, 1);
+}
+
+static __IO uint32* rcc_reset_regs[] = {
+	[APB1] = &RCC_BASE->APB1RSTR,
+	[APB2] = &RCC_BASE->APB2RSTR,
+	[AHB] = &RCC_BASE->AHBRSTR,
+};
+void rcc_do_reset_dev(rcc_clk_id id) {
+    __IO uint32 *reset_reg = rcc_reset_regs[rcc_dev_clk(id)];
+    uint8 line_num = rcc_dev_table[id].line_num;
+    bb_peri_set_bit(reset_reg, line_num, 1);
+    bb_peri_set_bit(reset_reg, line_num, 0);
+}
+
+static const uint32 rcc_masks[] = {
+	[RCC_PRESCALER_AHB] = RCC_CFGR_HPRE,
+	[RCC_PRESCALER_APB1] = RCC_CFGR_PPRE1,
+	[RCC_PRESCALER_APB2] = RCC_CFGR_PPRE2,
+	[RCC_PRESCALER_USB] = RCC_CFGR_USBPRE,
+};
+void rcc_do_set_prescaler(rcc_prescaler prescaler, uint32 divider)
+{
+    uint32 cfgr = RCC_BASE->CFGR;
+    cfgr &= ~rcc_masks[prescaler];
+    cfgr |= divider;
     RCC_BASE->CFGR = cfgr;
-}
-
-void rcc_clk_enable(rcc_clk_id id) {
-    static __IO uint32* enable_regs[] = {
-        [APB1] = &RCC_BASE->APB1ENR,
-        [APB2] = &RCC_BASE->APB2ENR,
-        [AHB] = &RCC_BASE->AHBENR,
-    };
-    rcc_do_clk_enable(enable_regs, id);
-}
-
-void rcc_reset_dev(rcc_clk_id id) {
-    static __IO uint32* reset_regs[] = {
-        [APB1] = &RCC_BASE->APB1RSTR,
-        [APB2] = &RCC_BASE->APB2RSTR,
-        [AHB] = &RCC_BASE->AHBRSTR,
-    };
-    rcc_do_reset_dev(reset_regs, id);
-}
-
-void rcc_set_prescaler(rcc_prescaler prescaler, uint32 divider) {
-    static const uint32 masks[] = {
-        [RCC_PRESCALER_AHB] = RCC_CFGR_HPRE,
-        [RCC_PRESCALER_APB1] = RCC_CFGR_PPRE1,
-        [RCC_PRESCALER_APB2] = RCC_CFGR_PPRE2,
-        [RCC_PRESCALER_USB] = RCC_CFGR_USBPRE,
-    };
-    rcc_do_set_prescaler(masks, prescaler, divider);
 }

@@ -50,7 +50,6 @@ typedef enum rcc_sysclk_src {
     RCC_CLKSRC_PLL = 0x2,
 } rcc_sysclk_src;
 
-
 /*
  * Register map
  */
@@ -675,6 +674,10 @@ typedef struct stm32f3_rcc_pll_data {
 #define RCC_BASE
 #endif
 
+
+#include "rcc_private.h"
+
+
 /* Clock prescaler management. */
 
 /**
@@ -682,7 +685,9 @@ typedef struct stm32f3_rcc_pll_data {
  * @param prescaler prescaler to set
  * @param divider prescaler divider
  */
-extern void rcc_set_prescaler(rcc_prescaler prescaler, uint32 divider);
+static inline void rcc_set_prescaler(rcc_prescaler prescaler, uint32 divider) {
+    rcc_do_set_prescaler(prescaler, divider);
+}
 
 /* SYSCLK. */
 
@@ -723,7 +728,9 @@ int rcc_is_clk_ready(rcc_clk clock);
  * @brief Turn on the clock line on a peripheral
  * @param id Clock ID of the peripheral to turn on.
  */
-extern void rcc_clk_enable(rcc_clk_id id);
+static inline void rcc_clk_enable(rcc_clk_id id) {
+    rcc_do_clk_enable(id);
+}
 
 /**
  * @brief Reset a peripheral.
@@ -734,9 +741,10 @@ extern void rcc_clk_enable(rcc_clk_id id);
  *
  * @param id Clock ID of the peripheral to reset.
  */
-extern void rcc_reset_dev(rcc_clk_id id);
+static inline void rcc_reset_dev(rcc_clk_id id) {
+    rcc_do_reset_dev(id);
+}
 
-rcc_clk_domain rcc_dev_clk(rcc_clk_id id);
 
 /* Clock security system */
 

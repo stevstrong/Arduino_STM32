@@ -37,8 +37,8 @@
 extern "C" {
 #endif
 
-#include <sys/cdefs.h>
-#include <inttypes.h>
+#include <stdint.h>
+#include <stdbool.h>
 
 typedef unsigned char uint8;
 typedef unsigned short uint16;
@@ -59,15 +59,12 @@ typedef void (*voidArgumentFuncPtr)(void *);
 #define __packed __attribute__((__packed__))
 #define __deprecated __attribute__((__deprecated__))
 #define __weak __attribute__((weak))
-#define __always_inline inline __attribute__((always_inline))
-#define __unused __attribute__((unused))
 
 #ifndef NULL
 #define NULL 0
 #endif
 
 #ifndef offsetof
-#define __builtin_offsetof(type, member) __offsetof(type, member)
 #define offsetof(type, member) __builtin_offsetof(type, member)
 #endif
 

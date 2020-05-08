@@ -42,6 +42,6 @@ void pwmWrite(uint8 pin, uint16 duty_cycle) {
         return;
     }
 	const timer_info *info = &timer_map[pin];
-	if (info->index==NULL || info->channel==0) return;
+	if (info->index==0 || info->channel==0) return;
     timer_set_compare(timer_devices[info->index], info->channel, duty_cycle);
 }

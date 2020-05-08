@@ -122,7 +122,7 @@ void gpio_set_mode(uint8 pin, gpio_pin_mode mode)
 void gpio_set_af(uint8 pin, gpio_af af)
 {
     gpio_reg_map *regs = digitalPinToPort(pin)->regs;
-    uint8 bit = pin&0x0F;
+    uint8 bit = digitalPinToBit(pin);
 
     regs->AFR[bit>>3] = (regs->AFR[bit>>3] & ~(0xF << ((bit&7)<<2))) | (af << ((bit&7)<<2));
 }

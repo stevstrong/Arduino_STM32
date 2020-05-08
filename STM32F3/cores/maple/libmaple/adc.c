@@ -384,7 +384,7 @@ void _adc_enable_dev_irq(const adc_dev *dev)
 }
 
 /* IRQ handler for adc_attach_interrupt() */
-static __always_inline void adc_irq(const adc_dev *dev) {
+static inline void adc_irq(const adc_dev *dev) {
     adc_private_data *priv = dev->priv;
     uint32 irq_flags = dev->regs->ISR & priv->handler_flags;
 

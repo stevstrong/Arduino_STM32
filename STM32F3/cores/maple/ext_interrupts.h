@@ -98,31 +98,5 @@ void attachInterrupt(uint8 pin, voidArgumentFuncPtr handler, void *arg,
  */
 void detachInterrupt(uint8 pin);
 
-/**
- * Re-enable interrupts.
- *
- * Call this after noInterrupts() to re-enable interrupt handling,
- * after you have finished with a timing-critical section of code.
- *
- * @see noInterrupts()
- */
-static __always_inline void interrupts() {
-    nvic_globalirq_enable();
-}
-
-/**
- * Disable interrupts.
- *
- * After calling this function, all user-programmable interrupts will
- * be disabled.  You can call this function before a timing-critical
- * section of code, then call interrupts() to re-enable interrupt
- * handling.
- *
- * @see interrupts()
- */
-static __always_inline void noInterrupts() {
-    nvic_globalirq_disable();
-}
-
 #endif
 

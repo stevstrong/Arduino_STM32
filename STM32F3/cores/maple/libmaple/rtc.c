@@ -71,7 +71,7 @@ time_t getTimeNow()
 	return makeTimeTM(&_tm);
 }
 
-static void breakTimeTMTM(time_t timeInput, tm_t *tm)
+void breakTimeTM(time_t timeInput, tm_t *tm)
 {
 // break the given time_t into time components
 // this is a more compact version of the C library localtime function
