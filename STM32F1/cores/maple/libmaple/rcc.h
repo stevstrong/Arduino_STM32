@@ -50,7 +50,8 @@ typedef enum rcc_sysclk_src {
     RCC_CLKSRC_PLL = 0x2,
 } rcc_sysclk_src;
 
-#include "series/rcc.h"
+#include "rcc_private.h"
+
 
 /* Note: Beyond the usual (registers, etc.), it's up to the series
  * header to define the following types:
@@ -149,8 +150,6 @@ extern void rcc_clk_enable(rcc_clk_id id);
  * @param id Clock ID of the peripheral to reset.
  */
 extern void rcc_reset_dev(rcc_clk_id id);
-
-rcc_clk_domain rcc_dev_clk(rcc_clk_id id);
 
 /* Clock security system */
 

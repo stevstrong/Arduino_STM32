@@ -31,7 +31,7 @@
 #ifndef _LIBMAPLE_PRIVATE_RCC_H_
 #define _LIBMAPLE_PRIVATE_RCC_H_
 
-#include <libmaple/bitband.h>
+#include "series/rcc.h"
 
 struct rcc_dev_info {
     const rcc_clk_domain clk_domain;
@@ -39,6 +39,14 @@ struct rcc_dev_info {
 };
 
 extern const struct rcc_dev_info rcc_dev_table[];
+/**
+ * @brief Get a peripheral's clock domain
+ * @param id Clock ID of the peripheral whose clock domain to return
+ * @return Clock source for the given clock ID
+ */
+static inline rcc_clk_domain rcc_dev_clk(rcc_clk_id id) {
+    return rcc_dev_table[id].clk_domain;
+}
 
 static inline void rcc_do_clk_enable(__IO uint32** enable_regs,
                                      rcc_clk_id id) {

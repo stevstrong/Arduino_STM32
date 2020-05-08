@@ -177,3 +177,14 @@ tools.hid_upload.path.linux64={runtime.hardware.path}/tools/linux64
 tools.hid_upload.upload.params.verbose=-d
 tools.hid_upload.upload.params.quiet=n
 tools.hid_upload.upload.pattern="{path}/{cmd}" "{build.path}/{build.project_name}.bin" {serial.port.file}
+
+# CDC upload 1.0
+tools.cdc_upload.cmd=cdc_upload
+tools.cdc_upload.cmd.windows=cdc_upload.bat
+tools.cdc_upload.path.windows={runtime.hardware.path}/tools/win
+#tools.cdc_upload.path.macosx={runtime.hardware.path}/tools/macosx
+#tools.cdc_upload.path.linux={runtime.hardware.path}/tools/linux
+#tools.cdc_upload.path.linux64={runtime.hardware.path}/tools/linux64
+tools.cdc_upload.upload.params.verbose=
+tools.cdc_upload.upload.params.quiet=
+tools.cdc_upload.upload.pattern="{path}/{cmd}" "{build.path}/{build.project_name}.bin" {serial.port.file} 1

@@ -34,14 +34,6 @@
 
 #include "rcc_private.h"
 
-/**
- * @brief Get a peripheral's clock domain
- * @param id Clock ID of the peripheral whose clock domain to return
- * @return Clock source for the given clock ID
- */
-rcc_clk_domain rcc_dev_clk(rcc_clk_id id) {
-    return rcc_dev_table[id].clk_domain;
-}
 
 /**
  * @brief Switch the clock used as the source of the system clock.
