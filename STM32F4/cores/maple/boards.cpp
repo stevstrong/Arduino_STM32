@@ -122,15 +122,16 @@ static void setupADC()
 
 static void timerDefaultConfig(const timer_dev *dev)
 {
+    timer_init(dev);
+    timer_pause(dev);
+    regs->CR1 = TIMER_CR1_ARPE;
+
 return;
+
     timer_adv_reg_map *regs = (dev->regs).adv;
     const uint16 full_overflow = 0xFFFF;
     const uint16 half_duty = 0x8FFF;
 
-    timer_init(dev);
-    timer_pause(dev);
-
-    regs->CR1 = TIMER_CR1_ARPE;
     regs->PSC = 1;
     regs->SR = 0;
     regs->DIER = 0;
