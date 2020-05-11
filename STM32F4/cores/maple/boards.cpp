@@ -124,6 +124,7 @@ static void timerDefaultConfig(const timer_dev *dev)
 {
     timer_init(dev);
     timer_pause(dev);
+
     timer_adv_reg_map *regs = (dev->regs).adv;
     regs->CR1 = TIMER_CR1_ARPE;
 
