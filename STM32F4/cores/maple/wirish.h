@@ -45,7 +45,7 @@
 #include "wirish_debug.h"
 #include "wirish_math.h"
 #include <wirish_constants.h>
-#include <libmaple/HardwareSerial.h>
+#include "HardwareSerial.h"
 #include "HardwareTimer.h"
 #include "usb_serial.h"
 

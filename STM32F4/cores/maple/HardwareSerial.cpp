@@ -29,11 +29,11 @@
  * @brief Wirish serial port implementation.
  */
 
-#include "libmaple.h"
-#include "gpio.h"
-#include "timer.h"
-
 #include "HardwareSerial.h"
+#include "libmaple/libmaple.h"
+#include "libmaple/gpio.h"
+#include "libmaple/timer.h"
+
 #include "boards.h"
 
 #define TX1 BOARD_USART1_TX_PIN
