@@ -97,8 +97,8 @@ size_t Print::print(unsigned long n, int base) {
 
 size_t Print::print(long long n, int base) {
     if (n < 0) {
-        print('-');
         n = -n;
+        if (base==10) print('-');
     }
     return printNumber(n, base);
 }
