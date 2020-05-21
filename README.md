@@ -22,6 +22,9 @@ This repo contains the "Hardware" files to support STM32 based boards on Arduino
 * See also my blog: http://www.rogerclark.net/stm32f103-and-maple-maple-mini-with-arduino-1-5-x-ide/
 * Original LeafLabs "Docs:" http://docs.leaflabs.com/docs.leaflabs.com/index.html
 
+## Known issues
+* Use of static variables inside functions greatly increase the code size becuase additional code is needed for thread-safe handling of these statics.
+If this is a problem for your application, please edit platform.txt and add -fno-threadsafe-statics the compiler.cpp.flags 
 
 ## Additional Links & Info:
 * https://www.hackster.io/rayburne/4-dollar-90-mips-32-bit-72-mhz-arm-arduino
