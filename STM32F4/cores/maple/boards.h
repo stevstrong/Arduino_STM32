@@ -126,8 +126,9 @@ extern bool boardUsesPin(uint8 pin);
 
 /* Set derived definitions */
 
+#define CLOCK_SPEED_HZ                  F_CPU
+#define CLOCK_SPEED_MHZ                 (CLOCK_SPEED_HZ / 1000000UL)
 #define CYCLES_PER_MICROSECOND			CLOCK_SPEED_MHZ                 
-#define CLOCK_SPEED_HZ                  (CLOCK_SPEED_MHZ * 1000000UL)
 
 #ifndef BOARD_BUTTON_PRESSED_LEVEL
 #define BOARD_BUTTON_PRESSED_LEVEL      HIGH

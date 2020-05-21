@@ -37,9 +37,6 @@
 
 #define Port2Pin(port, bit) ((port-'A')*16+bit)
 
-#define CLOCK_SPEED_MHZ  168
-
-
 #define BOARD_LED_PIN           PD12
 #define BOARD_BUTTON_PIN        PA0
 

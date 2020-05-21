@@ -36,8 +36,6 @@
 #define _BOARD_GENERIC_F407V_H_
 
 
-#define CLOCK_SPEED_MHZ  168
-
 //-----------------------------------------------------------------------------
 // Board pin definitions
 #define BOARD_USB_DM_PIN		PA11
