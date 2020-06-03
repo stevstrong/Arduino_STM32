@@ -489,7 +489,7 @@ delay(100);
   return true;
 }
 //-----------------------------------------------------------------------------
-uint32_t SdioCard::cardSize(void) {
+uint32_t SdioCard::cardCapacity(void) {
   return sdCardCapacity(&m_csd);
 }
 /*---------------------------------------------------------------------------*/
