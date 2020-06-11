@@ -224,7 +224,7 @@ USB_OTG_STS USB_OTG_SelectCore(USB_OTG_CORE_HANDLE *pdev,
   {
     baseAddress                = USB_OTG_FS_BASE_ADDR;
     pdev->cfg.coreID           = USB_OTG_FS_CORE_ID;
-    pdev->cfg.host_channels    = 8 ;
+    pdev->cfg.host_channels    = USB_OTG_MAX_TX_FIFOS;
     pdev->cfg.dev_endpoints    = 4 ;
     pdev->cfg.TotalFifoSize    = 320; /* in 32-bits */
     pdev->cfg.phy_itface       = USB_OTG_EMBEDDED_PHY;     
@@ -365,39 +365,22 @@ USB_OTG_STS USB_OTG_CoreInit(USB_OTG_CORE_HANDLE *pdev)
   }
   else /* FS interface (embedded Phy) */
   {
-    
-    usbcfg.d32 = USB_OTG_READ_REG32(&pdev->regs.GREGS->GUSBCFG);;
-    usbcfg.b.physel  = 1; /* FS Interface */
-    USB_OTG_WRITE_REG32 (&pdev->regs.GREGS->GUSBCFG, usbcfg.d32);
     /* Reset after a PHY select and set Host mode */
     USB_OTG_CoreReset(pdev);
     /* Deactivate the power down*/
     gccfg.d32 = 0;
     gccfg.b.pwdn = 1;
-    gccfg.b.vbussensingA = 1;
-    gccfg.b.vbussensingB = 1;
-   
-#ifndef VBUS_SENSING_ENABLED
     gccfg.b.disablevbussensing = 1;
-#endif
-    
-    if(pdev->cfg.Sof_output)
-    {
-      gccfg.b.sofouten = 1;  
-    }
-    
     USB_OTG_WRITE_REG32 (&pdev->regs.GREGS->GCCFG, gccfg.d32);
     USB_OTG_BSP_mDelay(20);
   }
   /* case the HS core is working in FS mode */
   if(pdev->cfg.dma_enable == 1)
   {
-    
     ahbcfg.d32 = USB_OTG_READ_REG32(&pdev->regs.GREGS->GAHBCFG);
     ahbcfg.b.hburstlen = 5; /* 64 x 32-bits*/
     ahbcfg.b.dmaenable = 1;
     USB_OTG_WRITE_REG32(&pdev->regs.GREGS->GAHBCFG, ahbcfg.d32);
-    
   }
   /* initialize OTG features */
 #ifdef  USE_OTG_MODE
@@ -1212,14 +1195,12 @@ USB_OTG_STS USB_OTG_CoreInitDev (USB_OTG_CORE_HANDLE *pdev)
   USB_OTG_DCFG_TypeDef    dcfg;
   USB_OTG_FSIZ_TypeDef    nptxfifosize;
   USB_OTG_FSIZ_TypeDef    txfifosize;
-  USB_OTG_DIEPMSK_TypeDef msk;
   USB_OTG_DTHRCTL_TypeDef dthrctl;  
   
   depctl.d32 = 0;
   dcfg.d32 = 0;
   nptxfifosize.d32 = 0;
   txfifosize.d32 = 0;
-  msk.d32 = 0;
   
   /* Restart the Phy Clock */
   USB_OTG_WRITE_REG32(pdev->regs.PCGCCTL, 0);
@@ -1231,7 +1212,6 @@ USB_OTG_STS USB_OTG_CoreInitDev (USB_OTG_CORE_HANDLE *pdev)
 #ifdef USB_OTG_FS_CORE
   if(pdev->cfg.coreID == USB_OTG_FS_CORE_ID  )
   {  
-    
     /* Set Full speed phy */
     USB_OTG_InitDevSpeed (pdev , USB_OTG_SPEED_PARAM_FULL);
     
@@ -1243,19 +1223,16 @@ USB_OTG_STS USB_OTG_CoreInitDev (USB_OTG_CORE_HANDLE *pdev)
     nptxfifosize.b.startaddr = RX_FIFO_FS_SIZE;
     USB_OTG_WRITE_REG32( &pdev->regs.GREGS->DIEPTXF0_HNPTXFSIZ, nptxfifosize.d32 );
     
-    
     /* EP1 TX*/
     txfifosize.b.startaddr = nptxfifosize.b.startaddr + nptxfifosize.b.depth;
     txfifosize.b.depth = TX1_FIFO_FS_SIZE;
     USB_OTG_WRITE_REG32( &pdev->regs.GREGS->DIEPTXF[0], txfifosize.d32 );
     
-    
     /* EP2 TX*/
     txfifosize.b.startaddr += txfifosize.b.depth;
     txfifosize.b.depth = TX2_FIFO_FS_SIZE;
     USB_OTG_WRITE_REG32( &pdev->regs.GREGS->DIEPTXF[1], txfifosize.d32 );
-    
-    
+
     /* EP3 TX*/  
     txfifosize.b.startaddr += txfifosize.b.depth;
     txfifosize.b.depth = TX3_FIFO_FS_SIZE;
@@ -1321,7 +1298,7 @@ USB_OTG_STS USB_OTG_CoreInitDev (USB_OTG_CORE_HANDLE *pdev)
   /* Clear all pending Device Interrupts */
   USB_OTG_WRITE_REG32( &pdev->regs.DREGS->DIEPMSK, 0 );
   USB_OTG_WRITE_REG32( &pdev->regs.DREGS->DOEPMSK, 0 );
-  USB_OTG_WRITE_REG32( &pdev->regs.DREGS->DAINT, 0xFFFFFFFF );
+//  USB_OTG_WRITE_REG32( &pdev->regs.DREGS->DAINT, 0xFFFFFFFF );
   USB_OTG_WRITE_REG32( &pdev->regs.DREGS->DAINTMSK, 0 );
   
   for (i = 0; i < pdev->cfg.dev_endpoints; i++)
@@ -1359,10 +1336,7 @@ USB_OTG_STS USB_OTG_CoreInitDev (USB_OTG_CORE_HANDLE *pdev)
     USB_OTG_WRITE_REG32( &pdev->regs.OUTEP_REGS[i]->DOEPTSIZ, 0);
     USB_OTG_WRITE_REG32( &pdev->regs.OUTEP_REGS[i]->DOEPINT, 0xFF);
   }
-  msk.d32 = 0;
-  msk.b.txfifoundrn = 1;
-  USB_OTG_MODIFY_REG32(&pdev->regs.DREGS->DIEPMSK, msk.d32, msk.d32);
-  
+
   if (pdev->cfg.dma_enable == 1)
   {
     dthrctl.d32 = 0;

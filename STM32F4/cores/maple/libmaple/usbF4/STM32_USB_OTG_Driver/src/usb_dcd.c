@@ -24,79 +24,22 @@
 #include <STM32_USB_OTG_Driver/inc/usb_bsp.h>
 
 
-/** @addtogroup USB_OTG_DRIVER
-* @{
-*/
-
-/** @defgroup USB_DCD 
-* @brief This file is the interface between EFSL ans Host mass-storage class
-* @{
-*/
-
-
-/** @defgroup USB_DCD_Private_Defines
-* @{
-*/ 
-/**
-* @}
-*/ 
-
-
-/** @defgroup USB_DCD_Private_TypesDefinitions
-* @{
-*/ 
-/**
-* @}
-*/ 
-
-
-
-/** @defgroup USB_DCD_Private_Macros
-* @{
-*/ 
-/**
-* @}
-*/ 
-
-
-/** @defgroup USB_DCD_Private_Variables
-* @{
-*/ 
-/**
-* @}
-*/ 
-
-
-/** @defgroup USB_DCD_Private_FunctionPrototypes
-* @{
-*/ 
-
-/**
-* @}
-*/ 
-
-
 /** @defgroup USB_DCD_Private_Functions
 * @{
 */ 
 
-
-
 void DCD_Init(USB_OTG_CORE_HANDLE *pdev , 
               USB_OTG_CORE_ID_TypeDef coreID)
 {
-  uint32_t i;
-  USB_OTG_EP *ep;
-  
   USB_OTG_SelectCore (pdev , coreID);
   
   pdev->dev.device_status = USB_OTG_DEFAULT;
   pdev->dev.device_address = 0;
   
   /* Init ep structure */
-  for (i = 0; i < pdev->cfg.dev_endpoints ; i++)
+  for (uint32 i = 0; i < pdev->cfg.dev_endpoints ; i++)
   {
-    ep = &pdev->dev.in_ep[i];
+	USB_OTG_EP * ep = &pdev->dev.in_ep[i];
     /* Init ep structure */
     ep->is_in = 1;
     ep->num = i;
@@ -108,9 +51,9 @@ void DCD_Init(USB_OTG_CORE_HANDLE *pdev ,
     ep->xfer_len = 0;
   }
   
-  for (i = 0; i < pdev->cfg.dev_endpoints; i++)
+  for (uint32 i = 0; i < pdev->cfg.dev_endpoints; i++)
   {
-    ep = &pdev->dev.out_ep[i];
+	USB_OTG_EP * ep = &pdev->dev.out_ep[i];
     /* Init ep structure */
     ep->is_in = 0;
     ep->num = i;
