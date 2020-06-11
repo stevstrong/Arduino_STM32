@@ -150,7 +150,7 @@ uint8 poll_adc_convert(adc_dev * dev) {
 void setADCs (uint8 analogInPin)
 {
   //  const adc_dev *dev = PIN_MAP[analogInPin].adc_device;
-  int pinMapADCin = PIN_MAP[analogInPin].adc_channel;
+  int pinMapADCin = pinToADCChannel(analogInPin);
   adc_set_sample_rate(ADC1, ADC_SMPR_1_5); //=0,58uS/sample.  ADC_SMPR_13_5 = 1.08uS - use this one if Rin>10Kohm,
   adc_set_sample_rate(ADC2, ADC_SMPR_1_5);    // if not may get some sporadic noise. see datasheet.
 

@@ -97,6 +97,7 @@ typedef enum adc_interrupt_id {
 void adc_enable_irq(adc_dev* dev, uint8 interrupt);
 void adc_attach_interrupt(adc_dev *dev, uint8 interrupt, voidFuncPtr handler);
 
+extern const uint8 adc_map[];
 
 /* Pull in the series header (which may need the above struct definitions).
  *

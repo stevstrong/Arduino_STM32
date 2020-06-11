@@ -78,7 +78,7 @@
         unsigned int records[3] = {0,0,0};
         
         for (uint8_t i = 0; i < length; i++) { //convert the channels from pins to ch.
-            channels[i] = PIN_MAP[pins[i]].adc_channel;
+            channels[i] = pinToADCChannel(pins[i]);
         }
 
         //run away protection
@@ -157,23 +157,27 @@
     The reason why this is a uint16 is that I am not ready for dual mode. 
 */
 
-    void STM32ADC::setDMA(uint16 * Buf, uint16 BufLen, uint32 dmaFlags, voidFuncPtr func) {
+    void STM32ADC::setDMA(uint16 * Buf, uint32 dmaFlags, voidFuncPtr func)
+	{
 //initialize DMA
         dma_init(DMA1);
+        dma_disable(DMA1, DMA_CH1);
 //if there is an int handler to be called... 
         if (func != NULL)
             dma_attach_interrupt(DMA1, DMA_CH1, func);
 //enable ADC DMA transfer
-        //adc_dma_enable(ADC1);
-        _dev->regs->CR2 |= ADC_CR2_DMA;
+        adc_dma_enable(ADC1);
+        //_dev->regs->CR2 |= ADC_CR2_DMA;
 //set it up... 
         dma_setup_transfer(DMA1, DMA_CH1, &ADC1->regs->DR, DMA_SIZE_16BITS, Buf, DMA_SIZE_16BITS, dmaFlags);// Receive buffer DMA
-//how many are we making?? 
-        dma_set_num_transfers(DMA1, DMA_CH1, BufLen);
-//enable dma.
-        dma_enable(DMA1, DMA_CH1); // Enable the channel and start the transfer.
     }
 
+    void STM32ADC::startDMA(uint16 BufLen)
+	{
+        dma_disable(DMA1, DMA_CH1);
+        dma_set_num_transfers(DMA1, DMA_CH1, BufLen);
+        dma_enable(DMA1, DMA_CH1); // Enable the channel
+	}
 /*
     This function is used to setup DMA with the ADC. 
     It will be independent of the mode used. It will either be used in continuous or scan mode

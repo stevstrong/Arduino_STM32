@@ -1,5 +1,6 @@
 #include "utility/util_adc.h"
 #include "libmaple/dma.h"
+#include "wirish.h"
 
 
 class STM32ADC{
@@ -32,8 +33,9 @@ public:
     
     The reason why this is a uint16 is that I am not ready for dual mode. 
 */
-    void setDMA(uint16 * Buf, uint16 BufLen, uint32 dmaFlags, voidFuncPtr func);
-
+	void setDMA(uint16 * Buf, uint32 dmaFlags, voidFuncPtr func);
+	void startDMA(uint16 BufLen);
+	
 /*
     This function is used to setup DMA with the ADC. 
     It will be independent of the mode used. It will either be used in continuous or scan mode

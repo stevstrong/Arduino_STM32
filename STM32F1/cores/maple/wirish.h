@@ -61,9 +61,6 @@
 #include <wirish_constants.h>
 #include <wiring_pulse.h>
 
-#if STM32_MCU_SERIES == STM32_SERIES_F1 /* FIXME [0.0.13?] port to F2 */
-//#include <HardwareSPI.h>
-#endif
 
 #include <HardwareSerial.h>
 #include <HardwareTimer.h>
@@ -100,7 +97,20 @@ typedef unsigned int word;
 #define clockCyclesToMicroseconds(a) ( ((a) * 1000L) / (F_CPU / 1000L) )
 #define microsecondsToClockCycles(a) ( (a) * (F_CPU / 1000000L) )
 
+// pin related macros
+#define digitalPinToPort(P)        ( gpio_devs[(P)/16] )
+#define digitalPinToBitMask(P)     ( (P)&(15) )
 #define digitalPinToInterrupt(pin) (pin)
 
-#endif
+#define portOutputRegister(port)   ( &(port->regs->ODR) )
+#define portInputRegister(port)    ( &(port->regs->IDR) )
 
+#define portSetRegister(pin)		( &(PIN_MAP[pin].gpio_device->regs->BSRR) )
+#define portClearRegister(pin)		( &(PIN_MAP[pin].gpio_device->regs->BRR) )
+
+#define portConfigRegister(pin)		( &(PIN_MAP[pin].gpio_device->regs->CRL) )
+
+#define pinToADCChannel(pin)        ( adc_map[pin] )
+
+
+#endif
