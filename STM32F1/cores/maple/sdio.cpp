@@ -42,16 +42,16 @@ uint8_t dly = DELAY_LONG; // microseconds delay after accessing registers
  */
 void sdio_gpios_init(void)
 {
-	gpio_set_mode(PIN_MAP[BOARD_SDIO_D0].gpio_device, PIN_MAP[BOARD_SDIO_D0].gpio_bit, GPIO_AF_OUTPUT_PP);
-/*	gpio_set_mode(PIN_MAP[BOARD_SDIO_D1].gpio_device, PIN_MAP[BOARD_SDIO_D1].gpio_bit, GPIO_AF_OUTPUT_PP);
-	gpio_set_mode(PIN_MAP[BOARD_SDIO_D2].gpio_device, PIN_MAP[BOARD_SDIO_D2].gpio_bit, GPIO_AF_OUTPUT_PP);
-	gpio_set_mode(PIN_MAP[BOARD_SDIO_D3].gpio_device, PIN_MAP[BOARD_SDIO_D3].gpio_bit, GPIO_AF_OUTPUT_PP);
+	gpio_set_mode(digitalPinToPort(BOARD_SDIO_D0), digitalPinToBitMask(BOARD_SDIO_D0), GPIO_AF_OUTPUT_PP);
+/*	gpio_set_mode(digitalPinToPort(BOARD_SDIO_D1), digitalPinToBitMask(BOARD_SDIO_D1), GPIO_AF_OUTPUT_PP);
+	gpio_set_mode(digitalPinToPort(BOARD_SDIO_D2), digitalPinToBitMask(BOARD_SDIO_D2), GPIO_AF_OUTPUT_PP);
+	gpio_set_mode(digitalPinToPort(BOARD_SDIO_D3), digitalPinToBitMask(BOARD_SDIO_D3), GPIO_AF_OUTPUT_PP);
 */
-    gpio_set_mode(PIN_MAP[BOARD_SDIO_D1].gpio_device, PIN_MAP[BOARD_SDIO_D1].gpio_bit, GPIO_INPUT_PU);
-    gpio_set_mode(PIN_MAP[BOARD_SDIO_D2].gpio_device, PIN_MAP[BOARD_SDIO_D2].gpio_bit, GPIO_INPUT_PU);
-    gpio_set_mode(PIN_MAP[BOARD_SDIO_D3].gpio_device, PIN_MAP[BOARD_SDIO_D3].gpio_bit, GPIO_INPUT_PU);
-	gpio_set_mode(PIN_MAP[BOARD_SDIO_CLK].gpio_device, PIN_MAP[BOARD_SDIO_CLK].gpio_bit, GPIO_AF_OUTPUT_PP);
-	gpio_set_mode(PIN_MAP[BOARD_SDIO_CMD].gpio_device, PIN_MAP[BOARD_SDIO_CMD].gpio_bit, GPIO_AF_OUTPUT_PP);
+    gpio_set_mode(digitalPinToPort(BOARD_SDIO_D1), digitalPinToBitMask(BOARD_SDIO_D1), GPIO_INPUT_PU);
+    gpio_set_mode(digitalPinToPort(BOARD_SDIO_D2), digitalPinToBitMask(BOARD_SDIO_D2), GPIO_INPUT_PU);
+    gpio_set_mode(digitalPinToPort(BOARD_SDIO_D3), digitalPinToBitMask(BOARD_SDIO_D3), GPIO_INPUT_PU);
+	gpio_set_mode(digitalPinToPort(BOARD_SDIO_CLK), digitalPinToBitMask(BOARD_SDIO_CLK), GPIO_AF_OUTPUT_PP);
+	gpio_set_mode(digitalPinToPort(BOARD_SDIO_CMD), digitalPinToBitMask(BOARD_SDIO_CMD), GPIO_AF_OUTPUT_PP);
 	/*
 	 *  Todo just remove it, not needed for F1.
 	 */
@@ -67,12 +67,12 @@ void sdio_gpios_init(void)
 
 void sdio_gpios_deinit(void)
 {
-	gpio_set_mode(PIN_MAP[BOARD_SDIO_D0].gpio_device, PIN_MAP[BOARD_SDIO_D0].gpio_bit, GPIO_INPUT_PU);
-	gpio_set_mode(PIN_MAP[BOARD_SDIO_D1].gpio_device, PIN_MAP[BOARD_SDIO_D1].gpio_bit, GPIO_INPUT_PU);
-	gpio_set_mode(PIN_MAP[BOARD_SDIO_D2].gpio_device, PIN_MAP[BOARD_SDIO_D2].gpio_bit, GPIO_INPUT_PU);
-	gpio_set_mode(PIN_MAP[BOARD_SDIO_D3].gpio_device, PIN_MAP[BOARD_SDIO_D3].gpio_bit, GPIO_INPUT_PU);
-	gpio_set_mode(PIN_MAP[BOARD_SDIO_CLK].gpio_device, PIN_MAP[BOARD_SDIO_CLK].gpio_bit, GPIO_INPUT_PU);
-	gpio_set_mode(PIN_MAP[BOARD_SDIO_CMD].gpio_device, PIN_MAP[BOARD_SDIO_CMD].gpio_bit, GPIO_INPUT_PU);
+	gpio_set_mode(digitalPinToPort(BOARD_SDIO_D0), digitalPinToBitMask(BOARD_SDIO_D0), GPIO_INPUT_PU);
+	gpio_set_mode(digitalPinToPort(BOARD_SDIO_D1), digitalPinToBitMask(BOARD_SDIO_D1), GPIO_INPUT_PU);
+	gpio_set_mode(digitalPinToPort(BOARD_SDIO_D2), digitalPinToBitMask(BOARD_SDIO_D2), GPIO_INPUT_PU);
+	gpio_set_mode(digitalPinToPort(BOARD_SDIO_D3), digitalPinToBitMask(BOARD_SDIO_D3), GPIO_INPUT_PU);
+	gpio_set_mode(digitalPinToPort(BOARD_SDIO_CLK), digitalPinToBitMask(BOARD_SDIO_CLK), GPIO_INPUT_PU);
+	gpio_set_mode(digitalPinToPort(BOARD_SDIO_CMD), digitalPinToBitMask(BOARD_SDIO_CMD), GPIO_INPUT_PU);
 
 	/*
 	 *  Todo just remove it, not needed for F1.
@@ -140,9 +140,9 @@ void sdio_set_clock(uint32_t clk)
 void sdio_set_dbus_width(uint16_t bus_w)
 {
 	SDIO->CLKCR = (SDIO->CLKCR & (~SDIO_CLKCR_WIDBUS)) | bus_w;
-    gpio_set_mode(PIN_MAP[BOARD_SDIO_D1].gpio_device, PIN_MAP[BOARD_SDIO_D1].gpio_bit, GPIO_AF_OUTPUT_PP);
-    gpio_set_mode(PIN_MAP[BOARD_SDIO_D2].gpio_device, PIN_MAP[BOARD_SDIO_D2].gpio_bit, GPIO_AF_OUTPUT_PP);
-    gpio_set_mode(PIN_MAP[BOARD_SDIO_D3].gpio_device, PIN_MAP[BOARD_SDIO_D3].gpio_bit, GPIO_AF_OUTPUT_PP);
+    gpio_set_mode(digitalPinToPort(BOARD_SDIO_D1), digitalPinToBitMask(BOARD_SDIO_D1), GPIO_AF_OUTPUT_PP);
+    gpio_set_mode(digitalPinToPort(BOARD_SDIO_D2), digitalPinToBitMask(BOARD_SDIO_D2), GPIO_AF_OUTPUT_PP);
+    gpio_set_mode(digitalPinToPort(BOARD_SDIO_D3), digitalPinToBitMask(BOARD_SDIO_D3), GPIO_AF_OUTPUT_PP);
 	delay_us(dly);
 }
 

@@ -61,7 +61,7 @@ void togglePin(uint8 pin) {
         return;
     }
 
-    gpio_toggle_bit(PIN_MAP[pin].gpio_device, PIN_MAP[pin].gpio_bit);
+    gpio_toggle_bit(digitalPinToPort(pin), digitalPinToBitMask(pin));
 }
 
 #define BUTTON_DEBOUNCE_DELAY 1
