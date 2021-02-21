@@ -94,10 +94,10 @@ int USBSerial::read(void *buf, uint32 len)
     }
 
     uint32 rxed = 0;
-    while (rxed < len) {
+    uint32 start = millis();
+    while ( (rxed < len) && ((millis() - start) < USB_TIMEOUT) ) {
         rxed += usbReceiveBytes((uint8*)buf + rxed, len - rxed);
     }
-
     return rxed;
 }
 
@@ -105,8 +105,9 @@ int USBSerial::read(void *buf, uint32 len)
 int USBSerial::read(void)
 {
     uint8 buf[1];
-    this->read(buf, 1);
-    return buf[0];
+    // should return -1 if no data is available, see: https://www.arduino.cc/reference/en/language/functions/communication/serial/read/
+    int ret = this->read(buf, 1);
+    return (ret>0) ? buf[0] : -1;
 }
 
 int USBSerial::peek(void)
