@@ -44,7 +44,7 @@
 HardwareTimer::HardwareTimer(uint8 timerNum)
 {
     if (timerNum > NR_TIMERS) {
-        return;
+        timerNum = 1;
     }
     this->dev = timer_devs[timerNum - 1];
 }

@@ -90,15 +90,16 @@ static const spi_pins * dev_to_spi_pins(spi_dev *dev)
     default:       return NULL;
     }
 }
-
+//-----------------------------------------------------------------------------
 static void disable_pwm(uint8_t pin)
 {
-    const stm32_pin_info * i = &PIN_MAP[pin];
-    if (i->timer_device) {
-        timer_set_mode(i->timer_device, i->timer_channel, TIMER_DISABLED);
+    timer_dev * t_dev = PinTimerDevice(pin);
+    uint8_t     t_ch  = PinTimerChannel(pin);
+    if (t_dev && t_ch) {
+        timer_set_mode(t_dev, t_ch, TIMER_DISABLED);
     }
 }
-
+//-----------------------------------------------------------------------------
 static void configure_gpios(spi_dev *dev, bool as_master)
 {
     const spi_pins *pins = dev_to_spi_pins(dev);
@@ -114,7 +115,7 @@ static void configure_gpios(spi_dev *dev, bool as_master)
 
     spi_config_gpios(as_master, pins);
 }
-
+//-----------------------------------------------------------------------------
 static void release_gpios(spi_dev *dev, bool as_master)
 {
     const spi_pins *pins = dev_to_spi_pins(dev);
@@ -124,7 +125,7 @@ static void release_gpios(spi_dev *dev, bool as_master)
 
     spi_release_gpios(as_master, pins);
 }
-
+//-----------------------------------------------------------------------------
 static const spi_baud_rate baud_rates[8] __FLASH__ = {
     SPI_BAUD_PCLK_DIV_2,
     SPI_BAUD_PCLK_DIV_4,

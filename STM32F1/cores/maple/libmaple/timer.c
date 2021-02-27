@@ -79,7 +79,18 @@ timer_dev timer13 = RESTRICTED_GENERAL_TIMER(13, TIMER_DIER_CC1IE_BIT);
 timer_dev timer14 = RESTRICTED_GENERAL_TIMER(14, TIMER_DIER_CC1IE_BIT);
 #endif
 
-
+//-----------------------------------------------------------------------------
+timer_dev * const timer_devs[] =
+{
+	TIMER1, TIMER2, TIMER3, TIMER4, TIMER5,
+#if defined(STM32_HIGH_DENSITY) || defined(STM32_XL_DENSITY)
+	TIMER6, TIMER7, TIMER8,
+#endif
+#if defined(STM32_XL_DENSITY)
+	TIMER9, TIMER10, TIMER11, TIMER12, TIMER13, TIMER14,
+#endif
+};
+	
 //-----------------------------------------------------------------------------
 timer_info const timer_map[32] =
 {

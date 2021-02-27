@@ -110,10 +110,10 @@ typedef unsigned int word;
 #define portOutputRegister(port)   ( &(port->regs->ODR) )
 #define portInputRegister(port)    ( &(port->regs->IDR) )
 
-#define portSetRegister(pin)		( &(PIN_MAP[pin].gpio_device->regs->BSRR) )
-#define portClearRegister(pin)		( &(PIN_MAP[pin].gpio_device->regs->BRR) )
+#define portSetRegister(pin)		( &(digitalPinToPort(pin)->regs->BSRR) )
+#define portClearRegister(pin)		( &(digitalPinToPort(pin)->regs->BRR) )
 
-#define portConfigRegister(pin)		( &(PIN_MAP[pin].gpio_device->regs->CRL) )
+#define portConfigRegister(pin)		( &(digitalPinToPort(pin)->regs->CRL) )
 
 #define pinToADCChannel(pin)        ( adc_map[pin] )
 
