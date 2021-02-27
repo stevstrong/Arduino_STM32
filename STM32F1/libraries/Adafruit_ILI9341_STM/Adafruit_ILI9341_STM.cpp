@@ -272,7 +272,7 @@ void Adafruit_ILI9341_STM::drawFastVLine(int16_t x, int16_t y, int16_t h,
   setAddrWindow(x, y, x, y + h - 1);
 
   cs_clear();
-  if (h>DMA_ON_LIMIT) {
+  if (h>ILI9341_STM_DMA_ON_LIMIT) {
     mSPI.dmaSend(color, h);
   } else {
     mSPI.write(color, h);
@@ -295,7 +295,7 @@ void Adafruit_ILI9341_STM::drawFastHLine(int16_t x, int16_t y, int16_t w,
   setAddrWindow(x, y, x + w - 1, y);
 
   cs_clear();
-  if (w>DMA_ON_LIMIT) {
+  if (w>ILI9341_STM_DMA_ON_LIMIT) {
     mSPI.dmaSend(color, w);
   } else {
     mSPI.write(color, w);
@@ -332,7 +332,7 @@ void Adafruit_ILI9341_STM::fillRect(int16_t x, int16_t y, int16_t w, int16_t h,
   setAddrWindow(x, y, x + w - 1, y + h - 1);
   cs_clear();
   uint32_t nr_bytes = w * h;
-  if ( nr_bytes>DMA_ON_LIMIT ) {
+  if ( nr_bytes>ILI9341_STM_DMA_ON_LIMIT ) {
     while ( nr_bytes>65535 ) {
       nr_bytes -= 65535;
       mSPI.dmaSend(color, (65535));

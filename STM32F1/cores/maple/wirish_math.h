@@ -105,10 +105,9 @@ long random(long min, long max);
 #define SERIAL  0x0
 #define DISPLAY 0x1 
 
-#ifdef __cplusplus
+#if (__GNUC__ > 4) && defined(__cplusplus)
 	#include <algorithm>
-	using std::min;
-	using std::max;
+	using namespace std;
 #else // C
 	#include <stdlib.h>
 	#ifndef min

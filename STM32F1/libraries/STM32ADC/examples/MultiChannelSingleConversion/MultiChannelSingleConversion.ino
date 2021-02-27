@@ -1,9 +1,6 @@
 /*
-  This example shows how to use the ADC library to sample several
-  channels/pins in one go. 
+  This example shows how to use the ADC library to sample several channels/pins in one go. 
   This example attaches an interrupt to the DMA completion to notify the user. 
-  The DMA must be set together with the start conversion, so both setDMA and startConversion
-  Must be called. 
 
 */
 #include <STM32ADC.h>
