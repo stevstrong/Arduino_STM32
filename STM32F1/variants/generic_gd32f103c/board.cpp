@@ -45,7 +45,9 @@
 /* Since we want the Serial Wire/JTAG pins as GPIOs, disable both SW
  * and JTAG debug support, unless configured otherwise. */
 void boardInit(void) {
-    enableDebugPorts();
+#ifndef CONFIG_MAPLE_MINI_NO_DISABLE_DEBUG
+    disableDebugPorts();
+#endif
 }
 
 // Note. See the enum of pin names in board.h

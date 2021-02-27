@@ -165,7 +165,7 @@ void TwoWire::setClock(uint32_t frequencyHz)
 uint8 TwoWire::process(bool stop)
 {
 	if (!stop) itc_msg.flags |= I2C_MSG_NOSTOP;
-	int8 res = i2c_master_xfer(sel_hard, &itc_msg, 1, getTimeout());
+	int8 res = i2c_master_xfer(sel_hard, &itc_msg, getTimeout());
 	itc_msg.flags &= ~I2C_MSG_NOSTOP;
 
 	if (res == I2C_ERROR_PROTOCOL) {

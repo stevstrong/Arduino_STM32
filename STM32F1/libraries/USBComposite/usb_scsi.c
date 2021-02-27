@@ -6,6 +6,16 @@
 #include <libmaple/usb.h>
 #include <libmaple/delay.h>
 
+/* Private headers */
+#include "usb_lib_globals.h"
+#include "usb_reg_map.h"
+#include "usb_regs.h"
+
+/* usb_lib headers */
+#include "usb_type.h"
+#include "usb_core.h"
+#include "usb_def.h"
+
 #define SCSI_READ_FORMAT_CAPACITY_DATA_LEN   0x0C
 #define SCSI_READ_FORMAT_CAPACITY10_DATA_LEN 0x08
 #define SCSI_MODE_SENSE6_DATA_LEN            0x04

@@ -71,6 +71,7 @@
 
 typedef uint8 boolean;
 typedef uint8 byte;
+typedef unsigned int word;
 
 #endif
 

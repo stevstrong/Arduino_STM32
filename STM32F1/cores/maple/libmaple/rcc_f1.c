@@ -46,6 +46,7 @@ const struct rcc_dev_info rcc_dev_table[] = {
     [RCC_GPIOA]  = { .clk_domain = APB2, .line_num = 2 },
     [RCC_GPIOB]  = { .clk_domain = APB2, .line_num = 3 },
     [RCC_GPIOC]  = { .clk_domain = APB2, .line_num = 4 },
+    [RCC_GPIOD]  = { .clk_domain = APB2, .line_num = 5 },
     [RCC_AFIO]   = { .clk_domain = APB2, .line_num = 0 },
     [RCC_ADC1]   = { .clk_domain = APB2, .line_num = 9 },
     [RCC_ADC2]   = { .clk_domain = APB2, .line_num = 10 },
@@ -68,9 +69,6 @@ const struct rcc_dev_info rcc_dev_table[] = {
     [RCC_FLITF]  = { .clk_domain = AHB,  .line_num = 4},
     [RCC_SRAM]   = { .clk_domain = AHB,  .line_num = 2},
     [RCC_USB]    = { .clk_domain = APB1, .line_num = 23},
-#if STM32_NR_GPIO_PORTS > 3
-    [RCC_GPIOD]  = { .clk_domain = APB2, .line_num = 5 },
-#endif
 #if STM32_NR_GPIO_PORTS > 4
     [RCC_GPIOE]  = { .clk_domain = APB2, .line_num = 6 },
     [RCC_GPIOF]  = { .clk_domain = APB2, .line_num = 7 },
@@ -108,7 +106,7 @@ void rcc_clk_init(rcc_sysclk_src sysclk_src,
     ASSERT(sysclk_src == RCC_CLKSRC_PLL &&
            pll_src    == RCC_PLLSRC_HSE);
 
-    RCC->CFGR = pll_src | pll_mul | (0x3<<22);
+    RCC_BASE->CFGR = pll_src | pll_mul | (0x3<<22);
 
     /* Turn on, and wait for, HSE. */
     rcc_turn_on_clk(RCC_CLK_HSE);
@@ -132,7 +130,7 @@ void rcc_configure_pll(rcc_pll_cfg *pll_cfg) {
     /* Check that the PLL is disabled. */
     ASSERT_FAULT(!rcc_is_clk_on(RCC_CLK_PLL));
 
-    cfgr = RCC->CFGR;
+    cfgr = RCC_BASE->CFGR;
     cfgr &= ~(RCC_CFGR_PLLSRC | RCC_CFGR_PLLMUL);
     cfgr |= pll_cfg->pllsrc | pll_mul;
 
@@ -142,37 +140,42 @@ void rcc_configure_pll(rcc_pll_cfg *pll_cfg) {
     cfgr |= RCC_CFGR_PLLXTPRE;
 #endif	
 	
-    RCC->CFGR = cfgr;
+    RCC_BASE->CFGR = cfgr;
 }
 
-static __IO uint32* enable_regs[] = {
-	[APB1] = &RCC->APB1ENR,
-	[APB2] = &RCC->APB2ENR,
-	[AHB] = &RCC->AHBENR,
-};
 void rcc_clk_enable(rcc_clk_id id) {
+    static __IO uint32* enable_regs[] = {
+        [APB1] = &RCC_BASE->APB1ENR,
+        [APB2] = &RCC_BASE->APB2ENR,
+        [AHB] = &RCC_BASE->AHBENR,
+    };
     rcc_do_clk_enable(enable_regs, id);
 }
 
-static __IO uint32* reset_regs[] = {
-	[APB1] = &RCC->APB1RSTR,
-	[APB2] = &RCC->APB2RSTR,
-};
 void rcc_reset_dev(rcc_clk_id id) {
+    static __IO uint32* reset_regs[] = {
+        [APB1] = &RCC_BASE->APB1RSTR,
+        [APB2] = &RCC_BASE->APB2RSTR,
+    };
     rcc_do_reset_dev(reset_regs, id);
 }
 
-static const uint32 masks[] = {
-	[RCC_PRESCALER_AHB] = RCC_CFGR_HPRE,
-	[RCC_PRESCALER_APB1] = RCC_CFGR_PPRE1,
-	[RCC_PRESCALER_APB2] = RCC_CFGR_PPRE2,
-	[RCC_PRESCALER_USB] = RCC_CFGR_USBPRE,
-	[RCC_PRESCALER_ADC] = RCC_CFGR_ADCPRE,
-};
 void rcc_set_prescaler(rcc_prescaler prescaler, uint32 divider) {
+    static const uint32 masks[] = {
+        [RCC_PRESCALER_AHB] = RCC_CFGR_HPRE,
+        [RCC_PRESCALER_APB1] = RCC_CFGR_PPRE1,
+        [RCC_PRESCALER_APB2] = RCC_CFGR_PPRE2,
+        [RCC_PRESCALER_USB] = RCC_CFGR_USBPRE,
+        [RCC_PRESCALER_ADC] = RCC_CFGR_ADCPRE,
+    };
     rcc_do_set_prescaler(masks, prescaler, divider);
 }
 
 void rcc_clk_disable(rcc_clk_id id) {
+    static __IO uint32* enable_regs[] = {
+        [APB1] = &RCC_BASE->APB1ENR,
+        [APB2] = &RCC_BASE->APB2ENR,
+        [AHB] = &RCC_BASE->AHBENR,
+    };
     rcc_do_clk_disable(enable_regs, id);
 }

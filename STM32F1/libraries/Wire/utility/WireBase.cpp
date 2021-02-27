@@ -42,6 +42,7 @@
 #include "wirish.h"
 
 void WireBase::begin(uint8 self_addr) {
+	(void)self_addr;
     tx_buf_idx = 0;
     tx_buf_overflow = false;
     rx_buf_idx = 0;
@@ -59,12 +60,12 @@ void WireBase::beginTransmission(int slave_address) {
     beginTransmission((uint8)slave_address);
 }
 
-uint8 WireBase::endTransmission(bool stop) {
-    uint8 retVal;
+uint8 WireBase::endTransmission(bool stop)
+{
     if (tx_buf_overflow) {
         return EDATA;
     }
-    retVal = process(stop);// Changed so that the return value from process is returned by this function see also the return line below
+    uint8 retVal = process(stop);// Changed so that the return value from process is returned by this function see also the return line below
     tx_buf_idx = 0;
     tx_buf_overflow = false;
     return retVal;//SUCCESS;

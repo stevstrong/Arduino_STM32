@@ -34,6 +34,14 @@
 
 #include "rcc_private.h"
 
+/**
+ * @brief Get a peripheral's clock domain
+ * @param id Clock ID of the peripheral whose clock domain to return
+ * @return Clock source for the given clock ID
+ */
+rcc_clk_domain rcc_dev_clk(rcc_clk_id id) {
+    return rcc_dev_table[id].clk_domain;
+}
 
 /**
  * @brief Switch the clock used as the source of the system clock.
@@ -44,14 +52,16 @@
  * @param sysclk_src New system clock source.
  * @see rcc_sysclk_src
  */
-void rcc_switch_sysclk(rcc_sysclk_src sysclk_src)
-{
-    uint32 cfgr = RCC->CFGR & (~RCC_CFGR_SW);
+void rcc_switch_sysclk(rcc_sysclk_src sysclk_src) {
+    uint32 cfgr = RCC_BASE->CFGR;
+    cfgr &= ~RCC_CFGR_SW;
+    cfgr |= sysclk_src;
+
     /* Switch SYSCLK source. */
-    RCC->CFGR = cfgr | sysclk_src;
+    RCC_BASE->CFGR = cfgr;
 
     /* Wait for new source to come into use. */
-    while ((RCC->CFGR & RCC_CFGR_SWS) != (uint32)(sysclk_src << 2))
+    while ((RCC_BASE->CFGR & RCC_CFGR_SWS) != (unsigned int)(sysclk_src << 2))
         ;
 }
 
@@ -85,7 +95,7 @@ void rcc_switch_sysclk(rcc_sysclk_src sysclk_src)
 
 /* Returns the RCC register which controls the clock source. */
 static inline __IO uint32* rcc_clk_reg(rcc_clk clock) {
-    return (__IO uint32*)((__IO uint8*)RCC + (clock >> 8));
+    return (__IO uint32*)((__IO uint8*)RCC_BASE + (clock >> 8));
 }
 
 /* Returns a mask in rcc_clk_reg(clock) to be used for turning the

@@ -32,7 +32,9 @@
 #ifndef _LIBMAPLE_USB_MIDI_H_
 #define _LIBMAPLE_USB_MIDI_H_
 
+#include <libmaple/libmaple_types.h>
 #include <libmaple/gpio.h>
+#include <libmaple/usb.h>
 #include <MinSysex.h>
 #include "usb_generic.h"
 

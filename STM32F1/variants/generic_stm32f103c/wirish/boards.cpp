@@ -81,7 +81,7 @@ __weak void boardInit(void) {
 
 /* You could farm this out to the files in boards/ if e.g. it takes
  * too long to test on boards with lots of pins. */
-uint8 boardUsesPin(uint8 pin) {
+bool boardUsesPin(uint8 pin) {
     for (int i = 0; i < BOARD_NR_USED_PINS; i++) {
         if (pin == boardUsedPins[i]) {
             return true;
@@ -112,14 +112,14 @@ static void setup_clocks(void) {
     // Turn off and reset the clock subsystems we'll be using, as well
     // as the clock security subsystem (CSS). Note that resetting CFGR
     // to its default value of 0 implies a switch to HSI for SYSCLK.
-    RCC->CFGR = 0x00000000;
+    RCC_BASE->CFGR = 0x00000000;
     rcc_disable_css();
     rcc_turn_off_clk(RCC_CLK_PLL);
     rcc_turn_off_clk(RCC_CLK_HSE);
     wirish::priv::board_reset_pll();
     // Clear clock readiness interrupt flags and turn off clock
     // readiness interrupts.
-    RCC->CIR = 0x00000000;
+    RCC_BASE->CIR = 0x00000000;
 #if !USE_HSI_CLOCK
     // Enable HSE, and wait until it's ready.
     rcc_turn_on_clk(RCC_CLK_HSE);
@@ -185,9 +185,7 @@ static void setup_adcs(void) {
     adc_foreach(adc_default_config);
 }
 
-static void timer_default_config(timer_dev *dev)
-{
-return;
+static void timer_default_config(timer_dev *dev) {
     timer_adv_reg_map *regs = (dev->regs).adv;
     const uint16 full_overflow = 0xFFFF;
     const uint16 half_duty = 0x8FFF;

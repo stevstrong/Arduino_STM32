@@ -4,6 +4,7 @@
 #include <boards.h>
 #include "Stream.h"
 #include "usb_generic.h"
+//#include <libmaple/usb.h>
 
 #define USB_COMPOSITE_MAX_PARTS 6
 

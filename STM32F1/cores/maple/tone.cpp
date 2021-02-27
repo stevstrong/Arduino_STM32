@@ -12,7 +12,8 @@
 #include <HardwareTimer.h>
 
 
-#define PinTimerIndex(pin) ((PinTimerDevice(pin))->clk_id-RCC_TIMER1+1)
+#define PinTimer(pin) (PIN_MAP[pin].timer_device->clk_id-RCC_TIMER1+1)
+#define PinChannel(pin) (PIN_MAP[pin].timer_channel)
 
 // if USE_PIN_TIMER is set, the PWM timer/channel is used for PWM pins
 #define USE_PIN_TIMER
@@ -127,9 +128,9 @@ void tone(uint32_t pin, uint32_t freq, uint32_t duration) {
 
 #ifdef USE_PIN_TIMER
    // if the pin has a PWM timer/channel, use it (unless the timer/channel are forced)
-   if(PinTimerChannel(tone_pin) && !tone_force_channel){
-      tone_channel = PinTimerChannel(tone_pin);
-      tone_ntimer = PinTimerIndex(tone_pin);
+   if(PinChannel(tone_pin) && !tone_force_channel){
+      tone_channel = PinChannel(tone_pin);
+      tone_ntimer = PinTimer(tone_pin);
    } else
 #endif
    {
@@ -159,8 +160,8 @@ void tone(uint32_t pin, uint32_t freq, uint32_t duration) {
 
 #ifdef USE_BSRR
       // Set up BSRR register values for fast ISR
-      tone_bsrr = (uint32_t*)&(gpio_devs[tone_pin/16]->regs->BSRR);
-      tone_smask = (BIT(tone_pin%16));
+      tone_bsrr = &((PIN_MAP[tone_pin].gpio_device)->regs->BSRR);
+      tone_smask = (BIT(PIN_MAP[tone_pin].gpio_bit));
       tone_rmask = tone_smask<<16;
 #endif
 

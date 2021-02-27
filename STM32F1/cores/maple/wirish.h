@@ -40,7 +40,8 @@
  */
 #include <stdlib.h>
 #include <stdio.h>
-
+#include <stdbool.h>
+#include <stdint.h>
 
 #include <string.h>
 
@@ -55,29 +56,36 @@
 #include <io.h>
 #include <bit_constants.h>
 #include <pwm.h>
+
+#ifdef __cplusplus
 #include <ext_interrupts.h>
+#include <wirish_debug.h>
 #include <wirish_math.h>
-#include <wirish_time.h>
 #include <wirish_constants.h>
 #include <wiring_pulse.h>
 
+#include <WCharacter.h>
+#include <tone.h>
 
 #include <HardwareSerial.h>
 #include <HardwareTimer.h>
 #include <usb_serial.h>
+#endif // __cplusplus
+
 #include <wirish_types.h>
+#include <wirish_time.h>
 
 #include <libmaple/libmaple.h>
-
-#include <stdint.h>
-
-#include <WCharacter.h>
-#include <tone.h>
 
 typedef unsigned int word;
 // typedef uint16 word;// definition from Arduino website, now appears to be incorrect for 32 bit devices
 
 /* Wiring macros and bit defines */
+
+#ifndef true
+#define true 0x1
+#define false 0x0
+#endif
 
 #define lowByte(w)                     ((w) & 0xFF)
 #define highByte(w)                    (((w) >> 8) & 0xFF)
@@ -97,20 +105,7 @@ typedef unsigned int word;
 #define clockCyclesToMicroseconds(a) ( ((a) * 1000L) / (F_CPU / 1000L) )
 #define microsecondsToClockCycles(a) ( (a) * (F_CPU / 1000000L) )
 
-// pin related macros
-#define digitalPinToPort(P)        ( gpio_devs[(P)/16] )
-#define digitalPinToBitMask(P)     ( (P)&(15) )
 #define digitalPinToInterrupt(pin) (pin)
 
-#define portOutputRegister(port)   ( &(port->regs->ODR) )
-#define portInputRegister(port)    ( &(port->regs->IDR) )
-
-#define portSetRegister(pin)		( &(PIN_MAP[pin].gpio_device->regs->BSRR) )
-#define portClearRegister(pin)		( &(PIN_MAP[pin].gpio_device->regs->BRR) )
-
-#define portConfigRegister(pin)		( &(PIN_MAP[pin].gpio_device->regs->CRL) )
-
-#define pinToADCChannel(pin)        ( adc_map[pin] )
-
-
 #endif
+

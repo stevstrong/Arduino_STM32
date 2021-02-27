@@ -27,8 +27,9 @@
 #ifndef _USB_MULTI_X360_H
 #define _USB_MULTI_X360_H
 
-#include <usb_generic.h>
+#include <libmaple/libmaple_types.h>
 #include <libmaple/gpio.h>
+#include <libmaple/usb.h>
 
 #ifdef __cplusplus
 extern "C" {

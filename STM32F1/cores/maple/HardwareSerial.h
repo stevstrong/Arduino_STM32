@@ -38,8 +38,6 @@
 #include "Print.h"
 #include "boards.h"
 #include "Stream.h"
-#include "libmaple/usart.h"
-#include "libmaple/timer.h"
 /*
  * IMPORTANT:
  *
@@ -52,6 +50,32 @@
 
  
  
+// Define constants and variables for buffering incoming serial data.  We're
+// using a ring buffer (I think), in which head is the index of the location
+// to which to write the next incoming character and tail is the index of the
+// location from which to read.
+#if !(defined(SERIAL_TX_BUFFER_SIZE) && defined(SERIAL_RX_BUFFER_SIZE))
+#if (RAMEND < 1000)
+#define SERIAL_TX_BUFFER_SIZE 16
+#define SERIAL_RX_BUFFER_SIZE 16
+#else
+#define SERIAL_TX_BUFFER_SIZE 64
+#define SERIAL_RX_BUFFER_SIZE 64
+#endif
+#endif
+#if (SERIAL_TX_BUFFER_SIZE>256)
+typedef uint16_t tx_buffer_index_t;
+#else
+typedef uint8_t tx_buffer_index_t;
+#endif
+#if  (SERIAL_RX_BUFFER_SIZE>256)
+typedef uint16_t rx_buffer_index_t;
+#else
+typedef uint8_t rx_buffer_index_t;
+#endif
+ 
+struct usart_dev;
+
 /* Roger Clark
  *
  * Added config defines from AVR 
@@ -94,82 +118,31 @@
 						BOARD_USART##n##_RX_PIN)				
 
 
-//-----------------------------------------------------------------------------
-static inline void disable_timer_if_necessary(timer_dev *dev, uint8 ch)
-{
-    if (dev != NULL) {
-        timer_set_mode(dev, ch, TIMER_DISABLED);
-    }
-}
-
-//-----------------------------------------------------------------------------
 /* Roger clark. Changed class inheritance from Print to Stream.
  * Also added new functions for peek() and availableForWrite()
  * Note. AvailableForWrite is only a stub function in the cpp
  */
-//-----------------------------------------------------------------------------
 class HardwareSerial : public Stream {
 
 public:
-	HardwareSerial(const usart_dev *usart_device, uint8 tx_pin, uint8 rx_pin)
-    {
-        this->usart_device = usart_device;
-        this->tx_pin = tx_pin;
-        this->rx_pin = rx_pin;
-    }
+    HardwareSerial(struct usart_dev *usart_device,
+                   uint8 tx_pin,
+                   uint8 rx_pin);
 
-    void begin(uint32 baud, uint8_t config)
-    {
-        disable_timer_if_necessary(PinTimerDevice(tx_pin), PinTimerChannel(tx_pin));
-
-        usart_init(usart_device);
-        usart_config(usart_device, rx_pin, tx_pin, config);
-        usart_set_baud_rate(usart_device, baud);
-        usart_enable(usart_device);
-    }
-
-    void begin(uint32 baud) {
-    	begin(baud,SERIAL_8N1);
-    }
-
-    void end(void) {
-    	usart_disable(usart_device);
-    }
-
-    virtual int available(void) {
-        return usart_rx_available(usart_device);
-    }
-
-    virtual int peek(void) {
-        return 0;//usart_peek(usart_device);
-    }
-
-    virtual int read(void) {
-    	if(usart_rx_available(usart_device) > 0) {
-    		return usart_getc(usart_device);
-    	} else {
-    		return -1;
-    	}
-    }
-
-    int availableForWrite(void) {
-        return usart_tx_available(usart_device);
-    }
-
-    virtual size_t write(uint8_t ch) {
-        usart_putc(usart_device, ch);
-    	return 1;
-    }
-
-    virtual void flush(void) {
-        while(!rb_is_empty(usart_device->wb)); // wait for TX buffer empty
-        while(!((usart_device->regs->SR) & (1<<USART_SR_TC_BIT))); // wait for TC (Transmission Complete) flag set
-    }
-
-    inline int write(unsigned long n) { return write((uint8_t)n); }
-    inline int write(long n) { return write((uint8_t)n); }
-    inline int write(unsigned int n) { return write((uint8_t)n); }
-    inline int write(int n) { return write((uint8_t)n); }
+    /* Set up/tear down */
+    void begin(uint32 baud);
+    void begin(uint32 baud,uint8_t config);
+    void end();
+    virtual int available(void);
+    virtual int peek(void);
+    virtual int read(void);
+    int availableForWrite(void);
+    virtual void flush(void);
+    virtual size_t write(uint8_t);
+    inline size_t write(unsigned long n) { return write((uint8_t)n); }
+    inline size_t write(long n) { return write((uint8_t)n); }
+    inline size_t write(unsigned int n) { return write((uint8_t)n); }
+    inline size_t write(int n) { return write((uint8_t)n); }
     using Print::write;
 
     /* Pin accessors */
@@ -180,14 +153,37 @@ public:
 
     /* Escape hatch into libmaple */
     /* FIXME [0.0.13] documentation */
-	const usart_dev* c_dev(void) { return this->usart_device; }
+    struct usart_dev* c_dev(void) { return this->usart_device; }
 private:
-    const usart_dev *usart_device;
+    struct usart_dev *usart_device;
     uint8 tx_pin;
     uint8 rx_pin;
+  protected:
+#if 0  
+    volatile uint8_t * const _ubrrh;
+    volatile uint8_t * const _ubrrl;
+    volatile uint8_t * const _ucsra;
+    volatile uint8_t * const _ucsrb;
+    volatile uint8_t * const _ucsrc;
+    volatile uint8_t * const _udr;
+    // Has any byte been written to the UART since begin()
+    bool _written;
 
+    volatile rx_buffer_index_t _rx_buffer_head;
+    volatile rx_buffer_index_t _rx_buffer_tail;
+    volatile tx_buffer_index_t _tx_buffer_head;
+    volatile tx_buffer_index_t _tx_buffer_tail;	
+    // Don't put any members after these buffers, since only the first
+    // 32 bytes of this struct can be accessed quickly using the ldd
+    // instruction.
+    unsigned char _rx_buffer[SERIAL_RX_BUFFER_SIZE];
+    unsigned char _tx_buffer[SERIAL_TX_BUFFER_SIZE];	
+#endif
 };
 
+#ifndef SERIAL_USB
+#define Serial	Serial1
+#endif
 
 #if BOARD_HAVE_USART1
 extern HardwareSerial Serial1;

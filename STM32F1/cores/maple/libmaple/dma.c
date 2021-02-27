@@ -32,7 +32,8 @@
  * @brief Portable DMA routines.
  */
 
-#include "dma.h"
+#include <libmaple/dma.h>
+#include "dma_private.h"
 #include "stm32_private.h"
 
 /*

@@ -32,11 +32,12 @@
  * @brief STM32F1 DMA support.
  */
 
-#include "dma.h"
-#include "bitband.h"
+#include <libmaple/dma.h>
+#include <libmaple/bitband.h>
 
 /* Hack to ensure inlining in dma_irq_handler() */
 #define DMA_GET_HANDLER(dev, tube) (dev->handlers[tube - 1].handler)
+#include "dma_private.h"
 
 /*
  * Devices
@@ -212,11 +213,14 @@ int dma_tube_cfg(dma_dev *dev, dma_channel channel, dma_tube_config *cfg) {
 
 void dma_set_priority(dma_dev *dev,
                       dma_channel channel,
-                      dma_priority priority)
-{
-    dma_disable(dev, channel);
-    dma_channel_reg_map * channel_regs = dma_channel_regs(dev, channel);
-    uint32 ccr = channel_regs->CCR;
+                      dma_priority priority) {
+    dma_channel_reg_map *channel_regs;
+    uint32 ccr;
+
+    ASSERT_FAULT(!dma_is_channel_enabled(dev, channel));
+
+    channel_regs = dma_channel_regs(dev, channel);
+    ccr = channel_regs->CCR;
     ccr &= ~DMA_CCR_PL;
     ccr |= (priority << 12);
     channel_regs->CCR = ccr;
@@ -224,20 +228,33 @@ void dma_set_priority(dma_dev *dev,
 
 void dma_set_num_transfers(dma_dev *dev,
                            dma_channel channel,
-                           uint16 num_transfers)
-{
-    dma_disable(dev, channel);
-    dma_channel_regs(dev, channel)->CNDTR = num_transfers;
-}
+                           uint16 num_transfers) {
+    dma_channel_reg_map *channel_regs;
 
+    ASSERT_FAULT(!dma_is_channel_enabled(dev, channel));
+
+    channel_regs = dma_channel_regs(dev, channel);
+    channel_regs->CNDTR = num_transfers;
+}
+// stevstrong: handle DMA2 ch 4 and 5 IRQ enable/disable - they share common IRQ line
+uint32 dma2Ch4_5 = 0;
 void dma_attach_interrupt(dma_dev *dev, dma_channel channel,
                           void (*handler)(void)) {
     DMA_GET_HANDLER(dev, channel) = handler;
     nvic_irq_enable(dev->handlers[channel - 1].irq_line);
+    // stevstrong: mark ch 4 or 5 IRQ set if DMA2
+    if (dev->handlers[channel - 1].irq_line==NVIC_DMA2_CH_4_5)
+        dma2Ch4_5 |= BIT(channel-1);
 }
 
 void dma_detach_interrupt(dma_dev *dev, dma_channel channel) {
-    /* Don't use nvic_irq_disable()! Think about DMA2 channels 4 and 5. */
+    // stevstrong: disable IRQ for DMA2 only if none of ch 4 or 5 is set
+    if (dev->handlers[channel - 1].irq_line==NVIC_DMA2_CH_4_5) {
+        dma2Ch4_5 &= BIT(channel-1);
+        if (dma2Ch4_5==0)
+            nvic_irq_disable(dev->handlers[channel - 1].irq_line);
+    } else
+        nvic_irq_disable(dev->handlers[channel - 1].irq_line);
     dma_channel_regs(dev, channel)->CCR &= ~0xF;
     DMA_GET_HANDLER(dev, channel) = NULL;
 }
@@ -286,16 +303,22 @@ dma_irq_cause dma_get_irq_cause(dma_dev *dev, dma_channel channel) {
     return DMA_TRANSFER_ERROR;
 }
 
-void dma_set_mem_addr(dma_dev *dev, dma_channel channel, __IO void *addr)
-{
-    dma_disable(dev, channel);
-    dma_channel_regs(dev, channel)->CMAR = (uint32)addr;
+void dma_set_mem_addr(dma_dev *dev, dma_channel channel, __IO void *addr) {
+    dma_channel_reg_map *chan_regs;
+
+    ASSERT_FAULT(!dma_is_channel_enabled(dev, channel));
+
+    chan_regs = dma_channel_regs(dev, channel);
+    chan_regs->CMAR = (uint32)addr;
 }
 
-void dma_set_per_addr(dma_dev *dev, dma_channel channel, __IO void *addr)
-{
-    dma_disable(dev, channel);
-    dma_channel_regs(dev, channel)->CPAR = (uint32)addr;
+void dma_set_per_addr(dma_dev *dev, dma_channel channel, __IO void *addr) {
+    dma_channel_reg_map *chan_regs;
+
+    ASSERT_FAULT(!dma_is_channel_enabled(dev, channel));
+
+    chan_regs = dma_channel_regs(dev, channel);
+    chan_regs->CPAR = (uint32)addr;
 }
 
 /**
@@ -346,14 +369,6 @@ void dma_setup_transfer(dma_dev       *dev,
 /*
  * IRQ handlers
  */
-__always_inline void dma_irq_handler(dma_dev *dev, dma_tube tube)
-{
-    void (*handler)(void) = DMA_GET_HANDLER(dev, tube);
-    if (handler) {
-        handler();
-	    dma_clear_isr_bits(dev, tube); /* in case handler doesn't */
-    }
-}
 
 __weak void __irq_dma1_channel1(void) {
     dma_irq_handler(DMA1, DMA_CH1);

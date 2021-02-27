@@ -42,11 +42,10 @@ void pwmWrite(uint8 pin, uint16 duty_cycle) {
     if (pin >= BOARD_NR_GPIO_PINS) {
         return;
     }
-
-    uint8 cc_channel = PinTimerChannel(pin);
-    timer_dev *dev = PinTimerDevice(pin);
-    if (dev && cc_channel)
-    	timer_set_compare(dev, cc_channel, duty_cycle);
+    timer_dev *dev = PIN_MAP[pin].timer_device;
+    uint8 cc_channel = PIN_MAP[pin].timer_channel;
+    ASSERT(dev && cc_channel);
+    timer_set_compare(dev, cc_channel, duty_cycle);
 }
 
 /*

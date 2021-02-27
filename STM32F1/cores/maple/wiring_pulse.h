@@ -30,7 +30,6 @@
 #define _WIRISH_PULSE_H_
 
 #include <libmaple/gpio.h>
-#include "wirish.h"
 
 uint32_t pulseIn( uint32_t ulPin, uint32_t ulState, uint32_t ulTimeout = 1000000L ) ;
 
