@@ -201,10 +201,10 @@ void SoftWire::begin(uint8 self_addr) {
     pinMode(this->scl_pin, OUTPUT_OPEN_DRAIN);
     pinMode(this->sda_pin, OUTPUT_OPEN_DRAIN);
 	
-	sclDevice = PIN_MAP[this->scl_pin].gpio_device;
-	sclBit = PIN_MAP[this->scl_pin].gpio_bit;	
-	sdaDevice = PIN_MAP[this->sda_pin].gpio_device;
-	sdaBit = PIN_MAP[this->sda_pin].gpio_bit;		
+	sclDevice = digitalPinToPort(this->scl_pin);
+	sclBit = digitalPinToBitMask(this->scl_pin);	
+	sdaDevice = digitalPinToPort(this->sda_pin);
+	sdaBit = digitalPinToBitMask(this->sda_pin);		
     set_scl(HIGH);
     set_sda(HIGH);
 }

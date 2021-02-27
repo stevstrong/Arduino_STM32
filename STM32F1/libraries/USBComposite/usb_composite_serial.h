@@ -34,8 +34,6 @@
 #ifndef _USB_SERIAL_H_
 #define _USB_SERIAL_H_
 
-#include <libmaple/libmaple_types.h>
-#include <libmaple/usb.h>
 #include "usb_generic.h"
 
 #ifdef __cplusplus

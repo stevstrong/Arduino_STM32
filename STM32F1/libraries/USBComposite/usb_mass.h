@@ -2,9 +2,7 @@
 #ifndef _LIBMAPLE_USB_MASS_H_
 #define _LIBMAPLE_USB_MASS_H_
 
-#include <libmaple/libmaple_types.h>
 #include <libmaple/gpio.h>
-#include <libmaple/usb.h>
 #include <inttypes.h>
 #include "usb_generic.h"
 #include "usb_mass_mal.h"

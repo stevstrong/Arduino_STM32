@@ -46,11 +46,11 @@ namespace wirish {
         void board_setup_usb(void) {
 #ifdef GENERIC_BOOTLOADER			
 			//Reset the USB interface on generic boards - developed by Victor PV
-			gpio_set_mode(PIN_MAP[PA12].gpio_device, PIN_MAP[PA12].gpio_bit, GPIO_OUTPUT_PP);
-			gpio_write_bit(PIN_MAP[PA12].gpio_device, PIN_MAP[PA12].gpio_bit,0);
+			gpio_set_mode(digitalPinToPort(PA12), digitalPinToBitMask(PA12), GPIO_OUTPUT_PP);
+			gpio_write_bit(digitalPinToPort(PA12), digitalPinToBitMask(PA12), 0);
 			
 			for(volatile unsigned int i=0;i<512;i++);// Only small delay seems to be needed, and USB pins will get configured in Serial.begin
-			gpio_set_mode(PIN_MAP[PA12].gpio_device, PIN_MAP[PA12].gpio_bit, GPIO_INPUT_FLOATING);
+			gpio_set_mode(digitalPinToPort(PA12), digitalPinToBitMask(PA12), GPIO_INPUT_FLOATING);
 #endif			
 		}
 

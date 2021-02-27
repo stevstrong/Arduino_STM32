@@ -33,46 +33,52 @@
 
 #include <libmaple/spi.h>
 #include <libmaple/gpio.h>
-#include "spi_private.h"
 
 /*
  * Devices
  */
 
-static spi_dev spi1 = SPI_DEV(1);
-static spi_dev spi2 = SPI_DEV(2);
+#define SPI_DEV(num)                              \
+    {                                             \
+        .regs    = SPI##num##_BASE,               \
+        .clk_id  = RCC_SPI##num,                  \
+        .irq_num = NVIC_SPI##num,                 \
+    }
 
-spi_dev *SPI1 = &spi1;
-spi_dev *SPI2 = &spi2;
+spi_dev spi1 = SPI_DEV(1);
+spi_dev spi2 = SPI_DEV(2);
 
 #if defined(STM32_HIGH_DENSITY) || defined(STM32_XL_DENSITY)
-static spi_dev spi3 = SPI_DEV(3);
-spi_dev *SPI3 = &spi3;
+spi_dev spi3 = SPI_DEV(3);
 #endif
 
 /*
  * Routines
  */
 
-void spi_config_gpios(spi_dev *ignored __attribute__((unused)),
-                      uint8 as_master,
-                      gpio_dev *nss_dev,
-                      uint8 nss_bit,
-                      gpio_dev *comm_dev,
-                      uint8 sck_bit,
-                      uint8 miso_bit,
-                      uint8 mosi_bit) {
+void spi_config_gpios(uint8 as_master, const spi_pins *pins)
+{
     if (as_master) {
      //   gpio_set_mode(nss_dev, nss_bit, GPIO_AF_OUTPUT_PP);// Roger Clark. Commented out, so that NSS can be driven as a normal GPIO pin during SPI use
-        gpio_set_mode(comm_dev, sck_bit, GPIO_AF_OUTPUT_PP);
-        gpio_set_mode(comm_dev, miso_bit, GPIO_INPUT_FLOATING);
-        gpio_set_mode(comm_dev, mosi_bit, GPIO_AF_OUTPUT_PP);
+        gpio_set_pin_mode(pins->sck, GPIO_AF_OUTPUT_PP);
+        gpio_set_pin_mode(pins->miso, GPIO_INPUT_FLOATING);
+        gpio_set_pin_mode(pins->mosi, GPIO_AF_OUTPUT_PP);
     } else {
-        gpio_set_mode(nss_dev, nss_bit, GPIO_INPUT_FLOATING);
-        gpio_set_mode(comm_dev, sck_bit, GPIO_INPUT_FLOATING);
-        gpio_set_mode(comm_dev, miso_bit, GPIO_AF_OUTPUT_PP);
-        gpio_set_mode(comm_dev, mosi_bit, GPIO_INPUT_FLOATING);
+        gpio_set_pin_mode(pins->nss, GPIO_INPUT_FLOATING);
+        gpio_set_pin_mode(pins->sck, GPIO_INPUT_FLOATING);
+        gpio_set_pin_mode(pins->miso, GPIO_AF_OUTPUT_PP);
+        gpio_set_pin_mode(pins->mosi, GPIO_INPUT_FLOATING);
     }
+}
+
+void spi_release_gpios(uint8 as_master, const spi_pins *pins)
+{
+	if (as_master==0)
+		gpio_set_pin_mode(pins->nss, GPIO_INPUT_PD);
+
+	gpio_set_pin_mode(pins->sck, GPIO_INPUT_PD);
+	gpio_set_pin_mode(pins->miso, GPIO_INPUT_PD);
+	gpio_set_pin_mode(pins->mosi, GPIO_INPUT_PD);
 }
 
 void spi_foreach(void (*fn)(spi_dev*)) {

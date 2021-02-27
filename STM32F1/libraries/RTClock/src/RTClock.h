@@ -52,7 +52,6 @@ class RTClock {
 	
 	time_t getTime();
 	void getTime(tm_t & tmm );
-
 	time_t now() { return getTime(); }
 	void now(tm_t & tmm ) { getTime(tmm); }  // non-standard use of now() function, added for compatibility with previous versions of the library
 
@@ -73,13 +72,13 @@ class RTClock {
 	uint8_t minute(time_t t)  { breakTime(t, tmm); return tmm.minute; }
 	uint8_t second(time_t t)  { breakTime(t, tmm); return tmm.second; }
 	uint8_t isPM(time_t t)    { return (hour(t)>=12); }
-
+	
 	// Usage: localtime = TimeZone(UnixTime, 8); 
 	time_t TimeZone(time_t t, int TZ) { return ( t + (TZ * SECS_PER_HOUR)); } 
 	
 	// Usage:  1.  localtime = TimeZone(UnixTime, 9, 45)  ->   UTC +09:45 TimeZone; 
-	time_t TimeZone(time_t t, int HTZ, int MTZ)  { return ( t + (HTZ * SECS_PER_HOUR) + (MTZ * 60)); }    // HTZ = Hour offset, MTZ = Minute offset
-	
+	time_t TimeZone(time_t t, int HTZ, int MTZ)  { return ( t + (HTZ * SECS_PER_HOUR) + (MTZ * 60)); }    // HTZ = Hour offset, MTZ = Minute offset	
+
 	void createAlarm(voidFuncPtr function, time_t alarm_time_t); 
 	void createAlarm(voidFuncPtr function, struct tm_t & alarm_tm);
 	void removeAlarm();

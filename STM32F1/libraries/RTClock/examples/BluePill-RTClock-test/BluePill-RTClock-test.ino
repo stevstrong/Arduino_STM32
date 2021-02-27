@@ -45,9 +45,9 @@ const char * months[] = {"Dummy", "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul
 //-----------------------------------------------------------------------------
 uint8_t str2month(const char * d)
 {
-    uint8_t i = 13;
-    while ( (--i) && strcmp(months[i], d)!=0 );
-    return i;
+	uint8_t i = 13;
+	while ( (--i) && strcmp(months[i], d)!=0 );
+	return i;
 }
 //-----------------------------------------------------------------------------
 const char * delim = " :";
@@ -115,8 +115,8 @@ void setup()
   //while (!Serial); delay(1000);
   ParseBuildTimestamp(mtt);  // get the Unix epoch Time counted from 00:00:00 1 Jan 1970
   tt = rtclock.makeTime(mtt) + 25; // additional seconds to compensate build and upload delay
-  rtclock.setTime(tt);
   tt1 = tt;
+  rtclock.setTime(tt);
   rtclock.attachAlarmInterrupt(blink);// Call blink
   rtclock.attachSecondsInterrupt(SecondCount);// Call SecondCount
 }
@@ -125,7 +125,7 @@ void loop()
 {
   if ( Serial.available()>10 ) {
     for (uint8_t i = 0; i<11; i++) {
-	    dateread[i] = Serial.read();
+      dateread[i] = Serial.read();
     }
     Serial.flush();
     tt = atol((char*)dateread);
@@ -163,7 +163,7 @@ void loop()
     // get and print actual RTC timestamp
     rtclock.breakTime(rtclock.now(), mtt);
     sprintf(s, "RTC timestamp: %s %u %u, %s, %02u:%02u:%02u\n",
-      months[mtt.month], mtt.day, mtt.year+1970, weekdays[mtt.weekday], mtt.hour, mtt.minute, mtt.second);
+        months[mtt.month], mtt.day, mtt.year+1970, weekdays[mtt.weekday], mtt.hour, mtt.minute, mtt.second);
     Serial.print(s);
   }
 }

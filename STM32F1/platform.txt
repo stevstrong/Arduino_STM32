@@ -3,7 +3,7 @@
 # For more info:
 # https://github.com/arduino/Arduino/wiki/Arduino-IDE-1.5---3rd-party-Hardware-specification
 
-name=STM32F1 Boards (Arduino_STM32)
+name=STM32F1 Boards (STM32duino.com)
 version=0.1.2
 
 compiler.warning_flags=-w -DDEBUG_LEVEL=DEBUG_NONE
@@ -15,7 +15,6 @@ compiler.warning_flags.all=-Wall -Wextra -DDEBUG_LEVEL=DEBUG_ALL
 # compiler variables
 # ----------------------
 compiler.path={runtime.tools.arm-none-eabi-gcc.path}/bin/
-#compiler.path={runtime.tools.xpack-arm-none-eabi-gcc-9.2.1-1.1.path}/bin/
 compiler.c.cmd=arm-none-eabi-gcc
 compiler.c.flags=-c -g {build.flags.optimize} {compiler.warning_flags} -std=gnu11 -MMD -ffunction-sections -fdata-sections -nostdlib --param max-inline-insns-single=500 -DBOARD_{build.variant} -D{build.vect} -DERROR_LED_PORT={build.error_led_port} -DERROR_LED_PIN={build.error_led_pin} 
 compiler.c.elf.cmd=arm-none-eabi-g++
@@ -37,7 +36,6 @@ compiler.define=-DARDUINO=
 # this can be overriden in boards.txt
 build.f_cpu=72000000L
 build.mcu=cortex-m3
-#build.common_flags=-mthumb -march=armv7-m -D__STM32F1__ -Wno-expansion-to-defined
 build.common_flags=-mthumb -march=armv7-m -D__STM32F1__
 build.variant_system_lib=libmaple.a
 ## LED stuff is not really used but is still required in the code
@@ -47,21 +45,23 @@ build.cpu_flags=
 build.hs_flag=
 build.upload_flags=
 build.flags.optimize=-Os
-build.flags.ldspecs=--specs=nano.specs
+build.flags.ldspecs=
 build.extra_flags= {build.upload_flags} {build.cpu_flags} {build.hs_flag} {build.common_flags}
 
 
 
 # These can be overridden in platform.local.txt
-compiler.c.extra_flags=
-compiler.c.elf.extra_flags="-L{build.variant.path}/ld"
-compiler.cpp.extra_flags= 
+compiler.c.extra_flags=-Wno-expansion-to-defined
+compiler.combine.flags=-u _printf_float -u _sbrk -u link -u _close -u _fstat -u _isatty -u _lseek -u _read -u _write -u _exit -u kill -u _getpid
+#compiler.c.elf.extra_flags="-L{build.variant.path}/ld" -specs=nosys.specs -specs=nano.specs {compiler.combine.flags}
+compiler.c.elf.extra_flags="-L{build.variant.path}/ld" {compiler.combine.flags}
+compiler.cpp.extra_flags=-Wno-expansion-to-defined
 compiler.S.extra_flags=
 compiler.ar.extra_flags=
 compiler.elf2hex.extra_flags=
 
 
-compiler.libs.c.flags="-I{build.system.path}/libmaple" "-I{build.system.path}/libmaple/include" "-I{build.system.path}/libmaple/stm32f1/include" "-I{build.system.path}/libmaple/usb/stm32f1" "-I{build.system.path}/libmaple/usb/usb_lib" 
+compiler.libs.c.flags="-I{build.system.path}/libmaple"
 
 
 
@@ -114,13 +114,13 @@ recipe.output.save_file={build.project_name}.{build.variant}.bin
 # Upload using Maple bootloader over DFU
 tools.maple_upload.cmd=maple_upload
 tools.maple_upload.cmd.windows=maple_upload.bat
-tools.maple_upload.path={runtime.hardware.path}/tools/win
+tools.maple_upload.path.windows={runtime.hardware.path}/tools/win
 tools.maple_upload.path.macosx={runtime.hardware.path}/tools/macosx
 tools.maple_upload.path.linux={runtime.hardware.path}/tools/linux
 tools.maple_upload.path.linux64={runtime.hardware.path}/tools/linux64    
 tools.maple_upload.upload.params.verbose=-d
 tools.maple_upload.upload.params.quiet=
-tools.maple_upload.upload.pattern="{path}/{cmd}" {serial.port.file} {upload.altID} {upload.usbID} "{build.path}/{build.project_name}.bin" {runtime.ide.path}
+tools.maple_upload.upload.pattern="{path}/{cmd}" {serial.port.file} {upload.altID} {upload.usbID} "{build.path}/{build.project_name}.bin"
 
 #Added tool for generic STM32 upload via serial to Serial Port 1 (pins PA9 and PA10) - note. Boot0 line needs to high on board reset to enable upload via serial
 # at the end up the upload the program is automatically run, without the board being reset
@@ -128,7 +128,7 @@ tools.maple_upload.upload.pattern="{path}/{cmd}" {serial.port.file} {upload.altI
 tools.serial_upload.cmd=serial_upload
 tools.serial_upload.cmd.windows=serial_upload.bat
 tools.serial_upload.cmd.macosx=serial_upload
-tools.serial_upload.path={runtime.hardware.path}/tools/win
+tools.serial_upload.path.windows={runtime.hardware.path}/tools/win
 tools.serial_upload.path.macosx={runtime.hardware.path}/tools/macosx
 tools.serial_upload.path.linux={runtime.hardware.path}/tools/linux
 tools.serial_upload.path.linux64={runtime.hardware.path}/tools/linux64
@@ -145,7 +145,7 @@ tools.stlink_upload.path.linux={runtime.hardware.path}/tools/linux
 tools.stlink_upload.path.linux64={runtime.hardware.path}/tools/linux64
 tools.stlink_upload.upload.params.verbose=-d
 tools.stlink_upload.upload.params.quiet=
-tools.stlink_upload.upload.pattern="{path}/{cmd}"  "{build.path}/{build.project_name}.bin"
+tools.stlink_upload.upload.pattern="{path}/{cmd}" "{build.path}/{build.project_name}.bin"
  
 # blackmagic probe upload
 tools.bmp_upload.cmd=arm-none-eabi-gdb
@@ -177,3 +177,14 @@ tools.hid_upload.path.linux64={runtime.hardware.path}/tools/linux64
 tools.hid_upload.upload.params.verbose=-d
 tools.hid_upload.upload.params.quiet=n
 tools.hid_upload.upload.pattern="{path}/{cmd}" "{build.path}/{build.project_name}.bin" {serial.port.file}
+
+# CDC upload 1.0
+tools.cdc_upload.cmd=cdc_upload
+tools.cdc_upload.cmd.windows=cdc_upload.bat
+tools.cdc_upload.path.windows={runtime.hardware.path}/tools/win
+#tools.cdc_upload.path.macosx={runtime.hardware.path}/tools/macosx
+#tools.cdc_upload.path.linux={runtime.hardware.path}/tools/linux
+#tools.cdc_upload.path.linux64={runtime.hardware.path}/tools/linux64
+tools.cdc_upload.upload.params.verbose=
+tools.cdc_upload.upload.params.quiet=
+tools.cdc_upload.upload.pattern="{path}/{cmd}" "{build.path}/{build.project_name}.bin" {serial.port.file} 1

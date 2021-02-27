@@ -35,14 +35,14 @@
 #include <libmaple/timer.h>
 
 #include "wirish_time.h"
-//#include "boards.h"
+#include "boards.h"
 
 uint32 digitalRead(uint8 pin) {
     if (pin >= BOARD_NR_GPIO_PINS) {
         return 0;
     }
 
-    return gpio_read_bit(PIN_MAP[pin].gpio_device, PIN_MAP[pin].gpio_bit) ?
+    return gpio_read_pin(pin) ?
         HIGH : LOW;
 }
 
@@ -51,24 +51,18 @@ void digitalWrite(uint8 pin, uint8 val) {
         return;
     }
 
-    gpio_write_bit(PIN_MAP[pin].gpio_device, PIN_MAP[pin].gpio_bit, val);
+    gpio_write_pin(pin, val);
 }
 
-extern "C" void ioWrite(uint8 pin, uint8 val) {
-    gpio_write_bit(PIN_MAP[pin].gpio_device, PIN_MAP[pin].gpio_bit, val);
-}
-
-
+#if FALSE
 // Roger Clark. Deprecated these functions as they are not part of the standard Arduino API
-extern "C" void togglePin(uint8 pin) {
+void togglePin(uint8 pin) {
     if (pin >= BOARD_NR_GPIO_PINS) {
         return;
     }
 
-    gpio_toggle_bit(PIN_MAP[pin].gpio_device, PIN_MAP[pin].gpio_bit);
+    gpio_toggle_bit(digitalPinToPort(pin), digitalPinToBitMask(pin));
 }
-
-#if FALSE
 
 #define BUTTON_DEBOUNCE_DELAY 1
 

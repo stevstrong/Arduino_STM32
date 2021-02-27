@@ -5,7 +5,7 @@
 */
 #include <STM32ADC.h>
 
-STM32ADC myAdc(ADC1);
+ADC myAdc(ADC1);
 
 void setup() {
   Serial.begin(19200);

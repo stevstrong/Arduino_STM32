@@ -38,36 +38,31 @@
 
 #include "Wire.h"
 
-uint8 TwoWire::process(uint8 stop)
-{
-    (void)stop;
-    int8 res = i2c_master_xfer(sel_hard, &itc_msg, 0);
-    if (res) { // error case
+uint8 TwoWire::process(uint8 stop) {
+	(void)stop;
+    int8 res = i2c_master_xfer(sel_hard, &itc_msg, 1, 0);
+    if (res == I2C_ERROR_PROTOCOL) {
         if (sel_hard->error_flags & I2C_SR1_AF) { /* NACK */
-            res = (sel_hard->error_flags & I2C_SR1_ADDR ? ENACKADDR : 
-                                                          ENACKTRNS);
-        } else {
-            if (sel_hard->error_flags & I2C_SR1_OVR) { /* Over/Underrun */
-                res = EDATA;
-            } else { /* Bus or Arbitration error */
-                res = EOTHER;
-            }
-			//while(sel_hard->regs->CR1&I2C_CR1_STOP);
-			i2c_disable(sel_hard);
-			i2c_master_enable(sel_hard, dev_flags, frequency);
+            res = (sel_hard->error_flags & (I2C_SR1_ADDR|I2C_SR1_ADD10)) ? ENACKADDR : ENACKTRNS;
+        } else if (sel_hard->error_flags & I2C_SR1_OVR) { /* Over/Underrun */
+            res = EDATA;
+        } else { /* Bus or Arbitration error */
+            res = EOTHER;
         }
+        i2c_disable(sel_hard);
+        i2c_master_enable(sel_hard, dev_flags, frequency);
     }
     return res;
 }
 
 uint8 TwoWire::process(){
-    return process(true);
+	return process(true);
 }
 
 // TODO: Add in Error Handling if devsel is out of range for other Maples
-TwoWire::TwoWire(uint8 dev_sel, uint8 flags, uint32 freq)
-{
-    if (dev_sel == 1) {
+TwoWire::TwoWire(uint8 dev_sel, uint8 flags, uint32 freq) {
+    
+	if (dev_sel == 1) {
         sel_hard = I2C1;
     } else if (dev_sel == 2) {
         sel_hard = I2C2;
@@ -76,10 +71,11 @@ TwoWire::TwoWire(uint8 dev_sel, uint8 flags, uint32 freq)
     }
     dev_flags = flags;
 
-    if (freq == 100000 && (flags & I2C_FAST_MODE))  // compatibility patch
-        frequency = 400000;
-    else
-        frequency = freq;
+	if (freq == 100000 && (flags & I2C_FAST_MODE))  // compatibility patch
+		frequency = 400000;
+	else
+		frequency = freq;
+
 }
 
 TwoWire::~TwoWire() {
@@ -88,7 +84,7 @@ TwoWire::~TwoWire() {
 }
 
 void TwoWire::begin(uint8 self_addr) {
-    (void)self_addr;
+	(void)self_addr;
     i2c_master_enable(sel_hard, dev_flags, frequency);
 }
 
@@ -99,11 +95,12 @@ void TwoWire::end() {
 
 void TwoWire::setClock(uint32_t frequencyHz)
 {
-    if (sel_hard->regs->CR1 & I2C_CR1_PE){
-        frequency = frequencyHz;
-        i2c_disable(sel_hard);
-        i2c_master_enable(sel_hard, dev_flags, frequency);
-    }
+	
+	if (sel_hard->regs->CR1 & I2C_CR1_PE){
+		frequency = frequencyHz;
+	    i2c_disable(sel_hard);
+	    i2c_master_enable(sel_hard, dev_flags, frequency);
+	}
 }
 
 TwoWire Wire(1);

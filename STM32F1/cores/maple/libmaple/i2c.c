@@ -139,29 +139,29 @@ void i2c_bus_reset(const i2c_dev *dev) {
      * Make sure the bus is free by clocking it until any slaves release the
      * bus.
      */
-    while (!gpio_read_bit(sda_port(dev), dev->sda_pin)) {
+    while (!gpio_read_pin(dev->sda_pin)) {
         /* Wait for any clock stretching to finish */
-        while (!gpio_read_bit(scl_port(dev), dev->scl_pin))
+        while (!gpio_read_pin(dev->scl_pin))
             ;
         delay_us(10);
 
         /* Pull low */
-        gpio_write_bit(scl_port(dev), dev->scl_pin, 0);
+        gpio_write_pin(dev->scl_pin, 0);
         delay_us(10);
 
         /* Release high again */
-        gpio_write_bit(scl_port(dev), dev->scl_pin, 1);
+        gpio_write_pin(dev->scl_pin, 1);
         delay_us(10);
     }
 
     /* Generate start then stop condition */
-    gpio_write_bit(sda_port(dev), dev->sda_pin, 0);
+    gpio_write_pin(dev->sda_pin, 0);
     delay_us(10);
-    gpio_write_bit(scl_port(dev), dev->scl_pin, 0);
+    gpio_write_pin(dev->scl_pin, 0);
     delay_us(10);
-    gpio_write_bit(scl_port(dev), dev->scl_pin, 1);
+    gpio_write_pin(dev->scl_pin, 1);
     delay_us(10);
-    gpio_write_bit(sda_port(dev), dev->sda_pin, 1);
+    gpio_write_pin(dev->sda_pin, 1);
 
     /* Release Software Reset: */
     dev->regs->CR1 = 0;
@@ -190,32 +190,32 @@ static void i2c_clear_busy_flag_erratum(const i2c_dev *dev) {
     i2c_master_release_bus(dev);
 
     // 3. Check SCL and SDA High level in GPIOx_IDR.
-    while (gpio_read_bit(scl_port(dev), dev->scl_pin) == 0) { }
-    while (gpio_read_bit(sda_port(dev), dev->sda_pin) == 0) { }
+    while (gpio_read_pin(dev->scl_pin) == 0) { }
+    while (gpio_read_pin(dev->sda_pin) == 0) { }
 
     // 4. Configure the SDA I/O as General Purpose Output Open-Drain, Low level (Write 0 to GPIOx_ODR).
-    gpio_write_bit(sda_port(dev), dev->sda_pin, 0);
+    gpio_write_pin(dev->sda_pin, 0);
 
     // 5. Check SDA Low level in GPIOx_IDR.
-    while (gpio_read_bit(sda_port(dev), dev->sda_pin)) { }
+    while (gpio_read_pin(dev->sda_pin)) { }
 
     // 6. Configure the SCL I/O as General Purpose Output Open-Drain, Low level (Write 0 to GPIOx_ODR).
-    gpio_write_bit(scl_port(dev), dev->scl_pin, 0);
+    gpio_write_pin(dev->scl_pin, 0);
 
     // 7. Check SCL Low level in GPIOx_IDR.
-    while (gpio_read_bit(scl_port(dev), dev->scl_pin)) { }
+    while (gpio_read_pin(dev->scl_pin)) { }
 
     // 8. Configure the SCL I/O as General Purpose Output Open-Drain, High level (Write 1 to GPIOx_ODR).
-    gpio_write_bit(scl_port(dev), dev->scl_pin, 1);
+    gpio_write_pin(dev->scl_pin, 1);
 
     // 9. Check SCL High level in GPIOx_IDR.
-    while (gpio_read_bit(scl_port(dev), dev->scl_pin) == 0) { }
+    while (gpio_read_pin(dev->scl_pin) == 0) { }
 
     // 10. Configure the SDA I/O as General Purpose Output Open-Drain , High level (Write 1 to GPIOx_ODR).
-    gpio_write_bit(sda_port(dev), dev->sda_pin, 1);
+    gpio_write_pin(dev->sda_pin, 1);
 
     // 11. Check SDA High level in GPIOx_IDR.
-    while (gpio_read_bit(sda_port(dev), dev->sda_pin) == 0) { }
+    while (gpio_read_pin(dev->sda_pin) == 0) { }
 
     // 12. Configure the SCL and SDA I/Os as Alternate function Open-Drain.
     i2c_config_gpios(dev);
@@ -363,69 +363,56 @@ void i2c_slave_enable(i2c_dev *dev, uint32 flags, uint32 freq)
  *         I2C_ERROR_TIMEOUT if the transfer timed out.
  */
 int32 i2c_master_xfer(i2c_dev *dev,
-                      i2c_msg *msg,
-                      uint32 timeout)
-{
-	ioWrite(PC13,0);
-#if 1
-    if (msg == NULL) return 0;
+                      i2c_msg *msgs,
+                      uint16 num,
+                      uint32 timeout) {
+    int32 rc;
+
+    ASSERT(dev->state == I2C_STATE_IDLE);
+
+    if (num == 0) return 0;
 
     // Wait for I2C to not be busy:
-    uint32_t count = systick_uptime();
-    while ( (dev->regs->SR2 & I2C_SR2_BUSY) ) //|| (dev->regs->CR1 & (I2C_CR1_START|I2C_CR1_STOP|I2C_CR1_PEC)) )
-	{
-        if ( (systick_uptime()-count) > I2C_TIMEOUT_BUSY_FLAG) {
-	ioWrite(PC13,1);
-	ioWrite(PC13,0);
-	ioWrite(PC13,1);
-	ioWrite(PC13,0);
-	ioWrite(PC13,1);
+    uint32_t count = I2C_TIMEOUT_BUSY_FLAG * (F_CPU / 25U /1000U);
+    do {
+        if (count-- == 0U) {
             return I2C_ERROR_TIMEOUT;
         }
-    }
-#endif
+    } while (dev->regs->SR2 & I2C_SR2_BUSY);
+
     dev->error_flags = 0;
-    dev->msg = msg;
-    dev->msg->xferred = 0;
+    dev->msg = msgs;
+    dev->msgs_left = num;
+    do {
+        dev->msg[num-1].xferred = 0;
+    } while (--num);
     dev->timestamp = systick_uptime();
     dev->state = I2C_STATE_BUSY;
 
     dev->regs->CR1 = I2C_CR1_PE;    // Enable but reset special flags
     dev->regs->SR1 = 0;             // Reset error/status flags
-
     i2c_enable_irq(dev, I2C_IRQ_EVENT | I2C_IRQ_ERROR);
+    if (dev->msg[0].flags & I2C_MSG_READ) {
+        dev->regs->CR1 = I2C_CR1_PE | I2C_CR1_START | I2C_CR1_ACK;
+    } else {
+        dev->regs->CR1 = I2C_CR1_PE | I2C_CR1_START;
+    }
 
-    dev->regs->CR1 = I2C_CR1_PE | I2C_CR1_START | ((dev->msg->flags & I2C_MSG_READ)?I2C_CR1_ACK:0);
-
-    int32 rc = wait_for_state_change(dev, I2C_STATE_XFER_DONE, timeout);
+    rc = wait_for_state_change(dev, I2C_STATE_XFER_DONE, timeout);
 
     i2c_disable_irq(dev, I2C_IRQ_BUFFER | I2C_IRQ_EVENT | I2C_IRQ_ERROR);
 
     if (rc != 0) {
-		ioWrite(PC13,1);
         // If we had an error, make sure the device state reflects that
         // and make use of the smb I2C_SR1_TIMEOUT flag.  These have to be
         // done here after disabling the IRQ above to avoid a race-condition
         // with state changes in the IRQ handlers:
         dev->state = I2C_STATE_ERROR;
         if (rc == I2C_ERROR_TIMEOUT) dev->error_flags |= I2C_SR1_TIMEOUT;
-        if (!(dev->config_flags & I2C_SLAVE_MODE) &&
-            (dev->error_flags & (I2C_SR1_AF | I2C_SR1_BERR | I2C_SR1_TIMEOUT))
-            ) {    // In Master Mode, we need to abort the transmission with a STOP
-                   // for NACK, Bus Error, or Timeout
-            while (dev->regs->CR1 & (I2C_CR1_START | I2C_CR1_STOP | I2C_CR1_PEC))
-			{
-                ;   // Must wait for pending start/stop/pec before setting stop to avoid
-                    //  accidental restart condition. See ST RM0008 Note in 26.6.1 (I2C_CR1)
-            }
-            dev->regs->CR1 |= I2C_CR1_STOP;
-            //while (dev->regs->CR1 & (I2C_CR1_START | I2C_CR1_STOP | I2C_CR1_PEC));
-		}
-			ioWrite(PC13,0);
-	} else {
+    } else {
         dev->state = I2C_STATE_IDLE;
     }
-ioWrite(PC13,1);
+
     return rc;
 }
 
@@ -484,11 +471,9 @@ void _i2c_irq_handler(i2c_dev *dev) {
     //  set after reading I2C_SR1. Consequently, I2C_SR2 must be read only when ADDR is found
     //  set in I2C_SR1 or when the STOPF bit is cleared.
 
-    uint32 cr1 = dev->regs->CR1;     // initial control register
-    uint32 sr1 = dev->regs->SR1;     // read status register
-    uint32 sr2 = 0;                  // reserved for reading the SR2 register, but save it for latter since reading it clears ADDR
-
-    if (dev->error_flags) return;
+    __IO uint32_t cr1 = dev->regs->CR1;     // initial control register
+    __IO uint32_t sr1 = dev->regs->SR1;     // read status register
+    __IO uint32_t sr2 = 0;                  // reserved for reading the SR2 register, but save it for latter since reading it clears ADDR
 
     dev->timestamp = systick_uptime();      // Reset timeout counter
 
@@ -504,15 +489,15 @@ void _i2c_irq_handler(i2c_dev *dev) {
                 } else {
                     if (sr1 & I2C_SR1_ADDR) { // address sent
                         if (todo <= 1) {
-                            dev->regs->CR1 = (cr1 & ~I2C_CR1_ACK); // Disable ACK
+                            dev->regs->CR1 = (cr1 &= ~I2C_CR1_ACK); // Disable ACK
                             sr2 = dev->regs->SR2;                   // Clear ADDR bit
-                            dev->regs->CR1 = (cr1 | I2C_CR1_STOP); // Stop after last byte
+                            dev->regs->CR1 = (cr1 |= I2C_CR1_STOP); // Stop after last byte
                         } else if (todo == 2) {
-                            dev->regs->CR1 = (cr1 | I2C_CR1_POS);  // Enable POS
+                            dev->regs->CR1 = (cr1 |= I2C_CR1_POS);  // Enable POS
                             sr2 = dev->regs->SR2;                   // Clear ADDR bit
-                            dev->regs->CR1 = (cr1 & ~I2C_CR1_ACK); // Disable ACK
+                            dev->regs->CR1 = (cr1 &= ~I2C_CR1_ACK); // Disable ACK
                         } else {
-                            dev->regs->CR1 = (cr1 | I2C_CR1_ACK);  // Enable ACK
+                            dev->regs->CR1 = (cr1 |= I2C_CR1_ACK);  // Enable ACK
                             sr2 = dev->regs->SR2;                   // Clear ADDR bit
                         }
                         if (todo >= 1) {
@@ -536,9 +521,9 @@ void _i2c_irq_handler(i2c_dev *dev) {
                             }
                         } else if (bFlgBTF) {
                             if (todo == 3) {
-                                dev->regs->CR1 = (cr1 & ~I2C_CR1_ACK); // Disable ACK
+                                dev->regs->CR1 = (cr1 &= ~I2C_CR1_ACK); // Disable ACK
                             } else if (todo == 2) {
-                                dev->regs->CR1 = (cr1 | I2C_CR1_STOP); // Generate stop
+                                dev->regs->CR1 = (cr1 |= I2C_CR1_STOP); // Generate stop
                             }
 
                             curMsg->data[curMsg->xferred++] = (uint8_t)(dev->regs->DR);     // read/save data
@@ -562,13 +547,15 @@ void _i2c_irq_handler(i2c_dev *dev) {
                     // TODO : Add support for 10-bit address
                     i2c_send_slave_addr(dev, curMsg->addr, 0);
                 } else {
+                    int8_t bFlgTXE = 0;
+                    int8_t bFlgBTF = 0;
 
                     if (sr1 & I2C_SR1_ADDR) {
                         sr2 = dev->regs->SR2;                   // Clear ADDR bit
                     }
 
-                    int8_t bFlgTXE = ((sr1 & I2C_SR1_TXE) != 0);
-                    int8_t bFlgBTF = (((sr1 & (I2C_SR1_BTF|I2C_SR1_AF)) != 0) || (todo == 0));
+                    bFlgTXE = ((sr1 & I2C_SR1_TXE) != 0);
+                    bFlgBTF = (((sr1 & I2C_SR1_BTF) != 0) || (todo == 0));
 
                     if (bFlgTXE || bFlgBTF) {
                         if (todo > 0) {
@@ -582,7 +569,7 @@ void _i2c_irq_handler(i2c_dev *dev) {
                         } else if (bFlgBTF) {
                             // Generate Stop
                             if ((curMsg->flags & I2C_MSG_NOSTOP) == 0) {
-                                dev->regs->CR1 = (cr1 | I2C_CR1_STOP);
+                                dev->regs->CR1 = (cr1 |= I2C_CR1_STOP);
                             }
 
                             bDone = 1;
@@ -592,8 +579,19 @@ void _i2c_irq_handler(i2c_dev *dev) {
             }
 
             if (bDone) {
-                dev->msg = NULL;
-                dev->state = I2C_STATE_XFER_DONE;
+                if (--dev->msgs_left != 0) {    // Check to see if there's another back-to-back message
+                    i2c_disable_irq(dev, I2C_IRQ_BUFFER);   // Disable I2C_SR1_RXNE/I2C_SR1_TXE interrupt
+                    ++dev->msg;
+                    curMsg = dev->msg;
+                    if (curMsg->flags & I2C_MSG_READ) {     // Send restart, disable POS, and enable ACK as necessary
+                        dev->regs->CR1 = I2C_CR1_PE | I2C_CR1_START | I2C_CR1_ACK;
+                    } else {
+                        dev->regs->CR1 = I2C_CR1_PE | I2C_CR1_START;
+                    }
+                } else {
+                    dev->msg = NULL;
+                    dev->state = I2C_STATE_XFER_DONE;
+                }
             }
         }   // curMsg != NULL
 
@@ -753,9 +751,9 @@ void _i2c_irq_handler(i2c_dev *dev) {
  * Interrupt handler for I2C error conditions. Aborts any pending I2C
  * transactions.
  */
-void _i2c_irq_error_handler(i2c_dev *dev)
-{
-    uint32_t sr1 = dev->regs->SR1;
+void _i2c_irq_error_handler(i2c_dev *dev) {
+    __IO uint32_t sr1 = dev->regs->SR1;
+    __IO uint32_t sr2 = dev->regs->SR2;
 
     dev->timestamp = systick_uptime();      // Reset timeout counter
 
@@ -784,6 +782,11 @@ void _i2c_irq_error_handler(i2c_dev *dev)
             dev->state = I2C_STATE_IDLE;
             return;
         }
+    } else {
+        // Master should send a STOP on NACK:
+        if (sr1 & I2C_SR1_AF) {
+            dev->regs->CR1 |= I2C_CR1_STOP;
+        }
     }
 
     /* Catch any other strange errors while in slave mode.
@@ -796,6 +799,8 @@ void _i2c_irq_error_handler(i2c_dev *dev)
     dev->regs->SR1 = 0;
     dev->regs->SR2 = 0;
     dev->state = I2C_STATE_ERROR;
+
+    UNUSED(sr2);
 }
 
 

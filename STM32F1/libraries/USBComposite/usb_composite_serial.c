@@ -34,15 +34,10 @@
  */
 
 #include "usb_composite_serial.h"
-#include "usb_generic.h"
 #include <string.h>
 #include <libmaple/usb.h>
 #include <libmaple/delay.h>
 //#include <libmaple/gpio.h>
-
-/* Private headers */
-#include "usb_lib_globals.h"
-#include "usb_reg_map.h"
 
 #define CDCACM_ENDPOINT_TX         0
 #define CDCACM_ENDPOINT_MANAGEMENT 1
@@ -54,11 +49,6 @@
 #define USB_CDCACM_MANAGEMENT_ENDPOINT_INFO    (&serialEndpoints[CDCACM_ENDPOINT_MANAGEMENT])
 #define USB_CDCACM_TX_ENDPOINT_INFO            (&serialEndpoints[CDCACM_ENDPOINT_TX])
 #define USB_CDCACM_RX_ENDPOINT_INFO            (&serialEndpoints[CDCACM_ENDPOINT_RX])
-
-/* usb_lib headers */
-#include "usb_type.h"
-#include "usb_core.h"
-#include "usb_def.h"
 
 static void serialUSBReset(void);
 static RESULT serialUSBDataSetup(uint8 request, uint8 interface, uint8 requestType, uint8 wValue0, uint8 wValue1, uint16 wIndex, uint16 wLength);
@@ -377,7 +367,7 @@ uint32 composite_cdcacm_peek(uint8* buf, uint32 len)
 {
     unsigned i;
     uint32 tail = vcom_rx_tail;
-    uint32 rx_unread = (vcom_rx_head-tail) & CDC_SERIAL_RX_BUFFER_SIZE_MASK;
+	uint32 rx_unread = (vcom_rx_head-tail) & CDC_SERIAL_RX_BUFFER_SIZE_MASK;
 
     if (len > rx_unread) {
         len = rx_unread;
@@ -395,10 +385,10 @@ uint32 composite_cdcacm_peek_ex(uint8* buf, uint32 offset, uint32 len)
 {
     unsigned i;
     uint32 tail = (vcom_rx_tail + offset) & CDC_SERIAL_RX_BUFFER_SIZE_MASK ;
-    uint32 rx_unread = (vcom_rx_head - tail) & CDC_SERIAL_RX_BUFFER_SIZE_MASK;
+	uint32 rx_unread = (vcom_rx_head-tail) & CDC_SERIAL_RX_BUFFER_SIZE_MASK;
 
-    if (len > rx_unread) {
-        len = rx_unread;
+    if (len + offset > rx_unread) {
+        len = rx_unread - offset;
     }
 
     for (i = 0; i < len; i++) {

@@ -46,8 +46,6 @@
 #undef false
 #include <wirish.h>
 #include "usb_midi_device.h"
-#include <libmaple/usb.h>
-#include "usb_generic.h"
 
 
 /*

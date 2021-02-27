@@ -1,6 +1,6 @@
 #ifndef _USB_GENERIC_H
 #define _USB_GENERIC_H
-#include <libmaple/libmaple_types.h>
+
 typedef unsigned short u16;
 typedef unsigned char u8;
 
