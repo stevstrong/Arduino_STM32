@@ -116,58 +116,67 @@ blackpill_f401.menu.opt.ogstd=Debug (-g)
 blackpill_f401.menu.opt.ogstd.build.flags.optimize=-Og
 blackpill_f401.menu.opt.ogstd.build.flags.ldspecs=
 ##############################################################
-disco_f411.name=STM32 Discovery F411E
+devebox_f407.name=DevEBox STM32F407VET6
 
-disco_f411.upload.tool=stlink_upload
-disco_f411.upload.protocol=stlink
+devebox_f407.upload.file_type=bin
+devebox_f407.upload.maximum_size=514288
+devebox_f407.upload.maximum_data_size=131072
 
-disco_f411.upload.file_type=bin
-disco_f411.upload.maximum_size=1048576
-disco_f411.upload.maximum_data_size=131072
+devebox_f407.build.core=maple
+devebox_f407.build.f_cpu=168000000
+devebox_f407.build.extra_flags= -DCRYSTAL_FREQ=8 -DLED_BUILTIN=PA1
+devebox_f407.build.variant=generic_f407v
+devebox_f407.build.variant_system_lib=lib_f407.a
+devebox_f407.build.error_led_pin=PA7
+devebox_f407.build.board=generic_f407v
 
-disco_f411.build.core=maple
-disco_f411.build.f_cpu=96000000
-disco_f411.build.extra_flags=-DLED_BUILTIN=PD12 -DCRYSTAL_FREQ=8 -DNO_CCMRAM
-disco_f411.build.ldscript=ld/jtag.ld
-disco_f411.build.variant=disco_f411
-disco_f411.build.variant_system_lib=lib_f407.a
-disco_f411.build.error_led_pin=PD14
-disco_f411.build.board=disco_f411
-disco_f411.build.vect_flags=-DUSER_ADDR_ROM=0x08000000
+devebox_f407.menu.usb_cfg.usb_serial=USB serial (CDC)
+devebox_f407.menu.usb_cfg.usb_serial.build.cpu_flags=-DSERIAL_USB
+devebox_f407.menu.usb_cfg.usb_nc=USB inactive
+devebox_f407.menu.usb_cfg.usb_nc.build.cpu_flags=-DUSB_NC
+devebox_f407.menu.usb_cfg.usb_msc=USB Mass Storage (MSC)
+devebox_f407.menu.usb_cfg.usb_msc.build.cpu_flags=-DUSB_MSC
 
-disco_f411.menu.usb_cfg.usb_serial=USB serial (CDC)
-disco_f411.menu.usb_cfg.usb_serial.build.cpu_flags=-DSERIAL_USB
-disco_f411.menu.usb_cfg.usb_nc=USB inactive
-disco_f411.menu.usb_cfg.usb_nc.build.cpu_flags=-DUSB_NC
-disco_f411.menu.usb_cfg.usb_msc=USB Mass Storage (MSC)
-disco_f411.menu.usb_cfg.usb_msc.build.cpu_flags=-DUSB_MSC
+#note STLink is the default from the main block of config above, so does not need settings for everything
+devebox_f407.menu.upload_method.STLinkMethod=STLink
+devebox_f407.menu.upload_method.STLinkMethod.upload.protocol=STLink
+devebox_f407.menu.upload_method.STLinkMethod.upload.tool=stlink_upload
+devebox_f407.menu.upload_method.STLinkMethod.upload.dfuse_addr=0x08004000
+devebox_f407.menu.upload_method.STLinkMethod.build.vect_flags=-DUSER_ADDR_ROM=0x08000000
+devebox_f407.menu.upload_method.STLinkMethod.build.ldscript=ld/jtag.ld
+
+devebox_f407.menu.upload_method.HIDUploadMethod=HID bootloader 2.0
+devebox_f407.menu.upload_method.HIDUploadMethod.upload.protocol=hid_boot
+devebox_f407.menu.upload_method.HIDUploadMethod.upload.tool=hid_upload
+devebox_f407.menu.upload_method.HIDUploadMethod.build.vect_flags=-DUSER_ADDR_ROM=0x08004000
+devebox_f407.menu.upload_method.HIDUploadMethod.build.ldscript=ld/bootloader_8004000.ld
 
 #-- Optimizations
-disco_f411.menu.opt.osstd=Smallest (default)
-disco_f411.menu.opt.oslto=Smallest Code with LTO
-disco_f411.menu.opt.oslto.build.flags.optimize=-Os -flto
-disco_f411.menu.opt.oslto.build.flags.ldspecs=-flto
-disco_f411.menu.opt.o1std=Fast (-O1)
-disco_f411.menu.opt.o1std.build.flags.optimize=-O1
-disco_f411.menu.opt.o1std.build.flags.ldspecs=
-disco_f411.menu.opt.o1lto=Fast (-O1) with LTO
-disco_f411.menu.opt.o1lto.build.flags.optimize=-O1 -flto
-disco_f411.menu.opt.o1lto.build.flags.ldspecs=-flto
-disco_f411.menu.opt.o2std=Faster (-O2)
-disco_f411.menu.opt.o2std.build.flags.optimize=-O2
-disco_f411.menu.opt.o2std.build.flags.ldspecs=
-disco_f411.menu.opt.o2lto=Faster (-O2) with LTO
-disco_f411.menu.opt.o2lto.build.flags.optimize=-O2 -flto
-disco_f411.menu.opt.o2lto.build.flags.ldspecs=-flto
-disco_f411.menu.opt.o3std=Fastest (-O3)
-disco_f411.menu.opt.o3std.build.flags.optimize=-O3
-disco_f411.menu.opt.o3std.build.flags.ldspecs=
-disco_f411.menu.opt.o3lto=Fastest (-O3) with LTO
-disco_f411.menu.opt.o3lto.build.flags.optimize=-O3 -flto
-disco_f411.menu.opt.o3lto.build.flags.ldspecs=-flto
-disco_f411.menu.opt.ogstd=Debug (-g)
-disco_f411.menu.opt.ogstd.build.flags.optimize=-Og
-disco_f411.menu.opt.ogstd.build.flags.ldspecs=
+devebox_f407.menu.opt.osstd=Smallest (default)
+devebox_f407.menu.opt.oslto=Smallest Code with LTO
+devebox_f407.menu.opt.oslto.build.flags.optimize=-Os -flto
+devebox_f407.menu.opt.oslto.build.flags.ldspecs=-flto
+devebox_f407.menu.opt.o1std=Fast (-O1)
+devebox_f407.menu.opt.o1std.build.flags.optimize=-O1
+devebox_f407.menu.opt.o1std.build.flags.ldspecs=
+devebox_f407.menu.opt.o1lto=Fast (-O1) with LTO
+devebox_f407.menu.opt.o1lto.build.flags.optimize=-O1 -flto
+devebox_f407.menu.opt.o1lto.build.flags.ldspecs=-flto
+devebox_f407.menu.opt.o2std=Faster (-O2)
+devebox_f407.menu.opt.o2std.build.flags.optimize=-O2
+devebox_f407.menu.opt.o2std.build.flags.ldspecs=
+devebox_f407.menu.opt.o2lto=Faster (-O2) with LTO
+devebox_f407.menu.opt.o2lto.build.flags.optimize=-O2 -flto
+devebox_f407.menu.opt.o2lto.build.flags.ldspecs=-flto
+devebox_f407.menu.opt.o3std=Fastest (-O3)
+devebox_f407.menu.opt.o3std.build.flags.optimize=-O3
+devebox_f407.menu.opt.o3std.build.flags.ldspecs=
+devebox_f407.menu.opt.o3lto=Fastest (-O3) with LTO
+devebox_f407.menu.opt.o3lto.build.flags.optimize=-O3 -flto
+devebox_f407.menu.opt.o3lto.build.flags.ldspecs=-flto
+devebox_f407.menu.opt.ogstd=Debug (-g)
+devebox_f407.menu.opt.ogstd.build.flags.optimize=-Og
+devebox_f407.menu.opt.ogstd.build.flags.ldspecs=
 ##############################################################
 generic_f407v.name=Generic STM32F407V series
 
@@ -302,6 +311,59 @@ generic_f407v_mini.menu.opt.o3lto.build.flags.ldspecs=-flto
 generic_f407v_mini.menu.opt.ogstd=Debug (-g)
 generic_f407v_mini.menu.opt.ogstd.build.flags.optimize=-Og
 generic_f407v_mini.menu.opt.ogstd.build.flags.ldspecs=
+##############################################################
+disco_f411.name=STM32 Discovery F411E
+
+disco_f411.upload.tool=stlink_upload
+disco_f411.upload.protocol=stlink
+
+disco_f411.upload.file_type=bin
+disco_f411.upload.maximum_size=1048576
+disco_f411.upload.maximum_data_size=131072
+
+disco_f411.build.core=maple
+disco_f411.build.f_cpu=96000000
+disco_f411.build.extra_flags=-DLED_BUILTIN=PD12 -DCRYSTAL_FREQ=8 -DNO_CCMRAM
+disco_f411.build.ldscript=ld/jtag.ld
+disco_f411.build.variant=disco_f411
+disco_f411.build.variant_system_lib=lib_f407.a
+disco_f411.build.error_led_pin=PD14
+disco_f411.build.board=disco_f411
+disco_f411.build.vect_flags=-DUSER_ADDR_ROM=0x08000000
+
+disco_f411.menu.usb_cfg.usb_serial=USB serial (CDC)
+disco_f411.menu.usb_cfg.usb_serial.build.cpu_flags=-DSERIAL_USB
+disco_f411.menu.usb_cfg.usb_nc=USB inactive
+disco_f411.menu.usb_cfg.usb_nc.build.cpu_flags=-DUSB_NC
+disco_f411.menu.usb_cfg.usb_msc=USB Mass Storage (MSC)
+disco_f411.menu.usb_cfg.usb_msc.build.cpu_flags=-DUSB_MSC
+
+#-- Optimizations
+disco_f411.menu.opt.osstd=Smallest (default)
+disco_f411.menu.opt.oslto=Smallest Code with LTO
+disco_f411.menu.opt.oslto.build.flags.optimize=-Os -flto
+disco_f411.menu.opt.oslto.build.flags.ldspecs=-flto
+disco_f411.menu.opt.o1std=Fast (-O1)
+disco_f411.menu.opt.o1std.build.flags.optimize=-O1
+disco_f411.menu.opt.o1std.build.flags.ldspecs=
+disco_f411.menu.opt.o1lto=Fast (-O1) with LTO
+disco_f411.menu.opt.o1lto.build.flags.optimize=-O1 -flto
+disco_f411.menu.opt.o1lto.build.flags.ldspecs=-flto
+disco_f411.menu.opt.o2std=Faster (-O2)
+disco_f411.menu.opt.o2std.build.flags.optimize=-O2
+disco_f411.menu.opt.o2std.build.flags.ldspecs=
+disco_f411.menu.opt.o2lto=Faster (-O2) with LTO
+disco_f411.menu.opt.o2lto.build.flags.optimize=-O2 -flto
+disco_f411.menu.opt.o2lto.build.flags.ldspecs=-flto
+disco_f411.menu.opt.o3std=Fastest (-O3)
+disco_f411.menu.opt.o3std.build.flags.optimize=-O3
+disco_f411.menu.opt.o3std.build.flags.ldspecs=
+disco_f411.menu.opt.o3lto=Fastest (-O3) with LTO
+disco_f411.menu.opt.o3lto.build.flags.optimize=-O3 -flto
+disco_f411.menu.opt.o3lto.build.flags.ldspecs=-flto
+disco_f411.menu.opt.ogstd=Debug (-g)
+disco_f411.menu.opt.ogstd.build.flags.optimize=-Og
+disco_f411.menu.opt.ogstd.build.flags.ldspecs=
 ##############################################################
 arch_max.name=Seeed Arch Max 1.1
 
