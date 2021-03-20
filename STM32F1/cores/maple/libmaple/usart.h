@@ -394,14 +394,6 @@ typedef struct usart_reg_map {
  * Devices
  */
 
-#ifndef USART_RX_BUF_SIZE
-#define USART_RX_BUF_SIZE               64
-#endif
-
-#ifndef USART_TX_BUF_SIZE
-#define USART_TX_BUF_SIZE               64
-#endif
-
 #define SERIAL_8N1	0B00000000
 #define SERIAL_8N2	0B00100000
 #define SERIAL_9N1	0B00001000
