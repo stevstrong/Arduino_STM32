@@ -127,10 +127,10 @@ class SoftWire : public WireBase {
     uint8 process(uint8);
     uint8 process();
  private:
-	gpio_dev 	*sdaDevice;
-	uint8 		sdaBit;
-	gpio_dev 	*sclDevice;
-	uint8 		sclBit;	
+	const gpio_dev 	*sdaDevice;
+	uint8 	sdaBit;
+	const gpio_dev 	*sclDevice;
+	uint8 	sclBit;	
  public:
     /*
      * Accept pin numbers for SCL and SDA lines. Set the delay needed
