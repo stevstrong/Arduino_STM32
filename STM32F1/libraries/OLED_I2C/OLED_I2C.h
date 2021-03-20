@@ -112,9 +112,9 @@ class OLED
 		void	clrScr();
 		void	fillScr();
 		void	invert(bool mode);
-		void	setPixel(uint16_t x, uint16_t y);
-		void	clrPixel(uint16_t x, uint16_t y);
-		void	invPixel(uint16_t x, uint16_t y);
+		void	setPixel(int16_t x, int16_t y);
+		void	clrPixel(int16_t x, int16_t y);
+		void	invPixel(int16_t x, int16_t y);
 		void	invertText(bool mode);
 		void	print(char *st, int x, int y);
 		void	print(String st, int x, int y);

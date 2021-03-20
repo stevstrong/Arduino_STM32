@@ -10,8 +10,8 @@
 
 #define SDA1		0
 #define SCL1		1
-#define SDA	15
-#define SCL	16
+#define SDA	PB7
+#define SCL	PB6
 
 #define TWI_SPEED		TWI_SPEED_400k	// Set default TWI Speed
 #define TWI_SPEED_100k	208
