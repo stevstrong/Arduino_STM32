@@ -48,6 +48,7 @@
 #define CMD8_XFERTYP    (uint16_t)( CMD8   | CMD_RESP_R7   )
 #define CMD9_XFERTYP    (uint16_t)( CMD9   | CMD_RESP_R2   )
 #define CMD10_XFERTYP   (uint16_t)( CMD10  | CMD_RESP_R2   )
+#define CMD11_XFERTYP   (uint16_t)( CMD11  | CMD_RESP_R1   )
 #define CMD12_XFERTYP   (uint16_t)( CMD12  | CMD_RESP_R1b  )
 #define CMD13_XFERTYP   (uint16_t)( CMD13  | CMD_RESP_R1   )
 #define CMD17_XFERTYP   (uint16_t)( CMD17  | CMD_RESP_R1   )
@@ -249,7 +250,11 @@ static void initSDHC(void)
 	sdio_begin();
 	DBG_PRINT();
 }
-/*---------------------------------------------------------------------------*/
+//-----------------------------------------------------------------------------
+static uint32_t statusCMD13() {
+  return cardCommand(CMD13_XFERTYP, m_rca) ? SDIO->RESP[0] : 0;
+}
+//-----------------------------------------------------------------------------
 static bool isBusyCMD13(void) {
   if (!cardCommand(CMD13_XFERTYP, m_rca)) { // SEND_STATUS
     // Caller will timeout.
@@ -257,7 +262,7 @@ static bool isBusyCMD13(void) {
   }
   return !(SDIO->RESP[0] & CARD_STATUS_READY_FOR_DATA);
 }
-/*---------------------------------------------------------------------------*/
+//-----------------------------------------------------------------------------
 static bool isBusyDMA(void)
 {
 	uint8_t isr = dma_get_isr_bit(DMA2, DMA_STREAM3, (DMA_ISR_TCIF | DMA_ISR_ERROR_BITS));
@@ -405,8 +410,9 @@ static bool waitTimeout(bool (*fcn)(void)) {
 
 uint32_t aligned[128]; // temporary buffer for misaligned buffers
 //=============================================================================
-bool SdioCard::begin(void)
+bool SdioCard::begin(SdioConfig cfg)
 {
+  (void)cfg;
   m_initDone = false;
   m_errorCode = SD_CARD_ERROR_NONE;
   m_highCapacity = false;
@@ -488,10 +494,6 @@ delay(100);
   m_initDone = true;
   return true;
 }
-//-----------------------------------------------------------------------------
-uint32_t SdioCard::cardCapacity(void) {
-  return sdCardCapacity(&m_csd);
-}
 /*---------------------------------------------------------------------------*/
 bool SdioCard::erase(uint32_t firstBlock, uint32_t lastBlock) {
   // check for single block erase
@@ -500,7 +502,7 @@ bool SdioCard::erase(uint32_t firstBlock, uint32_t lastBlock) {
     uint8_t m = (m_csd.v1.sector_size_high << 1) | m_csd.v1.sector_size_low;
     if ((firstBlock & m) != 0 || ((lastBlock + 1) & m) != 0) {
       // error card can't erase specified area
-      return sdError(SD_CARD_ERROR_ERASE_SINGLE_BLOCK);
+      return sdError(SD_CARD_ERROR_ERASE_SINGLE_SECTOR);
     }
   }
   if (!m_highCapacity) {
@@ -522,15 +524,15 @@ bool SdioCard::erase(uint32_t firstBlock, uint32_t lastBlock) {
   return true;
 }
 //-----------------------------------------------------------------------------
-uint8_t SdioCard::errorCode() {
+uint8_t SdioCard::errorCode() const {
   return m_errorCode;
 }
 //-----------------------------------------------------------------------------
-uint32_t SdioCard::errorData() {
+uint32_t SdioCard::errorData() const {
   return m_irqstat;
 }
 //-----------------------------------------------------------------------------
-uint32_t SdioCard::errorLine() {
+uint32_t SdioCard::errorLine() const {
   return m_errorLine;
 }
 //-----------------------------------------------------------------------------
@@ -542,7 +544,7 @@ uint32_t SdioCard::kHzSdClk() {
   return m_sdClkKhz;
 }
 /*---------------------------------------------------------------------------*/
-bool SdioCard::readBlock(uint32_t lba, uint8_t* buf)
+bool SdioCard::readSector(uint32_t lba, uint8_t* buf)
 {
 	PRINTF("_readBlock lba: %lu\n", lba);	//Serial.print(", buf: "); Serial.print((uint32_t)buf, HEX);
 
@@ -568,13 +570,13 @@ bool SdioCard::readBlock(uint32_t lba, uint8_t* buf)
 	return false;
 }
 /*---------------------------------------------------------------------------*/
-bool SdioCard::readBlocks(uint32_t lba, uint8_t* buf, size_t n)
+bool SdioCard::readSectors(uint32_t lba, uint8_t* buf, size_t n)
 {
 	PRINTF("_readBlocks lba: %lu, n: %u\n", lba, n);	//Serial.print(", buf: "); Serial.print((uint32_t)buf, HEX);
 
 	if ((uint32_t)buf & 3) {
 		for (size_t i = 0; i < n; i++, lba++, buf += 512) {
-			if (!readBlock(lba, buf)) {
+			if (!readSector(lba, buf)) {
 				return false;  // readBlock will set errorCode.
 			}
 		}
@@ -589,12 +591,12 @@ bool SdioCard::readBlocks(uint32_t lba, uint8_t* buf, size_t n)
 	return dmaTrxEnd(1);
 }
 //-----------------------------------------------------------------------------
-bool SdioCard::readCID(void* cid) {
+bool SdioCard::readCID(cid_t* cid) {
   memcpy(cid, &m_cid, 16);
   return true;
 }
 //-----------------------------------------------------------------------------
-bool SdioCard::readCSD(void* csd) {
+bool SdioCard::readCSD(csd_t* csd) {
   memcpy(csd, &m_csd, 16);
   return true;
 }
@@ -673,20 +675,28 @@ bool SdioCard::readStop()
   m_cnt = 0;
   return true;
 }
+//------------------------------------------------------------------------------
+uint32_t SdioCard::sectorCount() {
+  return sdCardCapacity(&m_csd);
+}
+//------------------------------------------------------------------------------
+uint32_t SdioCard::status() {
+  return statusCMD13();
+}
 //-----------------------------------------------------------------------------
-bool SdioCard::syncBlocks()
+bool SdioCard::syncDevice()
 {
-  PRINTF("_syncBlocks\n");
+  PRINTF("_syncDevice\n");
   return true;
 }
 //-----------------------------------------------------------------------------
-uint8_t SdioCard::type()
+uint8_t SdioCard::type() const
 {
   return  m_version2 ? m_highCapacity ?
           SD_CARD_TYPE_SDHC : SD_CARD_TYPE_SD2 : SD_CARD_TYPE_SD1;
 }
 /*---------------------------------------------------------------------------*/
-bool SdioCard::writeBlock(uint32_t lba, const uint8_t* buf)
+bool SdioCard::writeSector(uint32_t lba, const uint8_t* buf)
 {
 	PRINTF("_writeBlock lba: %lu\n", lba); // Serial.print((uint32_t)buf, HEX);
 
@@ -718,13 +728,13 @@ bool SdioCard::writeBlock(uint32_t lba, const uint8_t* buf)
 	return dmaTrxEnd(0);
 }
 /*---------------------------------------------------------------------------*/
-bool SdioCard::writeBlocks(uint32_t lba, const uint8_t* buf, size_t n)
+bool SdioCard::writeSectors(uint32_t lba, const uint8_t* buf, size_t n)
 {
 	PRINTF("_writeBlocks lba: %lu, size: %u\n", lba, n); // Serial.print((uint32_t)buf, HEX);
 
 	if (3 & (uint32_t)buf) { // misaligned buffer address, write single blocks
 		for (size_t i = 0; i < n; i++, lba++, buf += 512) {
-			if (!writeBlock(lba, buf)) {
+			if (!writeSector(lba, buf)) {
 				return false;  // writeBlock will set errorCode.
 			}
 		}

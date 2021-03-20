@@ -34,9 +34,12 @@ uint8_t dly = DELAY_LONG; // microseconds delay after accessing registers
 static void sdio_gpios_init(void)
 {
 	gpio_set_mode(BOARD_SDIO_D0, GPIO_AF_OUTPUT_PP_PU);
-	gpio_set_mode(BOARD_SDIO_D1, GPIO_AF_OUTPUT_PP_PU);
-	gpio_set_mode(BOARD_SDIO_D2, GPIO_AF_OUTPUT_PP_PU);
-	gpio_set_mode(BOARD_SDIO_D3, GPIO_AF_OUTPUT_PP_PU);
+//	gpio_set_mode(BOARD_SDIO_D1, GPIO_AF_OUTPUT_PP_PU);
+//	gpio_set_mode(BOARD_SDIO_D2, GPIO_AF_OUTPUT_PP_PU);
+//	gpio_set_mode(BOARD_SDIO_D3, GPIO_AF_OUTPUT_PP_PU);
+	gpio_set_mode(BOARD_SDIO_D1, GPIO_INPUT_PU);
+	gpio_set_mode(BOARD_SDIO_D2, GPIO_INPUT_PU);
+	gpio_set_mode(BOARD_SDIO_D3, GPIO_INPUT_PU);
 	gpio_set_mode(BOARD_SDIO_CLK, GPIO_AF_OUTPUT_PP);
 	gpio_set_mode(BOARD_SDIO_CMD, GPIO_AF_OUTPUT_PP_PU);
 	//
@@ -50,12 +53,12 @@ static void sdio_gpios_init(void)
 
 static void sdio_gpios_deinit(void)
 {
-	gpio_set_mode(BOARD_SDIO_D0, GPIO_INPUT_FLOATING);
-	gpio_set_mode(BOARD_SDIO_D1, GPIO_INPUT_FLOATING);
-	gpio_set_mode(BOARD_SDIO_D2, GPIO_INPUT_FLOATING);
-	gpio_set_mode(BOARD_SDIO_D3, GPIO_INPUT_FLOATING);
-	gpio_set_mode(BOARD_SDIO_CLK, GPIO_INPUT_FLOATING);
-	gpio_set_mode(BOARD_SDIO_CMD, GPIO_INPUT_FLOATING);
+	gpio_set_mode(BOARD_SDIO_D0, GPIO_INPUT_PU);
+	gpio_set_mode(BOARD_SDIO_D1, GPIO_INPUT_PU);
+	gpio_set_mode(BOARD_SDIO_D2, GPIO_INPUT_PU);
+	gpio_set_mode(BOARD_SDIO_D3, GPIO_INPUT_PU);
+	gpio_set_mode(BOARD_SDIO_CLK, GPIO_INPUT_PU);
+	gpio_set_mode(BOARD_SDIO_CMD, GPIO_INPUT_PU);
 	//
 	gpio_set_af_mode(BOARD_SDIO_D0,  GPIO_AFMODE_SYSTEM);
 	gpio_set_af_mode(BOARD_SDIO_D1,  GPIO_AFMODE_SYSTEM);
@@ -119,6 +122,9 @@ void sdio_set_clock(uint32_t clk)
 void sdio_set_dbus_width(uint16_t bus_w)
 {
 	SDIO->CLKCR = (SDIO->CLKCR & (~SDIO_CLKCR_WIDBUS)) | bus_w;
+	gpio_set_mode(BOARD_SDIO_D1, GPIO_AF_OUTPUT_PP_PU);
+	gpio_set_mode(BOARD_SDIO_D2, GPIO_AF_OUTPUT_PP_PU);
+	gpio_set_mode(BOARD_SDIO_D3, GPIO_AF_OUTPUT_PP_PU);
 	delayMicroseconds(dly);
 }
 
@@ -145,9 +151,9 @@ void sdio_disable(void)
  */
 void sdio_begin(void)
 {
-	sdio_gpios_init();
 	sdio_init();
 	sdio_power_on();
+	sdio_gpios_init();
 	// Set initial SCK rate.
 	sdio_set_clock(400000);
 	delayMicroseconds(200); // generate 80 pulses at 400kHz
@@ -159,10 +165,10 @@ void sdio_begin(void)
 void sdio_end(void)
 {
 	sdio_disable();
-	while ( sdio_cmd_xfer_ongoing() );
+//	while ( sdio_cmd_xfer_ongoing() );
+	sdio_gpios_deinit();
 	sdio_power_off();
     rcc_clk_disable(RCC_SDIO);
-	sdio_gpios_deinit();
 }
 
 /**

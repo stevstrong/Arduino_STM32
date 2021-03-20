@@ -38,7 +38,7 @@ typedef struct sdio_reg_map {
     __IO uint32 ARG;      // 0x08
     __IO uint32 CMD;      // 0x0C
     __IO uint32 RESPCMD;  // 0x10 (0x3F)
-    const uint32 RESP[4]; // 0x14 - contain the card status, which is part of the received response.
+    __IO uint32 RESP[4]; // 0x14 - contain the card status, which is part of the received response.
     __IO uint32 DTIMER;   // 0x24 - contains the data timeout period, in card bus clock periods.
     __IO uint32 DLEN;     // 0x28 (0x01FF FFFF) - contains the number of data bytes to be transferred
     __IO uint32 DCTRL;    // 0x2C
