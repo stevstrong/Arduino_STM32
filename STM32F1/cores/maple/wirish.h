@@ -104,7 +104,7 @@ typedef unsigned int word;
 
 // pin related macros
 #define digitalPinToPort(P)        ( gpio_devs[(P)/16] )
-#define digitalPinToBitMask(P)     ( (P)&(15) )
+#define digitalPinToBitMask(P)     ( 1<<((P)&(15)) )
 #define digitalPinToInterrupt(pin) (pin)
 
 #define portOutputRegister(port)   ( &(port->regs->ODR) )
