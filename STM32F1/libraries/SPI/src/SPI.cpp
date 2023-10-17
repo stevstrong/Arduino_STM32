@@ -170,7 +170,7 @@ SPISettings _settings[BOARD_NR_SPI];
 //  (read or write) the programmed number of data (bytes or words).
 //  Implemented safeguard against setModule().
 //-----------------------------------------------------------------------------
-void spiEventCallback(uint32 spi_num)
+void spiEventCallback(uint32_t spi_num)
 {
     SPISettings * crtSetting = &_settings[spi_num];
     dma_channel dmaChannel = (crtSetting->state==SPI_STATE_TRANSMIT) ? crtSetting->spiTxDmaChannel :
@@ -220,7 +220,7 @@ void _spi3EventCallback(void) { spiEventCallback(2); }
 //-----------------------------------------------------------------------------
 //  Constructor
 //-----------------------------------------------------------------------------
-SPIClass::SPIClass(uint32 spi_num)
+SPIClass::SPIClass(uint32_t spi_num)
 {
     _currentSetting = &_settings[spi_num-1]; // SPI channels are called 1 2 and 3 but the array is zero indexed
 
@@ -262,7 +262,7 @@ SPIClass::SPIClass(uint32 spi_num)
 //  Set up/tear down
 //-----------------------------------------------------------------------------
 void SPIClass::updateSettings(void) {
-    uint32 flags = ((_currentSetting->bitOrder == MSBFIRST ? SPI_FRAME_MSB : SPI_FRAME_LSB) | _currentSetting->dataSize | SPI_SW_SLAVE | SPI_SOFT_SS);
+    uint32_t flags = ((_currentSetting->bitOrder == MSBFIRST ? SPI_FRAME_MSB : SPI_FRAME_LSB) | _currentSetting->dataSize | SPI_SW_SLAVE | SPI_SOFT_SS);
     spi_master_enable(_currentSetting->spi_d, (spi_baud_rate)_currentSetting->clockDivider, (spi_mode)_currentSetting->dataMode, flags);
 }
 
@@ -282,7 +282,7 @@ void SPIClass::beginSlave(void)
     PRINTF("<bS-");
     spi_init(_currentSetting->spi_d);
     configure_gpios(_currentSetting->spi_d, 0);
-    uint32 flags = ((_currentSetting->bitOrder == MSBFIRST ? SPI_FRAME_MSB : SPI_FRAME_LSB) | _currentSetting->dataSize);
+    uint32_t flags = ((_currentSetting->bitOrder == MSBFIRST ? SPI_FRAME_MSB : SPI_FRAME_LSB) | _currentSetting->dataSize);
     spi_slave_enable(_currentSetting->spi_d, (spi_mode)_currentSetting->dataMode, flags);
     // added for DMA callbacks.
     _currentSetting->state = SPI_STATE_READY;
@@ -312,14 +312,14 @@ void SPIClass::end(void)
 void SPIClass::setClockDivider(uint32_t clockDivider)
 {
     _currentSetting->clockDivider = clockDivider;
-    uint32 cr1 = _currentSetting->spi_d->regs->CR1 & ~(SPI_CR1_BR);
+    uint32_t cr1 = _currentSetting->spi_d->regs->CR1 & ~(SPI_CR1_BR);
     _currentSetting->spi_d->regs->CR1 = cr1 | (clockDivider & SPI_CR1_BR);
 }
 
 void SPIClass::setBitOrder(BitOrder bitOrder)
 {
     _currentSetting->bitOrder = bitOrder;
-    uint32 cr1 = _currentSetting->spi_d->regs->CR1 & ~(SPI_CR1_LSBFIRST);
+    uint32_t cr1 = _currentSetting->spi_d->regs->CR1 & ~(SPI_CR1_LSBFIRST);
     if ( bitOrder==LSBFIRST )   cr1 |= SPI_CR1_LSBFIRST;
     _currentSetting->spi_d->regs->CR1 = cr1;
 }
@@ -328,11 +328,11 @@ void SPIClass::setBitOrder(BitOrder bitOrder)
 //  Victor Perez. Added to test changing datasize from 8 to 16 bit modes on the fly.
 //  Input parameter should be SPI_CR1_DFF set to 0 or 1 on a 32bit word.
 //-----------------------------------------------------------------------------
-void SPIClass::setDataSize(uint32 datasize)
+void SPIClass::setDataSize(uint32_t datasize)
 {
     _currentSetting->dataSize = datasize;
-    uint32 cr1 = _currentSetting->spi_d->regs->CR1 & ~(SPI_CR1_DFF);
-    uint8 en = spi_is_enabled(_currentSetting->spi_d);
+    uint32_t cr1 = _currentSetting->spi_d->regs->CR1 & ~(SPI_CR1_DFF);
+    uint8_t en = spi_is_enabled(_currentSetting->spi_d);
     spi_peripheral_disable(_currentSetting->spi_d);
     _currentSetting->spi_d->regs->CR1 = cr1 | (datasize & SPI_CR1_DFF) | en;
 }
@@ -365,7 +365,7 @@ bit 0 - CPHA : Clock phase
 If someone finds this is not the case or sees a logic error with this let me know ;-) 
  */
     _currentSetting->dataMode = dataMode;
-    uint32 cr1 = _currentSetting->spi_d->regs->CR1 & ~(SPI_CR1_CPOL|SPI_CR1_CPHA);
+    uint32_t cr1 = _currentSetting->spi_d->regs->CR1 & ~(SPI_CR1_CPOL|SPI_CR1_CPHA);
     _currentSetting->spi_d->regs->CR1 = cr1 | (dataMode & (SPI_CR1_CPOL|SPI_CR1_CPHA));
 }
 
@@ -399,13 +399,13 @@ void SPIClass::endTransaction(void)
 //-----------------------------------------------------------------------------
 //  I/O
 //-----------------------------------------------------------------------------
-uint16 SPIClass::read(void)
+uint16_t SPIClass::read(void)
 {
     while ( spi_is_rx_nonempty(_currentSetting->spi_d)==0 ) ;
     return (uint16)spi_rx_reg(_currentSetting->spi_d);
 }
 
-void SPIClass::read(uint8 *buf, uint32 len)
+void SPIClass::read(uint8_t *buf, uint32_t len)
 {
     if ( len == 0 ) return;
     spi_rx_reg(_currentSetting->spi_d);      // clear the RX buffer in case a byte is waiting on it.
@@ -431,7 +431,7 @@ void SPIClass::read(uint8 *buf, uint32 len)
 //  by taking the Tx code from transfer(byte)
 //  This almost doubles the speed of this function.
 //-----------------------------------------------------------------------------
-void SPIClass::write(const uint16 data)
+void SPIClass::write(const uint16_t data)
 {
     spi_tx_reg(_currentSetting->spi_d, data); // write the data to be transmitted into the SPI_DR register (this clears the TXE flag)
     waitSpiTxEnd(_currentSetting->spi_d);
@@ -439,7 +439,7 @@ void SPIClass::write(const uint16 data)
 //-----------------------------------------------------------------------------
 //  Added by stevestrong: write two consecutive bytes in 8 bit mode (DFF=0)
 //-----------------------------------------------------------------------------
-void SPIClass::write16(const uint16 data)
+void SPIClass::write2(const uint16_t data)
 {
     spi_tx_reg(_currentSetting->spi_d, data>>8); // write high byte
     while (spi_is_tx_empty(_currentSetting->spi_d) == 0); // Wait until TXE=1
@@ -449,7 +449,7 @@ void SPIClass::write16(const uint16 data)
 //-----------------------------------------------------------------------------
 //  Added by stevstrong: Repeatedly send same data by the specified number of times
 //-----------------------------------------------------------------------------
-void SPIClass::write(const uint16 data, uint32 n)
+void SPIClass::write(const uint16_t data, uint32_t n)
 {
     spi_reg_map * regs = _currentSetting->spi_d->regs;
     while ( (n--)>0 ) {
@@ -459,20 +459,28 @@ void SPIClass::write(const uint16 data, uint32 n)
     while ( (regs->SR & SPI_SR_BSY) != 0); // wait until BSY=0 before returning 
 }
 
-void SPIClass::write(const void *data, uint32 length)
+void SPIClass::write(const void *data, uint32_t length)
 {
     spi_dev * spi_d = _currentSetting->spi_d;
     spi_tx(spi_d, data, length); // data can be array of bytes or words
     waitSpiTxEnd(spi_d); // "5. Wait until TXE=1 and then wait until BSY=0 before disabling the SPI."
 }
 
-uint8 SPIClass::transfer(uint8 byte) const
+uint8_t SPIClass::transfer(uint8_t byte) const
 {
     spi_dev * spi_d = _currentSetting->spi_d;
     spi_rx_reg(spi_d); // read any previous data
     spi_tx_reg(spi_d, byte); // Write the data item to be transmitted into the SPI_DR register
     waitSpiTxEnd(spi_d);
     return (uint8)spi_rx_reg(spi_d); // "... and read the last received data."
+}
+uint16_t SPIClass::transfer(uint16_t data) const
+{
+    spi_dev * spi_d = _currentSetting->spi_d;
+    spi_rx_reg(spi_d); // read any previous data
+    spi_tx_reg(spi_d, data); // Write the data item to be transmitted into the SPI_DR register
+    waitSpiTxEnd(spi_d);
+    return (uint16_t)spi_rx_reg(spi_d); // "... and read the last received data."
 }
 //-----------------------------------------------------------------------------
 //  Modified by stevestrong: write & read two consecutive bytes in 8 bit mode (DFF=0)
@@ -493,7 +501,7 @@ uint16_t SPIClass::transfer16(const uint16_t data) const
     return ret;
 }
 
-void SPIClass::transfer(const uint8_t * tx_buf, uint8_t * rx_buf, uint32 len)
+void SPIClass::transfer(const uint8_t * tx_buf, uint8_t * rx_buf, uint32_t len)
 {
     if ( len == 0 ) return;
     spi_rx_reg(_currentSetting->spi_d);      // clear the RX buffer in case a byte is waiting on it.
@@ -514,7 +522,7 @@ void SPIClass::transfer(const uint8_t * tx_buf, uint8_t * rx_buf, uint32 len)
     *rx_buf++ = (uint8)(regs->DR);           // read and store the received byte
 }
 
-void SPIClass::transfer(const uint8_t tx_data, uint8_t * rx_buf, uint32 len)
+void SPIClass::transfer(const uint8_t tx_data, uint8_t * rx_buf, uint32_t len)
 {
     if ( len == 0 ) return;
     spi_rx_reg(_currentSetting->spi_d);      // clear the RX buffer in case a byte is waiting on it.
@@ -535,7 +543,7 @@ void SPIClass::transfer(const uint8_t tx_data, uint8_t * rx_buf, uint32 len)
     *rx_buf++ = (uint8)(regs->DR);           // read and store the received byte
 }
 
-void SPIClass::transfer(const uint16_t * tx_buf, uint16_t * rx_buf, uint32 len)
+void SPIClass::transfer(const uint16_t * tx_buf, uint16_t * rx_buf, uint32_t len)
 {
     if ( len == 0 ) return;
     spi_rx_reg(_currentSetting->spi_d);      // clear the RX buffer in case a byte is waiting on it.
@@ -556,7 +564,7 @@ void SPIClass::transfer(const uint16_t * tx_buf, uint16_t * rx_buf, uint32 len)
     *rx_buf++ = regs->DR;                    // read and store the received byte
 }
 
-void SPIClass::transfer(const uint16_t tx_data, uint16_t * rx_buf, uint32 len)
+void SPIClass::transfer(const uint16_t tx_data, uint16_t * rx_buf, uint32_t len)
 {
     if ( len == 0 ) return;
     spi_rx_reg(_currentSetting->spi_d);      // clear the RX buffer in case a byte is waiting on it.
@@ -629,7 +637,7 @@ void SPIClass::dmaWaitCompletion(void)
     PRINTF("-dWC>");
 }
 //-----------------------------------------------------------------------------
-void SPIClass::dmaTransferSet(void *receiveBuf, uint16 flags)
+void SPIClass::dmaTransferSet(void *receiveBuf, uint16_t flags)
 {
     PRINTF("<dTS-");
     dmaWaitCompletion();
@@ -681,7 +689,7 @@ void SPIClass::dmaTransferRepeat()
 //  On exit TX buffer is not modified, and RX buffer contains the received data.
 //  Still in progress.
 //-----------------------------------------------------------------------------
-void SPIClass::dmaTransfer(const void *transmitBuf, void *receiveBuf, uint16 length, uint16 flags)
+void SPIClass::dmaTransfer(const void *transmitBuf, void *receiveBuf, uint16_t length, uint16_t flags)
 {
     PRINTF("<dT-");
     dmaWaitCompletion();
@@ -693,7 +701,7 @@ void SPIClass::dmaTransfer(const void *transmitBuf, void *receiveBuf, uint16 len
     PRINTF("-dT>\n");
 }
 //-----------------------------------------------------------------------------
-void SPIClass::dmaTransfer(const uint16_t tx_data, void *receiveBuf, uint16 length, uint16 flags)
+void SPIClass::dmaTransfer(const uint16_t tx_data, void *receiveBuf, uint16_t length, uint16_t flags)
 {
     PRINTF("<dT-");
     dmaWaitCompletion();
@@ -706,7 +714,7 @@ void SPIClass::dmaTransfer(const uint16_t tx_data, void *receiveBuf, uint16 leng
     PRINTF("-dT>\n");
 }
 //-----------------------------------------------------------------------------
-void SPIClass::dmaTransferInit(const void *transmitBuf, void *receiveBuf, uint16 length, uint16 flags)
+void SPIClass::dmaTransferInit(const void *transmitBuf, void *receiveBuf, uint16_t length, uint16_t flags)
 {
     PRINTF("<dTI-");
     dmaWaitCompletion();
@@ -717,7 +725,7 @@ void SPIClass::dmaTransferInit(const void *transmitBuf, void *receiveBuf, uint16
     PRINTF("-dTI>\n");
 }
 //-----------------------------------------------------------------------------
-void SPIClass::dmaTransferInit(const uint16_t tx_data, void *receiveBuf, uint16 length, uint16 flags)
+void SPIClass::dmaTransferInit(const uint16_t tx_data, void *receiveBuf, uint16_t length, uint16_t flags)
 {
     PRINTF("<dTI-");
     dmaWaitCompletion();
@@ -736,7 +744,7 @@ void SPIClass::dmaTransferInit(const uint16_t tx_data, void *receiveBuf, uint16 
 //  Still in progress.
 //  2016 - stevstrong - reworked to automatically detect bit size from SPI setting
 //-----------------------------------------------------------------------------
-void SPIClass::dmaSendSet(uint16 flags)
+void SPIClass::dmaSendSet(uint16_t flags)
 {
     PRINTF("<dSS-");
     dmaWaitCompletion();
@@ -766,7 +774,7 @@ void SPIClass::dmaSendRepeat(void)
     PRINTF("-dSR>");
 }
 //-----------------------------------------------------------------------------
-void SPIClass::dmaSend(const void * transmitBuf, uint16 length, uint16 flags)
+void SPIClass::dmaSend(const void * transmitBuf, uint16_t length, uint16_t flags)
 {
     PRINTF("<dS-");
     dmaWaitCompletion();
@@ -778,7 +786,7 @@ void SPIClass::dmaSend(const void * transmitBuf, uint16 length, uint16 flags)
     PRINTF("-dS>\n");
 }
 //-----------------------------------------------------------------------------
-void SPIClass::dmaSend(const uint16_t tx_data, uint16 length, uint16 flags)
+void SPIClass::dmaSend(const uint16_t tx_data, uint16_t length, uint16_t flags)
 {
     PRINTF("<dS-");
     dmaWaitCompletion();
@@ -809,7 +817,7 @@ void SPIClass::dmaSend(const uint16_t tx_data)
     PRINTF("-dS>\n");
 }
 //-----------------------------------------------------------------------------
-void SPIClass::dmaSendInit(const void * txBuf, uint16 length, uint16 flags)
+void SPIClass::dmaSendInit(const void * txBuf, uint16_t length, uint16_t flags)
 {
     PRINTF("<dSI-");
     _currentSetting->dmaTxBuffer = txBuf;
@@ -819,7 +827,7 @@ void SPIClass::dmaSendInit(const void * txBuf, uint16 length, uint16 flags)
     PRINTF("-dSI>\n");
 }
 //-----------------------------------------------------------------------------
-void SPIClass::dmaSendInit(const uint16_t tx_data, uint16 length, uint16 flags)
+void SPIClass::dmaSendInit(const uint16_t tx_data, uint16_t length, uint16_t flags)
 {
     PRINTF("<dSI-");
     ff = tx_data;
@@ -843,19 +851,19 @@ void SPIClass::detachInterrupt(void) {
  * Pin accessors
  */
 
-uint8 SPIClass::misoPin(void) {
+uint8_t SPIClass::misoPin(void) {
     return dev_to_spi_pins(_currentSetting->spi_d)->miso;
 }
 
-uint8 SPIClass::mosiPin(void) {
+uint8_t SPIClass::mosiPin(void) {
     return dev_to_spi_pins(_currentSetting->spi_d)->mosi;
 }
 
-uint8 SPIClass::sckPin(void) {
+uint8_t SPIClass::sckPin(void) {
     return dev_to_spi_pins(_currentSetting->spi_d)->sck;
 }
 
-uint8 SPIClass::nssPin(void) {
+uint8_t SPIClass::nssPin(void) {
     return dev_to_spi_pins(_currentSetting->spi_d)->nss;
 }
 
@@ -863,12 +871,12 @@ uint8 SPIClass::nssPin(void) {
  * Deprecated functions
  */
 
-uint8 SPIClass::send(uint8 data) {
+uint8_t SPIClass::send(uint8_t data) {
     this->write(data);
     return 1;
 }
 
-uint8 SPIClass::send(uint8 *buf, uint32 len) {
+uint8_t SPIClass::send(uint8_t *buf, uint32_t len) {
     this->write(buf, len);
     return len;
 }

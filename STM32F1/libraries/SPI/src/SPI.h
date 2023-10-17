@@ -167,7 +167,7 @@ public:
     /**
      * @param spiPortNumber Number of the SPI port to manage.
      */
-    SPIClass(uint32 spiPortNumber);
+    SPIClass(uint32_t spiPortNumber);
 
     /**
      * @brief Equivalent to begin(SPI_1_125MHZ, MSBFIRST, 0).
@@ -182,7 +182,7 @@ public:
      * @param bitOrder Either LSBFIRST (little-endian) or MSBFIRST(big-endian)
      * @param mode SPI mode to use
      */
-    void beginSlave(uint32 bitOrder, uint32 mode);
+    void beginSlave(uint32_t bitOrder, uint32_t mode);
 
     /**
      * @brief Equivalent to beginSlave(MSBFIRST, 0).
@@ -212,7 +212,7 @@ public:
     //  Input parameter should be SPI_CR1_DFF set to 0 or 1 on a 32bit word.
     //  Requires an added function spi_data_size on  STM32F1 / cores / maple / libmaple / spi.c 
     //-------------------------------------------------------------------------
-    void setDataSize(uint32 ds);
+    void setDataSize(uint32_t ds);
 
     //-------------------------------------------------------------------------
     //  Victor Perez 2017. Added to set and clear user callback functions
@@ -234,7 +234,7 @@ public:
      * If there is no unread byte/word waiting, this function will block
      * until one is received.
      */
-    uint16 read(void);
+    uint16_t read(void);
 
     /**
      * @brief Read length bytes, storing them into buffer.
@@ -243,27 +243,27 @@ public:
      *               function will block until the desired number of
      *               bytes have been read.
      */
-    void read(uint8 *buffer, uint32 length);
+    void read(uint8_t *buffer, uint32_t length);
 
     /**
      * @brief Transmit one byte/word.
      * @param data to transmit.
      */
-    void write(const uint16 data);
-    void write16(const uint16 data); // write 2 bytes in 8 bit mode (DFF=0)
+    void write(const uint16_t data);
+    void write2(const uint16_t data); // write 2 bytes in 8 bit mode (DFF=0)
 
     /**
      * @brief Transmit one byte/word a specified number of times.
      * @param data to transmit.
      */
-    void write(const uint16 data, uint32 n);    
+    void write(const uint16_t data, uint32_t n);    
 
     /**
      * @brief Transmit multiple bytes/words.
      * @param buffer Bytes/words to transmit.
      * @param length Number of bytes/words in buffer to transmit.
      */
-    void write(const void * buffer, uint32 length);
+    void write(const void * buffer, uint32_t length);
 
     /**
      * @brief Transmit a byte, then return the next unread byte.
@@ -273,14 +273,15 @@ public:
      * @param data Byte to transmit.
      * @return Next unread byte.
      */
-    uint8 transfer(uint8 data) const;
+    uint8_t transfer(uint8_t data) const;
+    uint16_t transfer(uint16_t data) const;
     uint16_t transfer16(const uint16_t data) const;
-    void transfer(const uint8_t * tx_buf, uint8_t * rx_buf, uint32 len);
-    void transfer(const uint8_t tx_data, uint8_t * rx_buf, uint32 len);
-    void transfer(const uint16_t * tx_buf, uint16_t * rx_buf, uint32 len);
-    void transfer(const uint16_t tx_data, uint16_t * rx_buf, uint32 len);
-	void transfer(uint8_t * trx_buf, uint32 len) { transfer(trx_buf, trx_buf, len); }
-	void transfer(uint16_t * trx_buf, uint32 len) { transfer(trx_buf, trx_buf, len); }
+    void transfer(const uint8_t * tx_buf, uint8_t * rx_buf, uint32_t len);
+    void transfer(const uint8_t tx_data, uint8_t * rx_buf, uint32_t len);
+    void transfer(const uint16_t * tx_buf, uint16_t * rx_buf, uint32_t len);
+    void transfer(const uint16_t tx_data, uint16_t * rx_buf, uint32_t len);
+	void transfer(uint8_t * trx_buf, uint32_t len) { transfer(trx_buf, trx_buf, len); }
+	void transfer(uint16_t * trx_buf, uint32_t len) { transfer(trx_buf, trx_buf, len); }
 	
     /**
      * @brief Sets up a DMA Transfer for "length" bytes.
@@ -293,13 +294,13 @@ public:
      * @param length Number of bytes in buffer to transmit.
      */
 private:
-    void dmaTransferSet(void * receiveBuf, uint16 flags);
+    void dmaTransferSet(void * receiveBuf, uint16_t flags);
     void dmaTransferRepeat();
 public:
-    void dmaTransferInit(const void * transmitBuf, void * receiveBuf, uint16 length, uint16 flags = 0);
-    void dmaTransferInit(const uint16_t tx_data, void * receiveBuf, uint16 length, uint16 flags = 0);
-    void dmaTransfer(const void * transmitBuf, void * receiveBuf, uint16 length, uint16 flags = 0);
-    void dmaTransfer(const uint16_t tx_data, void * receiveBuf, uint16 length, uint16 flags = 0);
+    void dmaTransferInit(const void * transmitBuf, void * receiveBuf, uint16_t length, uint16_t flags = 0);
+    void dmaTransferInit(const uint16_t tx_data, void * receiveBuf, uint16_t length, uint16_t flags = 0);
+    void dmaTransfer(const void * transmitBuf, void * receiveBuf, uint16_t length, uint16_t flags = 0);
+    void dmaTransfer(const uint16_t tx_data, void * receiveBuf, uint16_t length, uint16_t flags = 0);
     void dmaTransfer(void) { dmaTransferRepeat(); }
     uint8_t dmaTransferReady() { return (_currentSetting->state == SPI_STATE_READY) ? 1 : 0; }
     uint8_t dmaTransferState() { return (_currentSetting->state); }
@@ -318,13 +319,13 @@ public:
      * @param minc Set to use Memory Increment mode, clear to use Circular mode.
      */
 private:
-    void dmaSendSet(uint16 flags);
+    void dmaSendSet(uint16_t flags);
     void dmaSendRepeat();
 public:
-    void dmaSendInit(const void * transmitBuf, uint16 length, uint16 flags = 0);
-    void dmaSendInit(const uint16_t tx_dat, uint16 length, uint16 flags = 0);
-    void dmaSend(const void * transmitBuf, uint16 length, uint16 flags = 0);
-    void dmaSend(const uint16_t tx_data, uint16 length, uint16 flags = 0);
+    void dmaSendInit(const void * transmitBuf, uint16_t length, uint16_t flags = 0);
+    void dmaSendInit(const uint16_t tx_dat, uint16_t length, uint16_t flags = 0);
+    void dmaSend(const void * transmitBuf, uint16_t length, uint16_t flags = 0);
+    void dmaSend(const uint16_t tx_data, uint16_t length, uint16_t flags = 0);
     void dmaSend(const void * transmitBuf);
     void dmaSend(const uint16_t tx_data);
     void dmaSend(void) { dmaSendRepeat(); }
@@ -342,22 +343,22 @@ public:
     /**
      * @brief Return the number of the MISO (master in, slave out) pin
      */
-    uint8 misoPin(void);
+    uint8_t misoPin(void);
 
     /**
      * @brief Return the number of the MOSI (master out, slave in) pin
      */
-    uint8 mosiPin(void);
+    uint8_t mosiPin(void);
 
     /**
      * @brief Return the number of the SCK (serial clock) pin
      */
-    uint8 sckPin(void);
+    uint8_t sckPin(void);
 
     /**
      * @brief Return the number of the NSS (slave select) pin
      */
-    uint8 nssPin(void);
+    uint8_t nssPin(void);
 
     /* Escape hatch */
 
@@ -390,7 +391,7 @@ public:
      *
      * @see HardwareSPI::transfer()
      */
-    uint8 send(uint8 data);
+    uint8_t send(uint8_t data);
 
     /**
      * @brief Deprecated.
@@ -402,7 +403,7 @@ public:
      * @see HardwareSPI::read()
      * @see HardwareSPI::transfer()
      */
-    uint8 send(uint8 *data, uint32 length);
+    uint8_t send(uint8_t *data, uint32_t length);
 
     void EventCallback(uint16_t spi_num);
 
