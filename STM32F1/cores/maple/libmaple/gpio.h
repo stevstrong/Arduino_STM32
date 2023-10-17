@@ -87,6 +87,7 @@ extern const gpio_dev * const gpio_devs[3];
  * Portable routines
  */
 static inline void enableDebugPorts() { afio_cfg_debug_ports(AFIO_DEBUG_SW_ONLY); }
+static inline void disableDebugPorts() { afio_cfg_debug_ports(AFIO_DEBUG_NONE); }
 
 inline void gpio_init(const gpio_dev *dev) {
     rcc_clk_enable(dev->clk_id);
