@@ -135,7 +135,7 @@ void OLED::invert(bool mode)
 		_sendTWIcommand(SSD1306_NORMAL_DISPLAY);
 }
 
-void OLED::setPixel(int16_t x, int16_t y)
+void OLED::setPixel(uint16_t x, uint16_t y)
 {
 	int by, bi;
 
@@ -148,7 +148,7 @@ void OLED::setPixel(int16_t x, int16_t y)
 	}
 }
 
-void OLED::clrPixel(int16_t x, int16_t y)
+void OLED::clrPixel(uint16_t x, uint16_t y)
 {
 	int by, bi;
 
@@ -161,7 +161,7 @@ void OLED::clrPixel(int16_t x, int16_t y)
 	}
 }
 
-void OLED::invPixel(int16_t x, int16_t y)
+void OLED::invPixel(uint16_t x, uint16_t y)
 {
 	int by, bi;
 
@@ -187,6 +187,7 @@ void OLED::invertText(bool mode)
 
 void OLED::print(char *st, int x, int y)
 {
+	unsigned char ch;
 	int stl;
 
 	stl = strlen(st);
@@ -405,6 +406,8 @@ void OLED::clrHLine(int x, int y, int l)
 
 void OLED::drawVLine(int x, int y, int l)
 {
+	int by, bi;
+
 	if ((x>=0) and (x<128) and (y>=0) and (y<64))
 	{
 		for (int cy=0; cy<l; cy++)
@@ -416,6 +419,8 @@ void OLED::drawVLine(int x, int y, int l)
 
 void OLED::clrVLine(int x, int y, int l)
 {
+	int by, bi;
+
 	if ((x>=0) and (x<128) and (y>=0) and (y<64))
 	{
 		for (int cy=0; cy<l; cy++)
@@ -429,6 +434,7 @@ void OLED::drawLine(int x1, int y1, int x2, int y2)
 {
 	int tmp;
 	double delta, tx, ty;
+	double m, b, dx, dy;
 	
 	if (((x2-x1)<0))
 	{
@@ -518,6 +524,7 @@ void OLED::clrLine(int x1, int y1, int x2, int y2)
 {
 	int tmp;
 	double delta, tx, ty;
+	double m, b, dx, dy;
 	
 	if (((x2-x1)<0))
 	{
@@ -714,6 +721,7 @@ void OLED::drawCircle(int x, int y, int radius)
 	int ddF_y = -2 * radius;
 	int x1 = 0;
 	int y1 = radius;
+	char ch, cl;
 	
 	setPixel(x, y + radius);
 	setPixel(x, y - radius);
@@ -749,6 +757,7 @@ void OLED::clrCircle(int x, int y, int radius)
 	int ddF_y = -2 * radius;
 	int x1 = 0;
 	int y1 = radius;
+	char ch, cl;
 	
 	clrPixel(x, y + radius);
 	clrPixel(x, y - radius);
