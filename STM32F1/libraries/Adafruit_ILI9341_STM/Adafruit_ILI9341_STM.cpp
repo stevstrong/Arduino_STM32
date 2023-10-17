@@ -16,10 +16,18 @@ Adafruit_ILI9341_STM::Adafruit_ILI9341_STM(int8_t cs, int8_t dc, int8_t rst) : A
 }
 
 
-void Adafruit_ILI9341_STM::writecommand(uint8_t c)
+void Adafruit_ILI9341_STM::writecommand(uint16_t c)
 {
   dc_command();
   cs_clear();
+  spiwrite(c);
+  dc_data();
+}
+void Adafruit_ILI9341_STM::writecommand2(uint16_t c)
+{
+  dc_command();
+  cs_clear();
+  spiwrite(c>>8);
   spiwrite(c);
   dc_data();
 }
@@ -85,10 +93,15 @@ void Adafruit_ILI9341_STM::begin(SPIClass & spi, uint32_t freq)
     delay(150);
   }
 
+  uint8_t buf[4];
+  ReadCmdDataN(ILI9341_RDID, 4, buf);
+  Serial.print("\nRDID:");
+  Serial.print(buf[0], HEX);
+  Serial.print(buf[1], HEX);
+  Serial.print(buf[2], HEX);
+  Serial.print(buf[3], HEX);
   /*
-  uint8_t x = readcommand8(ILI9341_RDMODE);
-  Serial.print("\nDisplay Power Mode: 0x"); Serial.println(x, HEX);
-  x = readcommand8(ILI9341_RDMADCTL);
+  uint8_t x = readcommand8(ILI9341_RDMADCTL);
   Serial.print("\nMADCTL Mode: 0x"); Serial.println(x, HEX);
   x = readcommand8(ILI9341_RDPIXFMT);
   Serial.print("\nPixel Format: 0x"); Serial.println(x, HEX);
@@ -231,13 +244,24 @@ void Adafruit_ILI9341_STM::setAddrWindow(uint16_t x0, uint16_t y0,
   cs_set();
 }
 
+void Adafruit_ILI9341_STM::setAddrWindowRead(uint16_t x0, uint16_t y0,
+                                         uint16_t x1, uint16_t y1)
+{
+  writecommand(ILI9341_CASET); // Column addr set
+  spiwrite(x0);
+  spiwrite(x1);
+  writecommand(ILI9341_PASET); // Row addr set
+  spiwrite(y0);
+  spiwrite(y1);
+  writecommand(ILI9341_RAMRD); // write to RAM
+}
 
-void Adafruit_ILI9341_STM::pushColors(void * colorBuffer, uint16_t nr_pixels, uint8_t async)
+void Adafruit_ILI9341_STM::pushColors(uint16_t * colorBuffer, uint32_t nr_pixels, uint8_t async)
 {
   cs_clear();
 
   if (async==0) {
-    if (nr_pixels>DMA_ON_LIMIT) {
+    if (nr_pixels>ILI9341_STM_DMA_ON_LIMIT) {
       mSPI.dmaSend(colorBuffer, nr_pixels);
     } else {
       mSPI.write(colorBuffer, nr_pixels);
@@ -252,7 +276,7 @@ void Adafruit_ILI9341_STM::drawPixel(int16_t x, int16_t y, uint16_t color)
 {
   if ((x < 0) || (x >= _width) || (y < 0) || (y >= _height)) return;
 
-  setAddrWindow(x, y, x + 1, y + 1);
+  setAddrWindow(x, y, x, y);
   pushColor(color);
 }
 
@@ -459,6 +483,45 @@ uint16_t Adafruit_ILI9341_STM::color565(uint8_t r, uint8_t g, uint8_t b) {
 }
 
 
+// Vertical hardware scrolling
+void Adafruit_ILI9341_STM::vertScrollSetArea(uint16_t top, uint16_t bottom)
+{
+    uint8_t d[6];           // for multi-byte parameters
+    d[0] = (uint8_t)(top >> 8);        //top
+    d[1] = (uint8_t)(top);
+    uint16_t vsarea = HEIGHT - top - bottom;
+    d[2] = (uint8_t)(vsarea >> 8); //VSA
+    d[3] = (uint8_t)(vsarea);
+    d[4] = (uint8_t)(bottom >> 8);        //bottom
+    d[5] = (uint8_t)(bottom);
+    WriteCmdDataN(ILI9341_VSCRDEF, 6, d);
+}
+
+void Adafruit_ILI9341_STM::vertScroll_old(int16_t top, int16_t scrollines, int16_t offset)
+{
+    if (offset <= -scrollines || offset >= scrollines) offset = 0; //valid scroll
+    int16_t bfa = HEIGHT - top - scrollines;  // bottom fixed area
+  	int16_t vsp = top + offset; // vertical start position
+    if (offset < 0)
+        vsp += scrollines;  //keep in unsigned range
+    int16_t sea = top + scrollines - 1;
+    uint8_t d[6];           // for multi-byte parameters
+    d[0] = top >> 8;        //TFA
+    d[1] = top;
+    d[2] = scrollines >> 8; //VSA
+    d[3] = scrollines;
+    d[4] = bfa >> 8;        //BFA
+    d[5] = bfa;
+    WriteCmdDataN(ILI9341_VSCRDEF, 6, d);
+		d[0] = vsp >> 8;        //VSP
+    d[1] = vsp;
+    WriteCmdDataN(ILI9341_VSCRADD, 2, d);
+		if (offset == 0) {
+			// WriteCmdDataN(0x13, 0, NULL);    //NORMAL i.e. disable scroll
+		}
+}
+
+
 #define MADCTL_MY  0x80
 #define MADCTL_MX  0x40
 #define MADCTL_MV  0x20
@@ -509,42 +572,25 @@ void Adafruit_ILI9341_STM::invertDisplay(boolean i)
 
 uint16_t Adafruit_ILI9341_STM::readPixel(int16_t x, int16_t y)
 {
-  mSPI.beginTransaction(SPISettings(_safe_freq, MSBFIRST, SPI_MODE0, SPI_DATA_SIZE_8BIT));
+  setAddrWindowRead(x, y, x, y);
+  uint16_t const reads1 = spiread2();
+  uint16_t const reads2 = spiread2();
+  uint8_t const r = (uint8_t)(reads1&0xFF);
+  uint8_t const g = (uint8_t)(reads2 >> 8);
+  uint8_t const b = (uint8_t)(reads2);
 
-  writecommand(ILI9341_CASET); // Column addr set
-  spiwrite16(x);
-  spiwrite16(x);
-  writecommand(ILI9341_PASET); // Row addr set
-  spiwrite16(y);
-  spiwrite16(y);
-  writecommand(ILI9341_RAMRD); // read GRAM
-  (void)spiread();             //dummy read
-  uint8_t r = spiread();
-  uint8_t g = spiread();
-  uint8_t b = spiread();
   cs_set();
-
-  mSPI.beginTransaction(SPISettings(_freq, MSBFIRST, SPI_MODE0, SPI_DATA_SIZE_16BIT));
-
   return color565(r, g, b);
 }
 
-uint16_t Adafruit_ILI9341_STM::readPixels16(int16_t x1, int16_t y1, int16_t x2, int16_t y2, uint16_t *buf)
+uint16_t Adafruit_ILI9341_STM::readPixels(uint16_t *buf, uint16_t num)
 {
   mSPI.beginTransaction(SPISettings(_safe_freq, MSBFIRST, SPI_MODE0, SPI_DATA_SIZE_8BIT));
-
-  writecommand(ILI9341_CASET); // Column addr set
-  spiwrite16(x1);
-  spiwrite16(x2);
-  writecommand(ILI9341_PASET); // Row addr set
-  spiwrite16(y1);
-  spiwrite16(y2);
-  writecommand(ILI9341_RAMRD); // read GRAM
   (void)spiread();             //dummy read
   uint8_t rgb[3];
-  uint16_t len = (x2-x1+1)*(y2-y1+1);
-  uint16_t ret = len;
-  while (len--) {
+  // uint16_t len = (x2-x1+1)*(y2-y1+1);
+  uint16_t ret = num;
+  while (num--) {
     mSPI.read(rgb, 3);
     *buf++ = color565(rgb[0], rgb[1], rgb[2]);
   }
@@ -559,11 +605,11 @@ uint16_t Adafruit_ILI9341_STM::readPixels24(int16_t x1, int16_t y1, int16_t x2, 
   mSPI.beginTransaction(SPISettings(_safe_freq, MSBFIRST, SPI_MODE0, SPI_DATA_SIZE_8BIT));
 
   writecommand(ILI9341_CASET); // Column addr set
-  spiwrite16(x1);
-  spiwrite16(x2);
+  spiwrite2(x1);
+  spiwrite2(x2);
   writecommand(ILI9341_PASET); // Row addr set
-  spiwrite16(y1);
-  spiwrite16(y2);
+  spiwrite2(y1);
+  spiwrite2(y2);
   writecommand(ILI9341_RAMRD); // read GRAM
   (void)spiread();             //dummy read
   uint16_t len = (x2-x1+1)*(y2-y1+1);
@@ -575,18 +621,73 @@ uint16_t Adafruit_ILI9341_STM::readPixels24(int16_t x1, int16_t y1, int16_t x2, 
   return ret;
 }
 
-uint8_t Adafruit_ILI9341_STM::readcommand8(uint8_t c, uint8_t index)
+uint8_t Adafruit_ILI9341_STM::ReadCmdData1(uint8_t c)
 {
-  // the SPI clock must be set lower
-  mSPI.beginTransaction(SPISettings(_safe_freq, MSBFIRST, SPI_MODE0, SPI_DATA_SIZE_8BIT));
-
   writecommand(c);
   uint8_t r = spiread();
   cs_set();
+  return r;
+}
+void Adafruit_ILI9341_STM::ReadCmdDataN(uint8_t cmd, int8_t N, uint8_t * block)
+{
+    writecommand(cmd);
+    readdataN(block, N);
+    cs_set();
+}
+void Adafruit_ILI9341_STM::WriteCmdData1(uint8_t cmd, uint8_t data)
+{
+    writecommand(cmd);
+    writedata(data);
+    cs_set();
+}
 
+void Adafruit_ILI9341_STM::WriteCmdData2(uint8_t cmd, uint16_t data)
+{
+    writecommand(cmd);
+    writedata((uint8_t)(data>>8));
+    writedata((uint8_t)data);
+    cs_set();
+}
+void Adafruit_ILI9341_STM::WriteCmdDataN(uint8_t cmd, int8_t N, uint8_t * block)
+{
+    writecommand(cmd);
+    writedataN(block, N);
+    cs_set();
+}
+
+uint8_t Adafruit_ILI9341_STM::ReadCmdData1Safe(uint8_t c)
+{
+  // the SPI clock must be set lower
+  mSPI.beginTransaction(SPISettings(_safe_freq, MSBFIRST, SPI_MODE0, SPI_DATA_SIZE_8BIT));
+  uint8_t r = ReadCmdData1(c);
   mSPI.beginTransaction(SPISettings(_freq, MSBFIRST, SPI_MODE0, SPI_DATA_SIZE_16BIT));
   return r;
 }
+void Adafruit_ILI9341_STM::ReadCmdDataNSafe(uint8_t cmd, int8_t N, uint8_t * block)
+{
+  mSPI.beginTransaction(SPISettings(_safe_freq, MSBFIRST, SPI_MODE0, SPI_DATA_SIZE_8BIT));
+    ReadCmdDataN(cmd, N, block);
+  mSPI.beginTransaction(SPISettings(_freq, MSBFIRST, SPI_MODE0, SPI_DATA_SIZE_16BIT));
+}
+void Adafruit_ILI9341_STM::WriteCmdData1Safe(uint8_t cmd, uint8_t data)
+{
+  mSPI.beginTransaction(SPISettings(_safe_freq, MSBFIRST, SPI_MODE0, SPI_DATA_SIZE_8BIT));
+    WriteCmdData1(cmd, data);
+  mSPI.beginTransaction(SPISettings(_freq, MSBFIRST, SPI_MODE0, SPI_DATA_SIZE_16BIT));
+}
+void Adafruit_ILI9341_STM::WriteCmdData2Safe(uint8_t cmd, uint16_t data)
+{
+  mSPI.beginTransaction(SPISettings(_safe_freq, MSBFIRST, SPI_MODE0, SPI_DATA_SIZE_8BIT));
+    WriteCmdData2(cmd, data);
+  mSPI.beginTransaction(SPISettings(_freq, MSBFIRST, SPI_MODE0, SPI_DATA_SIZE_16BIT));
+}
+void Adafruit_ILI9341_STM::WriteCmdDataNSafe(uint8_t cmd, int8_t N, uint8_t * block)
+{
+  mSPI.beginTransaction(SPISettings(_safe_freq, MSBFIRST, SPI_MODE0, SPI_DATA_SIZE_8BIT));
+    WriteCmdDataN(cmd, N, block);
+  mSPI.beginTransaction(SPISettings(_freq, MSBFIRST, SPI_MODE0, SPI_DATA_SIZE_16BIT));
+}
+
 
 
 /*
