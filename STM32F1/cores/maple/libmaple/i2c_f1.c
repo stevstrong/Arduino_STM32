@@ -37,8 +37,8 @@
  * Devices
  */
 
-static i2c_dev i2c1 = I2C_DEV_OLD(1, 7, 6);
-static i2c_dev i2c2 = I2C_DEV_OLD(2, 11, 10);
+static i2c_dev i2c1 = I2C_DEV_OLD(1, PB7, PB6);
+static i2c_dev i2c2 = I2C_DEV_OLD(2, PB11, PB10);
 
 /** STM32F1 I2C device 1 */
 i2c_dev* const I2C1 = &i2c1;
