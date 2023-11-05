@@ -54,30 +54,30 @@ void rtc_init(rtc_clk_src src) {
 
 	bkp_enable_writes();	// enable writes to the backup registers and the RTC registers via the DBP bit in the PWR control register
 
-	RCC_BASE->BDCR &= ~RCC_BDCR_RTCSEL;
+	RCC->BDCR &= ~RCC_BDCR_RTCSEL;
 	switch (src) {
 		case RTCSEL_NONE:
-			RCC_BASE->BDCR = RCC_BDCR_RTCSEL_NONE;
+			RCC->BDCR = RCC_BDCR_RTCSEL_NONE;
 			break;
 
 		case RTCSEL_LSE:
 			rcc_start_lse();
-			RCC_BASE->BDCR |= RCC_BDCR_RTCSEL_LSE;
+			RCC->BDCR |= RCC_BDCR_RTCSEL_LSE;
 
 			break;
 
 		case RTCSEL_LSI:
 		case RTCSEL_DEFAULT:
 			rcc_start_lsi();
-			RCC_BASE->BDCR |= RCC_BDCR_RTCSEL_LSI;
+			RCC->BDCR |= RCC_BDCR_RTCSEL_LSI;
 			break;
 
 		case RTCSEL_HSE:			// This selection uses HSE/128 as the RTC source (i.e. 64 kHz with an 8 mHz xtal)
 			rcc_start_hse();
-			RCC_BASE->BDCR |= RCC_BDCR_RTCSEL_HSE;
+			RCC->BDCR |= RCC_BDCR_RTCSEL_HSE;
 			break;
 	}
-	bb_peri_set_bit(&RCC_BASE->BDCR, RCC_BDCR_RTCEN_BIT, 1); // Enable the RTC
+	bb_peri_set_bit(&RCC->BDCR, RCC_BDCR_RTCEN_BIT, 1); // Enable the RTC
 
 	rtc_clear_sync();
 	rtc_wait_sync();
