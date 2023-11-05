@@ -76,6 +76,10 @@ void systick_attach_callback(void (*callback)(void)) {
     systick_user_callback = callback;
 }
 
+void systick_dettach_callback() {
+    systick_user_callback = NULL;
+}
+
 /*
  * SysTick ISR
  */

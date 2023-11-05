@@ -113,6 +113,7 @@ static inline uint32 systick_check_underflow(void) {
  *
  */
 extern void systick_attach_callback(void (*callback)(void));
+extern void systick_dettach_callback();
 
 #ifdef __cplusplus
 } // extern "C"
