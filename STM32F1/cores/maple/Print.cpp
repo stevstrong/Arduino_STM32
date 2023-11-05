@@ -51,7 +51,7 @@ size_t Print::write(const char *str) {
 	return write((const uint8_t *)str, strlen(str));
 }
 
-size_t Print::write(const void *buffer, uint32 size) {
+size_t Print::write(const uint8_t *buffer, size_t size) {
 	size_t n = 0;
     uint8 *ch = (uint8*)buffer;
     while (size--) {
@@ -67,7 +67,7 @@ size_t Print::print(uint8 b, int base) {
 
 size_t Print::print(const String &s)
 {
-  return write(s.c_str(), s.length());
+  return write((const uint8_t*)s.c_str(), s.length());
 }
 
 size_t Print::print(char c) {
@@ -76,6 +76,10 @@ size_t Print::print(char c) {
 
 size_t Print::print(const char str[]) {
     return write(str);
+}
+
+size_t Print::print(char *str) {
+    return write((const char*)str);
 }
 
 size_t Print::print(int n, int base) {
@@ -115,6 +119,11 @@ size_t Print::print(const __FlashStringHelper *ifsh)
   return print(reinterpret_cast<const char *>(ifsh));
 }
 
+size_t Print::print(__FlashStringHelper *ifsh)
+{
+  return print(reinterpret_cast<const char *>(ifsh));
+}
+
 size_t Print::print(const Printable& x)
 {
   return x.printTo(*this);
@@ -122,8 +131,7 @@ size_t Print::print(const Printable& x)
 
 size_t Print::println(void) 
 {
-	size_t n =  print('\r');
-    n += print('\n');
+	size_t n = print("\r\n");
 	return n;
 }
 
@@ -135,13 +143,19 @@ size_t Print::println(const String &s)
 }
 
 size_t Print::println(char c) {
-    size_t n = print(c);
+    size_t n = write(c);
     n += println();
 	return n;
 }
 
 size_t Print::println(const char c[]) {
-    size_t n = print(c);
+    size_t n = write(c);
+    n += println();
+	return n;
+}
+
+size_t Print::println(char c[]) {
+    size_t n = write((const char*)c);
     n += println();
 	return n;
 }
@@ -197,6 +211,13 @@ size_t Print::println(double n, int digits) {
 size_t Print::println(const __FlashStringHelper *ifsh)
 {
   size_t n = print(ifsh);
+  n += println();
+  return n;
+}
+
+size_t Print::println(__FlashStringHelper *ifsh)
+{
+  size_t n = print((const char*)ifsh);
   n += println();
   return n;
 }
