@@ -11,7 +11,7 @@
 #include <string.h>
 //#include <SPI.h>
 
-#include "utility/w5100.h"
+#include "w5500.h"
 
 #if defined(W5100_ETHERNET_SHIELD)
 

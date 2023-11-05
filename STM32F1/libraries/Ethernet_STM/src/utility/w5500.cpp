@@ -10,7 +10,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "utility/w5100.h"
+#include "w5500.h"
 #if defined(W5500_ETHERNET_SHIELD)
 
 // W5500 controller instance
