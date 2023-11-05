@@ -36,7 +36,7 @@
 
 extern "C" {
 
-void delay(unsigned long ms)
+void delay(uint32_t ms)
 {
     uint32 start = micros();
     while (ms > 0)
@@ -50,7 +50,7 @@ void delay(unsigned long ms)
     }
 }
 
-void delayMicroseconds(uint32 us) {
+void delayMicroseconds(uint32_t us) {
     delay_us(us);
 }
 

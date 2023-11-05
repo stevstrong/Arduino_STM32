@@ -46,7 +46,7 @@ extern "C" {
  * execution. On overflow, restarts at 0.
  * @see micros()
  */
-static inline uint32 millis(void) {
+static inline uint32_t millis(void) {
     return systick_uptime();
 }
 
@@ -55,7 +55,7 @@ static inline uint32 millis(void) {
  * execution.  On overflow, restarts at 0.
  * @see millis()
  */
-static inline uint32 micros(void) {
+static inline uint32_t micros(void) {
     uint32 ms;
     uint32 cycle_cnt;
 
@@ -84,7 +84,7 @@ static inline uint32 micros(void) {
  * @param ms the number of milliseconds to delay.
  * @see delayMicroseconds()
  */
-void delay(unsigned long ms);
+void delay(uint32_t ms);
 
 /**
  * Delay for at least the given number of microseconds.
@@ -96,7 +96,7 @@ void delay(unsigned long ms);
  * @param us the number of microseconds to delay.
  * @see delay()
  */
-void delayMicroseconds(uint32 us);
+void delayMicroseconds(uint32_t us);
 
 #ifdef __cplusplus
 }
