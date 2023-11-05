@@ -362,13 +362,13 @@ void i2c_slave_enable(i2c_dev *dev, uint32 flags, uint32 freq)
  *         I2C_ERROR_PROTOCOL if there was a protocol error,
  *         I2C_ERROR_TIMEOUT if the transfer timed out.
  */
-int32 i2c_master_xfer(i2c_dev *dev,
+int8 i2c_master_xfer(i2c_dev *dev,
                       i2c_msg *msgs,
                       uint16 num,
                       uint32 timeout) {
     int32 rc;
 
-    ASSERT(dev->state == I2C_STATE_IDLE);
+//    ASSERT(dev->state == I2C_STATE_IDLE);
 
     if (num == 0) return 0;
 
@@ -409,8 +409,8 @@ int32 i2c_master_xfer(i2c_dev *dev,
         // with state changes in the IRQ handlers:
         dev->state = I2C_STATE_ERROR;
         if (rc == I2C_ERROR_TIMEOUT) dev->error_flags |= I2C_SR1_TIMEOUT;
-        if (!(dev->config_flags & I2C_SLAVE_MODE) &&
-            (dev->error_flags & (I2C_SR1_AF | I2C_SR1_BERR | I2C_SR1_TIMEOUT))
+        if (!(dev->config_flags & I2C_SLAVE_MODE) /*&&
+            (dev->error_flags & (I2C_SR1_AF | I2C_SR1_BERR | I2C_SR1_TIMEOUT))*/
             ) {    // In Master Mode, we need to abort the transmission with a STOP
                    // for NACK, Bus Error, or Timeout
             uint32 cr1;
@@ -441,7 +441,7 @@ int32 i2c_master_xfer(i2c_dev *dev,
  * @param timeout Timeout, in milliseconds
  * @return 0 if target state is reached, a negative value on error.
  */
-int32 wait_for_state_change(i2c_dev *dev,
+int8 wait_for_state_change(i2c_dev *dev,
                             i2c_state state,
                             uint32 timeout) {
     volatile i2c_state devState;

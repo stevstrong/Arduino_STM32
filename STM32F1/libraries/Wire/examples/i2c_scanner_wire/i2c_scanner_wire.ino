@@ -61,13 +61,12 @@ void Blink(void)
 //-----------------------------------------------------------------------------
 void setup()
 {
- delay(100);
- Wire.begin();
 	pinMode(LED_BUILTIN, OUTPUT);
 	digitalWrite(LED_BUILTIN, HIGH);
   Serial.begin(115200);
- // while (!Serial);
+ while (!Serial);
  delay(100);
+ Wire.begin();
   Serial.println("\nI2C Scanner");
 }
 
@@ -77,7 +76,7 @@ void loop()
   Serial.println("Scanning >>");
 
   uint8_t nDevices = 0;
-  for(uint8_t address = 0x76; address < 0x79; address++)
+  for(uint8_t address = 0x01; address < 0x79; address++)
   {
 	Blink();
     // The i2c_scanner uses the return value of
@@ -89,16 +88,15 @@ void loop()
     
     if (error == 0) {
       Serial.print("0x"); Serial.print(address, HEX);
-      Serial.print(" - OK");
+      Serial.println(" - OK");
       nDevices++;
     }
 //    else if (error == 4) {
 //      Serial.println(" - unknown error.");
 //    }
 	else {
-		//Serial.print(" ! Error: "); Serial.print(error);
+		//Serial.print(" ! Error: "); Serial.println(error);
 	}
-    Serial.println();
   }
   if (nDevices == 0)
     Serial.println("No I2C devices found");

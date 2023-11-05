@@ -225,8 +225,8 @@ void i2c_slave_enable(i2c_dev *dev, uint32 flags, uint32 freq);
 
 #define I2C_ERROR_PROTOCOL      (-1)
 #define I2C_ERROR_TIMEOUT       (-2)
-int32 i2c_master_xfer(i2c_dev *dev, i2c_msg *msgs, uint16 num, uint32 timeout);
-int32 wait_for_state_change(i2c_dev *dev, i2c_state state, uint32 timeout);
+int8 i2c_master_xfer(i2c_dev *dev, i2c_msg *msgs, uint16 num, uint32 timeout);
+int8 wait_for_state_change(i2c_dev *dev, i2c_state state, uint32 timeout);
 
 void i2c_bus_reset(const i2c_dev *dev);
 
