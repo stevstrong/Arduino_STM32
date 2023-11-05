@@ -134,7 +134,7 @@ static inline void nvic_irq_enable(nvic_irq_num irq_num) {
  * @brief Disable interrupt irq_num
  * @param irq_num Interrupt to disable
  */
-inline void nvic_irq_disable(nvic_irq_num irq_num) {
+static inline void nvic_irq_disable(nvic_irq_num irq_num) {
     if (irq_num < 0) {
         return;
     }
