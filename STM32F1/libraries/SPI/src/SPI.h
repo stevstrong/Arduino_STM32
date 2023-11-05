@@ -130,7 +130,7 @@ public:
             init_MightInline(clock, MSBFIRST, SPI_MODE0, SPI_DATA_SIZE_8BIT);
         }
     }
-    SPISettings() { init_AlwaysInline(4000000, MSBFIRST, SPI_MODE0, SPI_DATA_SIZE_8BIT); }
+    SPISettings() { init_AlwaysInline(40000000, MSBFIRST, SPI_MODE0, SPI_DATA_SIZE_8BIT); }
 
 private:
     uint32_t clock;
