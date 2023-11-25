@@ -21,9 +21,10 @@
  * Modified 23 November 2006 by David A. Mellis
  * Modified 12 April 2011 by Marti Bolivar <mbolivar@leaflabs.com>
  */
-
+#include <stdio.h>
+#include <stdarg.h>
 #include "Print.h"
-
+#include "usb_serial.h"
 #include "wirish_math.h"
 #include "limits.h"
 
@@ -335,5 +336,27 @@ size_t s=0;
         remainder -= to_print;
     }
 	return s;
+}
+
+static char buf[1024];
+
+void DBG_PRINTF(const char * format, ...)
+{
+    va_list ap;
+    va_start(ap, format);
+    vsprintf(buf, format, ap);
+    va_end(ap);
+    Serial.println(buf);
+    // delay(10);
+}
+
+void PRINTF(const char * format, ...)
+{
+    va_list ap;
+    va_start(ap, format);
+    vsprintf(buf, format, ap);
+    va_end(ap);
+    Serial.println(buf);
+    // delay(10);
 }
 
