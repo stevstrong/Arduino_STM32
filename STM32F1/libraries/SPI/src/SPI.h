@@ -139,16 +139,15 @@ private:
 public:
     spi_dev * spi_d;
     dma_dev * spiDmaDev;
-    voidFuncPtr dmaIsr;
     u32FuncPtr trxCallback;
     dma_channel spiRxDmaChannel, spiTxDmaChannel;
     volatile spi_mode_t state;
 private:
-    const void * dmaTxBuffer;
     uint16_t dmaTrxLength;
     uint8_t  dmaTrxAsync;
     BitOrder bitOrder;
     uint8_t dataMode;
+    uint8_t dev_index;
 
     friend class SPIClass;
 };
@@ -289,18 +288,18 @@ public:
      *
      * This function transmits and receives to buffers.
      *
-     * @param transmitBuf buffer Bytes to transmit. If passed as 0, it sends FF repeatedly for "length" bytes
-     * @param receiveBuf buffer Bytes to save received data. 
+     * @param txBuf buffer Bytes to transmit. If passed as 0, it sends FF repeatedly for "length" bytes
+     * @param rxBuf buffer Bytes to save received data. 
      * @param length Number of bytes in buffer to transmit.
      */
 private:
-    void dmaTransferSet(void * receiveBuf, uint16_t flags);
+    void dmaTransferSet(const void * txBuf, void * rxBuf, uint16_t flags);
     void dmaTransferRepeat();
 public:
-    void dmaTransferInit(const void * transmitBuf, void * receiveBuf, uint16_t length, uint16_t flags = 0);
-    void dmaTransferInit(const uint16_t tx_data, void * receiveBuf, uint16_t length, uint16_t flags = 0);
-    void dmaTransfer(const void * transmitBuf, void * receiveBuf, uint16_t length, uint16_t flags = 0);
-    void dmaTransfer(const uint16_t tx_data, void * receiveBuf, uint16_t length, uint16_t flags = 0);
+    void dmaTransferInit(const void * txBuf, void * rxBuf, uint16_t length, uint16_t flags = 0);
+    void dmaTransferInit(const uint16_t tx_data, void * rxBuf, uint16_t length, uint16_t flags = 0);
+    void dmaTransfer(const void * txBuf, void * rxBuf, uint16_t length, uint16_t flags = 0);
+    void dmaTransfer(const uint16_t tx_data, void * rxBuf, uint16_t length, uint16_t flags = 0);
     void dmaTransfer(void) { dmaTransferRepeat(); }
     uint8_t dmaTransferReady() { return (_currentSetting->state == SPI_STATE_READY) ? 1 : 0; }
     uint8_t dmaTransferState() { return (_currentSetting->state); }
@@ -319,15 +318,13 @@ public:
      * @param minc Set to use Memory Increment mode, clear to use Circular mode.
      */
 private:
-    void dmaSendSet(uint16_t flags);
+    void dmaSendSet(const void * txBuf, uint16_t flags);
     void dmaSendRepeat();
 public:
-    void dmaSendInit(const void * transmitBuf, uint16_t length, uint16_t flags = 0);
+    void dmaSendInit(const void * txBuf, uint16_t length, uint16_t flags = 0);
     void dmaSendInit(const uint16_t tx_dat, uint16_t length, uint16_t flags = 0);
-    void dmaSend(const void * transmitBuf, uint16_t length, uint16_t flags = 0);
+    void dmaSend(const void * txBuf, uint16_t length, uint16_t flags = 0);
     void dmaSend(const uint16_t tx_data, uint16_t length, uint16_t flags = 0);
-    void dmaSend(const void * transmitBuf);
-    void dmaSend(const uint16_t tx_data);
     void dmaSend(void) { dmaSendRepeat(); }
     uint8_t dmaSendReady() { return (_currentSetting->state == SPI_STATE_READY) ? 1 : 0; }
     uint16_t dmaSendRemaining(void) {

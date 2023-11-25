@@ -43,7 +43,7 @@
 #define DMA_TIMEOUT 100
 
 #define PRINTF(...)
-//#define PRINTF(...) Serial.print(__VA_ARGS__)
+// extern void PRINTF(const char *, ...);
 
 #if CYCLES_PER_MICROSECOND != 72
 /* TODO [0.2.0?] something smarter than this */
@@ -178,7 +178,7 @@ void spiEventCallback(uint32_t spi_num)
 
     if ( dmaChannel==(dma_channel)-1 )
     {
-        PRINTF("SPI event: wrong state="); PRINTF(crtSetting->state);
+        PRINTF("SPI event: wrong state = %u",crtSetting->state);
         return;
     }
 
@@ -217,6 +217,15 @@ void _spi2EventCallback(void) { spiEventCallback(1); }
 void _spi3EventCallback(void) { spiEventCallback(2); }
 #endif
 
+voidFuncPtr _spiEventCallbacks[] = {
+    _spi1EventCallback,
+#if BOARD_NR_SPI >= 2
+    _spi2EventCallback,
+#endif
+#if BOARD_NR_SPI >= 3
+    _spi3EventCallback,
+#endif
+};
 //-----------------------------------------------------------------------------
 //  Constructor
 //-----------------------------------------------------------------------------
@@ -232,28 +241,28 @@ SPIClass::SPIClass(uint32_t spi_num)
 	{
 		_settings[0].spi_d = SPI1;
 		_settings[0].spiDmaDev = DMA1;
-		_settings[0].dmaIsr = _spi1EventCallback;
 		_settings[0].clockDivider = determine_baud_rate(_settings[0].spi_d, _settings[0].clock);
 		_settings[0].spiRxDmaChannel = DMA_CH2;
 		_settings[0].spiTxDmaChannel = DMA_CH3;
 		_settings[0].state = SPI_STATE_IDLE;
+		_settings[0].dev_index = 0;
 #if BOARD_NR_SPI >= 2
 		_settings[1].spi_d = SPI2;
 		_settings[1].spiDmaDev = DMA1;
-		_settings[1].dmaIsr = _spi2EventCallback;
 		_settings[1].clockDivider = determine_baud_rate(_settings[1].spi_d, _settings[1].clock);
 		_settings[1].spiRxDmaChannel = DMA_CH4;
 		_settings[1].spiTxDmaChannel = DMA_CH5;
 		_settings[1].state = SPI_STATE_IDLE;
+		_settings[1].dev_index = 1;
 #endif
 #if BOARD_NR_SPI >= 3
 		_settings[2].spi_d = SPI3;
 		_settings[2].spiDmaDev = DMA2;
-		_settings[2].dmaIsr = _spi3EventCallback;
 		_settings[2].clockDivider = determine_baud_rate(_settings[2].spi_d, _settings[2].clock);
 		_settings[2].spiRxDmaChannel = DMA_CH1;
 		_settings[2].spiTxDmaChannel = DMA_CH2;
 		_settings[2].state = SPI_STATE_IDLE;
+		_settings[2].dev_index = 2;
 #endif
 	}
 }
@@ -348,20 +357,20 @@ SPI Mode    CPOL    CPHA    Shift SCK-edge  Capture SCK-edge
 1           0       1       Rising          Falling
 2           1       0       Rising          Falling
 3           1       1       Falling         Rising
- 
- 
+
+
 On the STM32 it appears to be
 
 bit 1 - CPOL : Clock polarity
     (This bit should not be changed when communication is ongoing)
     0 : CLK to 0 when idle
     1 : CLK to 1 when idle
- 
+
 bit 0 - CPHA : Clock phase
     (This bit should not be changed when communication is ongoing)
     0 : The first clock transition is the first data capture edge
     1 : The second clock transition is the first data capture edge
- 
+
 If someone finds this is not the case or sees a logic error with this let me know ;-) 
  */
     _currentSetting->dataMode = dataMode;
@@ -503,6 +512,7 @@ uint16_t SPIClass::transfer16(const uint16_t data) const
 
 void SPIClass::transfer(const uint8_t * tx_buf, uint8_t * rx_buf, uint32_t len)
 {
+    PRINTF("<trx-%u",len);
     if ( len == 0 ) return;
     spi_rx_reg(_currentSetting->spi_d);      // clear the RX buffer in case a byte is waiting on it.
     spi_reg_map * regs = _currentSetting->spi_d->regs;
@@ -510,16 +520,17 @@ void SPIClass::transfer(const uint8_t * tx_buf, uint8_t * rx_buf, uint32_t len)
     regs->DR = *tx_buf++;                    // write the first byte
     // main loop
     while ( (--len) ) {
-        while( !(regs->SR & SPI_SR_TXE) );   // wait for TXE flag
+        while( !(regs->SR & SPI_SR_TXE) ) yield();   // wait for TXE flag
         noInterrupts();                      // go atomic level - avoid interrupts to surely get the previously received data
         regs->DR = *tx_buf++;                // write the next data item to be transmitted into the SPI_DR register. This clears the TXE flag.
-        while ( !(regs->SR & SPI_SR_RXNE) ); // wait till data is available in the DR register
+        while ( !(regs->SR & SPI_SR_RXNE) ) yield(); // wait till data is available in the DR register
         *rx_buf++ = (uint8)(regs->DR);       // read and store the received byte. This clears the RXNE flag.
         interrupts();                        // let systick do its job
     }
     // read remaining last byte
     while ( !(regs->SR & SPI_SR_RXNE) );     // wait till data is available in the Rx register
     *rx_buf++ = (uint8)(regs->DR);           // read and store the received byte
+    PRINTF("-trx>");
 }
 
 void SPIClass::transfer(const uint8_t tx_data, uint8_t * rx_buf, uint32_t len)
@@ -611,16 +622,16 @@ void SPIClass::dmaWaitCompletion(void)
 
             if ((millis()-m)>DMA_TIMEOUT)
             {
-                PRINTF("DMA1 timeout");
+                PRINTF("DMA1 timeout, state: %u", _currentSetting->state);
                 //Serial.print("DMA timeout: "); Serial.println(_currentSetting->dmaTimeout);
-                PRINTF(", CCR2: "); PRINTF(DMA1->regs->CCR2, HEX);
-                PRINTF(", CCR3: "); PRINTF(DMA1->regs->CCR3, HEX);
-                PRINTF(", CNDTR2: "); PRINTF(DMA1->regs->CNDTR2);
-                PRINTF(", CNDTR3: "); PRINTF(DMA1->regs->CNDTR3);
-                PRINTF(", CCR4: "); PRINTF(DMA1->regs->CCR4, HEX);
-                PRINTF(", CCR5: "); PRINTF(DMA1->regs->CCR5, HEX);
-                PRINTF(", CNDTR4: "); PRINTF(DMA1->regs->CNDTR4);
-                PRINTF(", CNDTR5: "); PRINTF(DMA1->regs->CNDTR5);
+                PRINTF(", CCR2: %04x", DMA1->regs->CCR2);
+                PRINTF(", CCR3: %04x", DMA1->regs->CCR3);
+                PRINTF(", CNDTR2: %u", DMA1->regs->CNDTR2);
+                PRINTF(", CNDTR3: %u", DMA1->regs->CNDTR3);
+                PRINTF(", CCR4: %04x", DMA1->regs->CCR4);
+                PRINTF(", CCR5: %04x", DMA1->regs->CCR5);
+                PRINTF(", CNDTR4: %u", DMA1->regs->CNDTR4);
+                PRINTF(", CNDTR5: %u", DMA1->regs->CNDTR5);
                 PRINTF("\n");
                 // disable DMA
                 waitSpiTxEnd(_currentSetting->spi_d); // Wait until TXE=1 and then wait until BSY=0"
@@ -637,7 +648,7 @@ void SPIClass::dmaWaitCompletion(void)
     PRINTF("-dWC>");
 }
 //-----------------------------------------------------------------------------
-void SPIClass::dmaTransferSet(void *receiveBuf, uint16_t flags)
+void SPIClass::dmaTransferSet(const void *txBuf, void *rxBuf, uint16_t flags)
 {
     PRINTF("<dTS-");
     dmaWaitCompletion();
@@ -647,15 +658,15 @@ void SPIClass::dmaTransferSet(void *receiveBuf, uint16_t flags)
     // RX
     dma_setup_transfer(_currentSetting->spiDmaDev, _currentSetting->spiRxDmaChannel,
                        &_currentSetting->spi_d->regs->DR, dma_bit_size,
-                       receiveBuf, dma_bit_size,
+                       rxBuf, dma_bit_size,
                        (flags | DMA_MINC_MODE));
     dma_set_priority(_currentSetting->spiDmaDev, _currentSetting->spiRxDmaChannel, DMA_PRIORITY_VERY_HIGH);
-    if (!(flags&(DMA_TRNS_CMPLT|DMA_HALF_TRNS)) && _currentSetting->dmaIsr)
-        dma_attach_interrupt(_currentSetting->spiDmaDev, _currentSetting->spiRxDmaChannel, _currentSetting->dmaIsr);
+    if (flags&(DMA_TRNS_CMPLT|DMA_HALF_TRNS))
+        dma_attach_interrupt(_currentSetting->spiDmaDev, _currentSetting->spiRxDmaChannel, _spiEventCallbacks[_currentSetting->dev_index]);
     // TX
     dma_setup_transfer(_currentSetting->spiDmaDev, _currentSetting->spiTxDmaChannel,
                        &_currentSetting->spi_d->regs->DR, dma_bit_size,
-                       (void *)_currentSetting->dmaTxBuffer, dma_bit_size,
+                       (void*)txBuf, dma_bit_size,
                        (flags | DMA_FROM_MEM));
     dma_set_priority(_currentSetting->spiDmaDev, _currentSetting->spiTxDmaChannel, DMA_PRIORITY_HIGH);
     PRINTF("-dTS>");
@@ -671,7 +682,6 @@ void SPIClass::dmaTransferRepeat()
     dma_clear_isr_bits(_currentSetting->spiDmaDev, _currentSetting->spiRxDmaChannel);
     dma_enable(_currentSetting->spiDmaDev, _currentSetting->spiRxDmaChannel);
     // TX
-    dma_set_mem_addr(_currentSetting->spiDmaDev, _currentSetting->spiTxDmaChannel, (__IO void*)_currentSetting->dmaTxBuffer);
     dma_set_num_transfers(_currentSetting->spiDmaDev, _currentSetting->spiTxDmaChannel, _currentSetting->dmaTrxLength);
     dma_clear_isr_bits(_currentSetting->spiDmaDev, _currentSetting->spiTxDmaChannel);
     dma_enable(_currentSetting->spiDmaDev, _currentSetting->spiTxDmaChannel);
@@ -679,8 +689,8 @@ void SPIClass::dmaTransferRepeat()
     spi_rx_reg(_currentSetting->spi_d); // pre-empty Rx pipe
     spi_rx_dma_enable(_currentSetting->spi_d);
     spi_tx_dma_enable(_currentSetting->spi_d);
-    if (!_currentSetting->dmaTrxAsync)
-        dmaWaitCompletion();
+    // if (!_currentSetting->dmaTrxAsync)
+    //     dmaWaitCompletion();
     PRINTF("-dTR>");
 }
 
@@ -691,51 +701,47 @@ void SPIClass::dmaTransferRepeat()
 //  On exit TX buffer is not modified, and RX buffer contains the received data.
 //  Still in progress.
 //-----------------------------------------------------------------------------
-void SPIClass::dmaTransfer(const void *transmitBuf, void *receiveBuf, uint16_t length, uint16_t flags)
+void SPIClass::dmaTransfer(const void *txBuf, void *rxBuf, uint16_t length, uint16_t flags)
 {
     PRINTF("<dT-");
     dmaWaitCompletion();
-    _currentSetting->dmaTxBuffer = transmitBuf;
     _currentSetting->dmaTrxLength = length;
     _currentSetting->dmaTrxAsync = (flags&DMA_ASYNC);
-    dmaTransferSet(receiveBuf, (flags | DMA_MINC_MODE));
+    dmaTransferSet(txBuf, rxBuf, (flags | DMA_MINC_MODE));
     dmaTransferRepeat();
     PRINTF("-dT>\n");
 }
 //-----------------------------------------------------------------------------
-void SPIClass::dmaTransfer(const uint16_t tx_data, void *receiveBuf, uint16_t length, uint16_t flags)
+void SPIClass::dmaTransfer(const uint16_t tx_data, void *rxBuf, uint16_t length, uint16_t flags)
 {
     PRINTF("<dT-");
     dmaWaitCompletion();
     ff = tx_data;
-    _currentSetting->dmaTxBuffer = &ff;
     _currentSetting->dmaTrxLength = length;
     _currentSetting->dmaTrxAsync = (flags&DMA_ASYNC);
-    dmaTransferSet(receiveBuf, flags);
+    dmaTransferSet(&ff, rxBuf, flags);
     dmaTransferRepeat();
     PRINTF("-dT>\n");
 }
 //-----------------------------------------------------------------------------
-void SPIClass::dmaTransferInit(const void *transmitBuf, void *receiveBuf, uint16_t length, uint16_t flags)
+void SPIClass::dmaTransferInit(const void *txBuf, void *rxBuf, uint16_t length, uint16_t flags)
 {
     PRINTF("<dTI-");
     dmaWaitCompletion();
-    _currentSetting->dmaTxBuffer = transmitBuf;
     _currentSetting->dmaTrxLength = length;
     _currentSetting->dmaTrxAsync = (flags&DMA_ASYNC);
-    dmaTransferSet(receiveBuf, (flags | DMA_MINC_MODE));
+    dmaTransferSet(txBuf, rxBuf, (flags | DMA_MINC_MODE));
     PRINTF("-dTI>\n");
 }
 //-----------------------------------------------------------------------------
-void SPIClass::dmaTransferInit(const uint16_t tx_data, void *receiveBuf, uint16_t length, uint16_t flags)
+void SPIClass::dmaTransferInit(const uint16_t tx_data, void *rxBuf, uint16_t length, uint16_t flags)
 {
     PRINTF("<dTI-");
     dmaWaitCompletion();
     ff = tx_data;
-    _currentSetting->dmaTxBuffer = &ff;
     _currentSetting->dmaTrxLength = length;
     _currentSetting->dmaTrxAsync = (flags&DMA_ASYNC);
-    dmaTransferSet(receiveBuf, flags);
+    dmaTransferSet(&ff, rxBuf, flags);
     PRINTF("-dTI>\n");
 }
 
@@ -746,18 +752,20 @@ void SPIClass::dmaTransferInit(const uint16_t tx_data, void *receiveBuf, uint16_
 //  Still in progress.
 //  2016 - stevstrong - reworked to automatically detect bit size from SPI setting
 //-----------------------------------------------------------------------------
-void SPIClass::dmaSendSet(uint16_t flags)
+void SPIClass::dmaSendSet(const void * txBuf, uint16_t flags)
 {
     PRINTF("<dSS-");
     dmaWaitCompletion();
     dma_init(_currentSetting->spiDmaDev);
     dma_xfer_size dma_bit_size = (_currentSetting->dataSize==SPI_DATA_SIZE_16BIT) ? DMA_SIZE_16BITS : DMA_SIZE_8BITS;
+    if (!(flags&DMA_CIRC_MODE)) flags |= DMA_TRNS_CMPLT; // disable DMA after transfer
     dma_setup_transfer(_currentSetting->spiDmaDev, _currentSetting->spiTxDmaChannel,
                        &_currentSetting->spi_d->regs->DR, dma_bit_size,
-                       (void *)_currentSetting->dmaTxBuffer, dma_bit_size,
-                       (flags | (DMA_FROM_MEM | DMA_TRNS_CMPLT)));
+                       (void *)txBuf, dma_bit_size,
+                       (flags | DMA_FROM_MEM));
     dma_set_priority(_currentSetting->spiDmaDev, _currentSetting->spiTxDmaChannel, DMA_PRIORITY_LOW);
-    dma_attach_interrupt(_currentSetting->spiDmaDev, _currentSetting->spiTxDmaChannel, _currentSetting->dmaIsr);
+    if ((flags&(DMA_TRNS_CMPLT|DMA_HALF_TRNS)))
+        dma_attach_interrupt(_currentSetting->spiDmaDev, _currentSetting->spiTxDmaChannel, _spiEventCallbacks[_currentSetting->dev_index]);
     PRINTF("-dSS>");
 }
 //-----------------------------------------------------------------------------
@@ -766,7 +774,6 @@ void SPIClass::dmaSendRepeat(void)
     PRINTF("<dSR-");
     dmaWaitCompletion();
     _currentSetting->state = SPI_STATE_TRANSMIT;
-    dma_set_mem_addr(_currentSetting->spiDmaDev, _currentSetting->spiTxDmaChannel, (__IO void*)_currentSetting->dmaTxBuffer);
     dma_set_num_transfers(_currentSetting->spiDmaDev, _currentSetting->spiTxDmaChannel, _currentSetting->dmaTrxLength);
     dma_clear_isr_bits(_currentSetting->spiDmaDev, _currentSetting->spiTxDmaChannel);
     dma_enable(_currentSetting->spiDmaDev, _currentSetting->spiTxDmaChannel);
@@ -776,14 +783,13 @@ void SPIClass::dmaSendRepeat(void)
     PRINTF("-dSR>");
 }
 //-----------------------------------------------------------------------------
-void SPIClass::dmaSend(const void * transmitBuf, uint16_t length, uint16_t flags)
+void SPIClass::dmaSend(const void * txBuf, uint16_t length, uint16_t flags)
 {
     PRINTF("<dS-");
     dmaWaitCompletion();
-    _currentSetting->dmaTxBuffer = transmitBuf;
     _currentSetting->dmaTrxLength = length;
     _currentSetting->dmaTrxAsync = (flags&DMA_ASYNC);
-    dmaSendSet((flags&(DMA_CIRC_MODE|DMA_HALF_TRNS)) | DMA_MINC_MODE);
+    dmaSendSet(txBuf, flags | DMA_MINC_MODE);
     dmaSendRepeat();
     PRINTF("-dS>\n");
 }
@@ -792,29 +798,10 @@ void SPIClass::dmaSend(const uint16_t tx_data, uint16_t length, uint16_t flags)
 {
     PRINTF("<dS-");
     dmaWaitCompletion();
-    ff = tx_data;
-    _currentSetting->dmaTxBuffer = &ff;
     _currentSetting->dmaTrxLength = length;
     _currentSetting->dmaTrxAsync = (flags&DMA_ASYNC);
-    dmaSendSet(flags&(DMA_CIRC_MODE|DMA_HALF_TRNS));
-    dmaSendRepeat();
-    PRINTF("-dS>\n");
-}
-//-----------------------------------------------------------------------------
-void SPIClass::dmaSend(const void * transmitBuf)
-{
-    PRINTF("<dS-");
-    dmaWaitCompletion();
-    _currentSetting->dmaTxBuffer = transmitBuf;
-    dmaSendRepeat();
-    PRINTF("-dS>\n");
-}
-//-----------------------------------------------------------------------------
-void SPIClass::dmaSend(const uint16_t tx_data)
-{
-    PRINTF("<dS-");
-    dmaWaitCompletion();
     ff = tx_data;
+    dmaSendSet(&ff, flags);
     dmaSendRepeat();
     PRINTF("-dS>\n");
 }
@@ -822,21 +809,19 @@ void SPIClass::dmaSend(const uint16_t tx_data)
 void SPIClass::dmaSendInit(const void * txBuf, uint16_t length, uint16_t flags)
 {
     PRINTF("<dSI-");
-    _currentSetting->dmaTxBuffer = txBuf;
     _currentSetting->dmaTrxLength = length;
     _currentSetting->dmaTrxAsync = (flags&DMA_ASYNC);
-    dmaSendSet((flags&(DMA_CIRC_MODE|DMA_HALF_TRNS)) | DMA_MINC_MODE);
+    dmaSendSet(txBuf, flags | DMA_MINC_MODE);
     PRINTF("-dSI>\n");
 }
 //-----------------------------------------------------------------------------
 void SPIClass::dmaSendInit(const uint16_t tx_data, uint16_t length, uint16_t flags)
 {
     PRINTF("<dSI-");
-    ff = tx_data;
-    _currentSetting->dmaTxBuffer = &ff;
     _currentSetting->dmaTrxLength = length;
     _currentSetting->dmaTrxAsync = (flags&DMA_ASYNC);
-    dmaSendSet((flags&(DMA_CIRC_MODE|DMA_HALF_TRNS)));
+    ff = tx_data;
+    dmaSendSet(&ff, flags);
     PRINTF("-dSI>\n");
 }
 
