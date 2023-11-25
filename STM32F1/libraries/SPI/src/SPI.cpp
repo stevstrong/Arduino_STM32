@@ -642,20 +642,22 @@ void SPIClass::dmaTransferSet(void *receiveBuf, uint16_t flags)
     PRINTF("<dTS-");
     dmaWaitCompletion();
     dma_init(_currentSetting->spiDmaDev);
+    if (!(flags&DMA_CIRC_MODE)) flags |= DMA_TRNS_CMPLT; // disable DMA after transfer
     dma_xfer_size dma_bit_size = (_currentSetting->dataSize==SPI_DATA_SIZE_16BIT) ? DMA_SIZE_16BITS : DMA_SIZE_8BITS;
     // RX
     dma_setup_transfer(_currentSetting->spiDmaDev, _currentSetting->spiRxDmaChannel,
                        &_currentSetting->spi_d->regs->DR, dma_bit_size,
                        receiveBuf, dma_bit_size,
-                       (flags | DMA_MINC_MODE|DMA_TRNS_CMPLT));
+                       (flags | DMA_MINC_MODE));
     dma_set_priority(_currentSetting->spiDmaDev, _currentSetting->spiRxDmaChannel, DMA_PRIORITY_VERY_HIGH);
-    dma_attach_interrupt(_currentSetting->spiDmaDev, _currentSetting->spiRxDmaChannel, _currentSetting->dmaIsr);
+    if (!(flags&(DMA_TRNS_CMPLT|DMA_HALF_TRNS)) && _currentSetting->dmaIsr)
+        dma_attach_interrupt(_currentSetting->spiDmaDev, _currentSetting->spiRxDmaChannel, _currentSetting->dmaIsr);
     // TX
     dma_setup_transfer(_currentSetting->spiDmaDev, _currentSetting->spiTxDmaChannel,
                        &_currentSetting->spi_d->regs->DR, dma_bit_size,
                        (void *)_currentSetting->dmaTxBuffer, dma_bit_size,
                        (flags | DMA_FROM_MEM));
-    dma_set_priority(_currentSetting->spiDmaDev, _currentSetting->spiTxDmaChannel, DMA_PRIORITY_LOW);
+    dma_set_priority(_currentSetting->spiDmaDev, _currentSetting->spiTxDmaChannel, DMA_PRIORITY_HIGH);
     PRINTF("-dTS>");
 }
 //-----------------------------------------------------------------------------
@@ -696,7 +698,7 @@ void SPIClass::dmaTransfer(const void *transmitBuf, void *receiveBuf, uint16_t l
     _currentSetting->dmaTxBuffer = transmitBuf;
     _currentSetting->dmaTrxLength = length;
     _currentSetting->dmaTrxAsync = (flags&DMA_ASYNC);
-    dmaTransferSet(receiveBuf, (flags&(DMA_CIRC_MODE|DMA_HALF_TRNS)) | DMA_MINC_MODE);
+    dmaTransferSet(receiveBuf, (flags | DMA_MINC_MODE));
     dmaTransferRepeat();
     PRINTF("-dT>\n");
 }
@@ -709,7 +711,7 @@ void SPIClass::dmaTransfer(const uint16_t tx_data, void *receiveBuf, uint16_t le
     _currentSetting->dmaTxBuffer = &ff;
     _currentSetting->dmaTrxLength = length;
     _currentSetting->dmaTrxAsync = (flags&DMA_ASYNC);
-    dmaTransferSet(receiveBuf, (flags&(DMA_CIRC_MODE|DMA_HALF_TRNS)));
+    dmaTransferSet(receiveBuf, flags);
     dmaTransferRepeat();
     PRINTF("-dT>\n");
 }
@@ -721,7 +723,7 @@ void SPIClass::dmaTransferInit(const void *transmitBuf, void *receiveBuf, uint16
     _currentSetting->dmaTxBuffer = transmitBuf;
     _currentSetting->dmaTrxLength = length;
     _currentSetting->dmaTrxAsync = (flags&DMA_ASYNC);
-    dmaTransferSet(receiveBuf, (flags&(DMA_CIRC_MODE|DMA_HALF_TRNS)) | DMA_MINC_MODE);
+    dmaTransferSet(receiveBuf, (flags | DMA_MINC_MODE));
     PRINTF("-dTI>\n");
 }
 //-----------------------------------------------------------------------------
@@ -733,7 +735,7 @@ void SPIClass::dmaTransferInit(const uint16_t tx_data, void *receiveBuf, uint16_
     _currentSetting->dmaTxBuffer = &ff;
     _currentSetting->dmaTrxLength = length;
     _currentSetting->dmaTrxAsync = (flags&DMA_ASYNC);
-    dmaTransferSet(receiveBuf, (flags&(DMA_CIRC_MODE|DMA_HALF_TRNS)));
+    dmaTransferSet(receiveBuf, flags);
     PRINTF("-dTI>\n");
 }
 
