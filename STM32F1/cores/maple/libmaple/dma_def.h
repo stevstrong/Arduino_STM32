@@ -541,7 +541,7 @@ void dma_setup_transfer(dma_dev       *dev,
                         dma_channel    channel,
                         __IO void     *peripheral_address,
                         dma_xfer_size  peripheral_size,
-                        __IO void     *memory_address,
+                        void          *memory_address,
                         dma_xfer_size  memory_size,
                         uint32         mode);
 
