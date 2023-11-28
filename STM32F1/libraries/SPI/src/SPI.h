@@ -375,9 +375,10 @@ public:
     *        or 1-3 in high density devices.
     */
     void setModule(int spi_num)
-    {
-        _currentSetting=&_settings[spi_num-1];// SPI channels are called 1 2 and 3 but the array is zero indexed
+    { // SPI channels are called 1 2 and 3 but the array is zero indexed
+        _currentSetting = &_settings[spi_num-1];
     }
+    uint8_t getModule(void) { return _currentSetting->dev_index + 1; }
 
     /* -- The following methods are deprecated --------------------------- */
 
