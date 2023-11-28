@@ -42,8 +42,11 @@
 /** Time in ms for DMA receive timeout */
 #define DMA_TIMEOUT 100
 
+#if 0 // debug
+extern void PRINTF(const char *, ...);
+#else
 #define PRINTF(...)
-// extern void PRINTF(const char *, ...);
+#endif
 
 #if CYCLES_PER_MICROSECOND != 72
 /* TODO [0.2.0?] something smarter than this */
@@ -271,8 +274,11 @@ SPIClass::SPIClass(uint32_t spi_num)
 //  Set up/tear down
 //-----------------------------------------------------------------------------
 void SPIClass::updateSettings(void) {
-    uint32_t flags = ((_currentSetting->bitOrder == MSBFIRST ? SPI_FRAME_MSB : SPI_FRAME_LSB) | _currentSetting->dataSize | SPI_SW_SLAVE | SPI_SOFT_SS);
-    spi_master_enable(_currentSetting->spi_d, (spi_baud_rate)_currentSetting->clockDivider, (spi_mode)_currentSetting->dataMode, flags);
+    uint32_t flags = (
+        (_currentSetting->bitOrder == MSBFIRST ? SPI_FRAME_MSB : SPI_FRAME_LSB) |
+        _currentSetting->dataSize | SPI_SW_SLAVE | SPI_SOFT_SS);
+    spi_master_enable(_currentSetting->spi_d, (spi_baud_rate)_currentSetting->clockDivider,
+        (spi_mode)_currentSetting->dataMode, flags);
 }
 
 void SPIClass::begin(void)
@@ -291,7 +297,8 @@ void SPIClass::beginSlave(void)
     PRINTF("<bS-");
     spi_init(_currentSetting->spi_d);
     configure_gpios(_currentSetting->spi_d, 0);
-    uint32_t flags = ((_currentSetting->bitOrder == MSBFIRST ? SPI_FRAME_MSB : SPI_FRAME_LSB) | _currentSetting->dataSize);
+    uint32_t flags = 
+        ((_currentSetting->bitOrder == MSBFIRST ? SPI_FRAME_MSB : SPI_FRAME_LSB) | _currentSetting->dataSize);
     spi_slave_enable(_currentSetting->spi_d, (spi_mode)_currentSetting->dataMode, flags);
     // added for DMA callbacks.
     _currentSetting->state = SPI_STATE_READY;
@@ -424,8 +431,9 @@ void SPIClass::read(uint8_t *buf, uint32_t len)
     // main loop
     while ( (--len) ) {
         while( !(regs->SR & SPI_SR_TXE) );   // wait for TXE flag
-        noInterrupts();                      // go atomic level - avoid interrupts to surely get the previously received data
-        regs->DR = 0x00FF;                   // write the next data item to be transmitted into the SPI_DR register. This clears the TXE flag.
+        noInterrupts();                      // avoid interrupts to surely get the previously received data
+        regs->DR = 0x00FF;                   // write the next data item to be transmitted into the SPI_DR register.
+                                             // This clears the TXE flag.
         while ( !(regs->SR & SPI_SR_RXNE) ); // wait till data is available in the DR register
         *buf++ = (uint8)(regs->DR);          // read and store the received byte. This clears the RXNE flag.
         interrupts();                        // let systick do its job
@@ -441,8 +449,8 @@ void SPIClass::read(uint8_t *buf, uint32_t len)
 //  This almost doubles the speed of this function.
 //-----------------------------------------------------------------------------
 void SPIClass::write(const uint16_t data)
-{
-    spi_tx_reg(_currentSetting->spi_d, data); // write the data to be transmitted into the SPI_DR register (this clears the TXE flag)
+{   // write the data to be transmitted into the SPI_DR register (this clears the TXE flag)
+    spi_tx_reg(_currentSetting->spi_d, data);
     waitSpiTxEnd(_currentSetting->spi_d);
 }
 //-----------------------------------------------------------------------------
@@ -520,10 +528,11 @@ void SPIClass::transfer(const uint8_t * tx_buf, uint8_t * rx_buf, uint32_t len)
     regs->DR = *tx_buf++;                    // write the first byte
     // main loop
     while ( (--len) ) {
-        while( !(regs->SR & SPI_SR_TXE) ) yield();   // wait for TXE flag
-        noInterrupts();                      // go atomic level - avoid interrupts to surely get the previously received data
-        regs->DR = *tx_buf++;                // write the next data item to be transmitted into the SPI_DR register. This clears the TXE flag.
-        while ( !(regs->SR & SPI_SR_RXNE) ) yield(); // wait till data is available in the DR register
+        while ( !(regs->SR & SPI_SR_TXE) );  // wait for TXE flag
+        noInterrupts();                      // avoid interrupts to surely get the previously received data
+        regs->DR = *tx_buf++;                // write the next data item to be transmitted into the SPI_DR register.
+                                             // This clears the TXE flag.
+        while ( !(regs->SR & SPI_SR_RXNE) ); // wait till data is available in the DR register
         *rx_buf++ = (uint8)(regs->DR);       // read and store the received byte. This clears the RXNE flag.
         interrupts();                        // let systick do its job
     }
@@ -543,8 +552,9 @@ void SPIClass::transfer(const uint8_t tx_data, uint8_t * rx_buf, uint32_t len)
     // main loop
     while ( (--len) ) {
         while( !(regs->SR & SPI_SR_TXE) );   // wait for TXE flag
-        noInterrupts();                      // go atomic level - avoid interrupts to surely get the previously received data
-        regs->DR = tx_data;                  // write the next data item to be transmitted into the SPI_DR register. This clears the TXE flag.
+        noInterrupts();                      // avoid interrupts to surely get the previously received data
+        regs->DR = tx_data;                  // write the next data item to be transmitted into the SPI_DR register.
+                                             // This clears the TXE flag.
         while ( !(regs->SR & SPI_SR_RXNE) ); // wait till data is available in the DR register
         *rx_buf++ = (uint8)(regs->DR);       // read and store the received byte. This clears the RXNE flag.
         interrupts();                        // let systick do its job
@@ -564,8 +574,9 @@ void SPIClass::transfer(const uint16_t * tx_buf, uint16_t * rx_buf, uint32_t len
     // main loop
     while ( (--len) ) {
         while( !(regs->SR & SPI_SR_TXE) );   // wait for TXE flag
-        noInterrupts();                      // go atomic level - avoid interrupts to surely get the previously received data
-        regs->DR = *tx_buf++;                // write the next data item to be transmitted into the SPI_DR register. This clears the TXE flag.
+        noInterrupts();                      // avoid interrupts to surely get the previously received data
+        regs->DR = *tx_buf++;                // write the next data item to be transmitted into the SPI_DR register.
+                                             // This clears the TXE flag.
         while ( !(regs->SR & SPI_SR_RXNE) ); // wait till data is available in the DR register
         *rx_buf++ = regs->DR;                // read and store the received byte. This clears the RXNE flag.
         interrupts();                        // let systick do its job
@@ -585,8 +596,9 @@ void SPIClass::transfer(const uint16_t tx_data, uint16_t * rx_buf, uint32_t len)
     // main loop
     while ( (--len) ) {
         while( !(regs->SR & SPI_SR_TXE) );   // wait for TXE flag
-        noInterrupts();                      // go atomic level - avoid interrupts to surely get the previously received data
-        regs->DR = tx_data;                  // write the next data item to be transmitted into the SPI_DR register. This clears the TXE flag.
+        noInterrupts();                      // avoid interrupts to surely get the previously received data
+        regs->DR = tx_data;                  // write the next data item to be transmitted into the SPI_DR register.
+                                             // This clears the TXE flag.
         while ( !(regs->SR & SPI_SR_RXNE) ); // wait till data is available in the DR register
         *rx_buf++ = regs->DR;                // read and store the received byte. This clears the RXNE flag.
         interrupts();                        // let systick do its job
@@ -613,7 +625,7 @@ void SPIClass::transfer(const uint16_t tx_data, uint16_t * rx_buf, uint32_t len)
 void SPIClass::dmaWaitCompletion(void)
 {
     PRINTF("<dWC-");
-    if (_currentSetting->state != SPI_STATE_READY)
+    if (spi_is_master(_currentSetting->spi_d) && _currentSetting->state != SPI_STATE_READY)
     {
         uint32_t m = millis();
         while ( _currentSetting->state != SPI_STATE_READY )
@@ -653,7 +665,8 @@ void SPIClass::dmaTransferSet(const void *txBuf, void *rxBuf, uint16_t flags)
     PRINTF("<dTS-");
     dmaWaitCompletion();
     dma_init(_currentSetting->spiDmaDev);
-    if (!(flags&DMA_CIRC_MODE)) flags |= DMA_TRNS_CMPLT; // disable DMA after transfer
+    if (spi_is_master(_currentSetting->spi_d) && !(flags&DMA_CIRC_MODE))
+        flags |= DMA_TRNS_CMPLT; // disable DMA after transfer
     dma_xfer_size dma_bit_size = (_currentSetting->dataSize==SPI_DATA_SIZE_16BIT) ? DMA_SIZE_16BITS : DMA_SIZE_8BITS;
     // RX
     dma_setup_transfer(_currentSetting->spiDmaDev, _currentSetting->spiRxDmaChannel,
@@ -662,13 +675,14 @@ void SPIClass::dmaTransferSet(const void *txBuf, void *rxBuf, uint16_t flags)
                        (flags | DMA_MINC_MODE));
     dma_set_priority(_currentSetting->spiDmaDev, _currentSetting->spiRxDmaChannel, DMA_PRIORITY_VERY_HIGH);
     if (flags&(DMA_TRNS_CMPLT|DMA_HALF_TRNS))
-        dma_attach_interrupt(_currentSetting->spiDmaDev, _currentSetting->spiRxDmaChannel, _spiEventCallbacks[_currentSetting->dev_index]);
+        dma_attach_interrupt(_currentSetting->spiDmaDev, _currentSetting->spiRxDmaChannel,
+            _spiEventCallbacks[_currentSetting->dev_index]);
     // TX
     dma_setup_transfer(_currentSetting->spiDmaDev, _currentSetting->spiTxDmaChannel,
                        &_currentSetting->spi_d->regs->DR, dma_bit_size,
                        (void*)txBuf, dma_bit_size,
                        (flags | DMA_FROM_MEM));
-    dma_set_priority(_currentSetting->spiDmaDev, _currentSetting->spiTxDmaChannel, DMA_PRIORITY_HIGH);
+    dma_set_priority(_currentSetting->spiDmaDev, _currentSetting->spiTxDmaChannel, DMA_PRIORITY_VERY_HIGH);
     PRINTF("-dTS>");
 }
 //-----------------------------------------------------------------------------
@@ -689,8 +703,8 @@ void SPIClass::dmaTransferRepeat()
     spi_rx_reg(_currentSetting->spi_d); // pre-empty Rx pipe
     spi_rx_dma_enable(_currentSetting->spi_d);
     spi_tx_dma_enable(_currentSetting->spi_d);
-    // if (!_currentSetting->dmaTrxAsync)
-    //     dmaWaitCompletion();
+    if (!_currentSetting->dmaTrxAsync) // wait for trx completion if async flag is not set
+        dmaWaitCompletion();
     PRINTF("-dTR>");
 }
 
@@ -765,7 +779,8 @@ void SPIClass::dmaSendSet(const void * txBuf, uint16_t flags)
                        (flags | DMA_FROM_MEM));
     dma_set_priority(_currentSetting->spiDmaDev, _currentSetting->spiTxDmaChannel, DMA_PRIORITY_LOW);
     if ((flags&(DMA_TRNS_CMPLT|DMA_HALF_TRNS)))
-        dma_attach_interrupt(_currentSetting->spiDmaDev, _currentSetting->spiTxDmaChannel, _spiEventCallbacks[_currentSetting->dev_index]);
+        dma_attach_interrupt(_currentSetting->spiDmaDev, _currentSetting->spiTxDmaChannel,
+            _spiEventCallbacks[_currentSetting->dev_index]);
     PRINTF("-dSS>");
 }
 //-----------------------------------------------------------------------------
