@@ -294,13 +294,13 @@ public:
      */
 private:
     void dmaTransferSet(const void * txBuf, void * rxBuf, uint16_t flags);
-    void dmaTransferRepeat();
+    void dmaTransferRepeat(void * tx_buf = nullptr, void * rx_buf = nullptr);
 public:
     void dmaTransferInit(const void * txBuf, void * rxBuf, uint16_t length, uint16_t flags = 0);
     void dmaTransferInit(const uint16_t tx_data, void * rxBuf, uint16_t length, uint16_t flags = 0);
     void dmaTransfer(const void * txBuf, void * rxBuf, uint16_t length, uint16_t flags = 0);
     void dmaTransfer(const uint16_t tx_data, void * rxBuf, uint16_t length, uint16_t flags = 0);
-    void dmaTransfer(void) { dmaTransferRepeat(); }
+    void dmaTransfer(void * txBuf = 0, void * rxBuf = 0) { dmaTransferRepeat(txBuf, rxBuf); }
     uint8_t dmaTransferReady() { return (_currentSetting->state == SPI_STATE_READY) ? 1 : 0; }
     uint8_t dmaTransferState() { return (_currentSetting->state); }
     uint16_t dmaTransferRemaining(void) {

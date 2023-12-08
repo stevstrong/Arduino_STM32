@@ -686,16 +686,20 @@ void SPIClass::dmaTransferSet(const void *txBuf, void *rxBuf, uint16_t flags)
     PRINTF("-dTS>");
 }
 //-----------------------------------------------------------------------------
-void SPIClass::dmaTransferRepeat()
+void SPIClass::dmaTransferRepeat(void * txBuf, void * rxBuf)
 {
     PRINTF("<dTR-");
     dmaWaitCompletion();
     _currentSetting->state = SPI_STATE_RECEIVE;
     // RX
+    if (rxBuf)
+        dma_set_mem_addr(_currentSetting->spiDmaDev, _currentSetting->spiRxDmaChannel, rxBuf);
     dma_set_num_transfers(_currentSetting->spiDmaDev, _currentSetting->spiRxDmaChannel, _currentSetting->dmaTrxLength);
     dma_clear_isr_bits(_currentSetting->spiDmaDev, _currentSetting->spiRxDmaChannel);
     dma_enable(_currentSetting->spiDmaDev, _currentSetting->spiRxDmaChannel);
     // TX
+    if (txBuf)
+        dma_set_mem_addr(_currentSetting->spiDmaDev, _currentSetting->spiTxDmaChannel, txBuf);
     dma_set_num_transfers(_currentSetting->spiDmaDev, _currentSetting->spiTxDmaChannel, _currentSetting->dmaTrxLength);
     dma_clear_isr_bits(_currentSetting->spiDmaDev, _currentSetting->spiTxDmaChannel);
     dma_enable(_currentSetting->spiDmaDev, _currentSetting->spiTxDmaChannel);
