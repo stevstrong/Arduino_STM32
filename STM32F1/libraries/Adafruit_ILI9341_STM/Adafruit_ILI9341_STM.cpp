@@ -99,7 +99,7 @@ void Adafruit_ILI9341_STM::begin(SPIClass & spi, uint32_t freq)
   Serial.print(buf[0], HEX);
   Serial.print(buf[1], HEX);
   Serial.print(buf[2], HEX);
-  Serial.print(buf[3], HEX);
+  Serial.println(buf[3], HEX);
   /*
   uint8_t x = readcommand8(ILI9341_RDMADCTL);
   Serial.print("\nMADCTL Mode: 0x"); Serial.println(x, HEX);
@@ -497,29 +497,6 @@ void Adafruit_ILI9341_STM::vertScrollSetArea(uint16_t top, uint16_t bottom)
     WriteCmdDataN(ILI9341_VSCRDEF, 6, d);
 }
 
-void Adafruit_ILI9341_STM::vertScroll_old(int16_t top, int16_t scrollines, int16_t offset)
-{
-    if (offset <= -scrollines || offset >= scrollines) offset = 0; //valid scroll
-    int16_t bfa = HEIGHT - top - scrollines;  // bottom fixed area
-  	int16_t vsp = top + offset; // vertical start position
-    if (offset < 0)
-        vsp += scrollines;  //keep in unsigned range
-    int16_t sea = top + scrollines - 1;
-    uint8_t d[6];           // for multi-byte parameters
-    d[0] = top >> 8;        //TFA
-    d[1] = top;
-    d[2] = scrollines >> 8; //VSA
-    d[3] = scrollines;
-    d[4] = bfa >> 8;        //BFA
-    d[5] = bfa;
-    WriteCmdDataN(ILI9341_VSCRDEF, 6, d);
-		d[0] = vsp >> 8;        //VSP
-    d[1] = vsp;
-    WriteCmdDataN(ILI9341_VSCRADD, 2, d);
-		if (offset == 0) {
-			// WriteCmdDataN(0x13, 0, NULL);    //NORMAL i.e. disable scroll
-		}
-}
 
 
 #define MADCTL_MY  0x80

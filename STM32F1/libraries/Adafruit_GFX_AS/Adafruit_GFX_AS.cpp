@@ -74,7 +74,8 @@ int16_t Adafruit_GFX_AS::drawUnicode(uint16_t uniCode, int16_t x, int16_t y, int
 
    uint16_t width = 0;
    uint16_t height = 0;
-   uint32_t flash_address = 0;
+  //  uint32_t flash_address = 0;
+   const uint8_t * flash_address = nullptr;
    int16_t gap = 0;
 
 //   if (size == 1) {
@@ -85,7 +86,7 @@ int16_t Adafruit_GFX_AS::drawUnicode(uint16_t uniCode, int16_t x, int16_t y, int
 //   }
 #ifdef LOAD_FONT2
    if (size == 2) {
-     flash_address = pgm_read_dword(&chrtbl_f16[uniCode]);
+     flash_address = chrtbl_f16[uniCode];
      width = pgm_read_byte(widtbl_f16+uniCode);
      height = chr_hgt_f16;
      gap = 1;
@@ -99,7 +100,7 @@ int16_t Adafruit_GFX_AS::drawUnicode(uint16_t uniCode, int16_t x, int16_t y, int
 //   }
 #ifdef LOAD_FONT4
    if (size == 4) {
-     flash_address = pgm_read_dword(&chrtbl_f32[uniCode]);
+     flash_address = chrtbl_f32[uniCode];
      width = pgm_read_byte(widtbl_f32+uniCode);
      height = chr_hgt_f32;
      gap = -3;
@@ -113,7 +114,7 @@ int16_t Adafruit_GFX_AS::drawUnicode(uint16_t uniCode, int16_t x, int16_t y, int
 //   }
 #ifdef LOAD_FONT6
    if (size == 6) {
-     flash_address = pgm_read_dword(&chrtbl_f64[uniCode]);
+     flash_address = chrtbl_f64[uniCode];
      width = pgm_read_byte(widtbl_f64+uniCode);
      height = chr_hgt_f64;
      gap = -3;
@@ -121,7 +122,7 @@ int16_t Adafruit_GFX_AS::drawUnicode(uint16_t uniCode, int16_t x, int16_t y, int
 #endif
 #ifdef LOAD_FONT7
    if (size == 7) {
-     flash_address = pgm_read_dword(&chrtbl_f7s[uniCode]);
+     flash_address = chrtbl_f7s[uniCode];
      width = pgm_read_byte(widtbl_f7s+uniCode);
      height = chr_hgt_f7s;
      gap = 2;
@@ -131,7 +132,7 @@ int16_t Adafruit_GFX_AS::drawUnicode(uint16_t uniCode, int16_t x, int16_t y, int
 int16_t w = (width+7)/8;
 int16_t pX      = 0;
 int16_t pY      = y;
-int16_t color   = 0;
+// int16_t color   = 0; // unused
 byte line = 0;
 
 //fillRect(x,pY,width+gap,height,textbgcolor);
@@ -208,8 +209,8 @@ int16_t Adafruit_GFX_AS::drawString(char *string, int16_t poX, int16_t poY, int1
     {
         int16_t xPlus = drawChar(*string, poX, poY, size);
         sumX += xPlus;
-        *string++;
         poX += xPlus;                            /* Move cursor right       */
+        string++;
     }
     return sumX;
 }
@@ -244,7 +245,7 @@ int16_t Adafruit_GFX_AS::drawCentreString(char *string, int16_t dX, int16_t poY,
 #ifdef LOAD_FONT7
         if (size==7) len += pgm_read_byte(widtbl_f7s+ascii-32)+2;
 #endif
-        *pointer++;
+        pointer++;
     }
     len = len*textsize;
     int16_t poX = dX - len/2;
@@ -256,8 +257,8 @@ int16_t Adafruit_GFX_AS::drawCentreString(char *string, int16_t dX, int16_t poY,
         
         int16_t xPlus = drawChar(*string, poX, poY, size);
         sumX += xPlus;
-        *string++;
         poX += xPlus;                  /* Move cursor right            */
+        string++;
     }
     
     return sumX;
@@ -294,7 +295,7 @@ int16_t Adafruit_GFX_AS::drawRightString(char *string, int16_t dX, int16_t poY, 
 #ifdef LOAD_FONT7
         if (size==7) len += pgm_read_byte(widtbl_f7s+ascii-32)+2;
 #endif
-        *pointer++;
+        pointer++;
     }
     
     len = len*textsize;
@@ -307,8 +308,8 @@ int16_t Adafruit_GFX_AS::drawRightString(char *string, int16_t dX, int16_t poY, 
         
         int16_t xPlus = drawChar(*string, poX, poY, size);
         sumX += xPlus;
-        *string++;
         poX += xPlus;          /* Move cursor right            */
+        string++;
     }
     
     return sumX;
