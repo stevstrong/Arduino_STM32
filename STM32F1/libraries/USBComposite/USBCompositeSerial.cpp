@@ -21,6 +21,7 @@
 #include <libmaple/nvic.h>
 #include <string.h>
 #include <libmaple/iwdg.h>
+#include <libmaple/bkp.h>
 
 #include "usb_composite_serial.h"
 
@@ -238,6 +239,12 @@ static void rxHook(unsigned hook, void *ignored) {
             }
 
             // Got the magic sequence -> reset, presumably into the bootloader.
+            // Write 0x424C to backup register 0x0A to tell the bootloader to wait
+            bkp_init();
+            bkp_enable_writes();
+            bkp_write(0x0a,0x424c);
+            bkp_disable_writes();
+
             // Return address is wait_reset, but we must set the thumb bit.
             uintptr_t target = (uintptr_t)wait_reset | 0x1;
             asm volatile("mov r0, %[stack_top]      \n\t" // Reset stack

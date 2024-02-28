@@ -218,5 +218,3 @@ void timer_default_config(timer_dev *dev)
     timer_generate_update(dev);
     timer_resume(dev);
 }
-
-#endif
