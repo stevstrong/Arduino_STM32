@@ -439,6 +439,7 @@ typedef enum rcc_clk_id {
     RCC_TIMER12,
     RCC_TIMER13,
     RCC_TIMER14,
+    RCC_CAN,
 } rcc_clk_id;
 
 /**
