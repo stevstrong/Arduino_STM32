@@ -11,3 +11,5 @@ other/maple-bootloader/*~
 platform.local.txt
 boards.local.txt
 *.sloeber.txt
+build/
+.vscode/
