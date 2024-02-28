@@ -163,6 +163,39 @@ extern timer_dev timer14;
 #endif
 
 extern timer_dev * const timer_devs[];
+#if 0
+/*
+ * Device pointers
+ *
+ * We only declare device pointers to timers which actually exist on
+ * the target MCU. This helps when porting programs to STM32F1 (or
+ * within F1 to a lower density MCU), as attempts to use nonexistent
+ * timers cause build errors instead of undefined behavior.
+ */
+
+struct timer_dev;
+
+extern struct timer_dev *const TIMER1;
+extern struct timer_dev *const TIMER2;
+extern struct timer_dev *const TIMER3;
+extern struct timer_dev *const TIMER4;
+#if defined(STM32_HIGH_DENSITY) || defined(STM32_XL_DENSITY)
+extern struct timer_dev *const TIMER5;
+extern struct timer_dev *const TIMER6;
+extern struct timer_dev *const TIMER7;
+extern struct timer_dev *const TIMER8;
+#endif
+#ifdef STM32_XL_DENSITY
+extern struct timer_dev *const TIMER9;
+extern struct timer_dev *const TIMER10;
+extern struct timer_dev *const TIMER11;
+extern struct timer_dev *const TIMER12;
+extern struct timer_dev *const TIMER13;
+extern struct timer_dev *const TIMER14;
+#endif
+#endif
+
+
 /*
  * Register bit definitions
  */
@@ -571,6 +604,7 @@ void timer_init(timer_dev *dev);
 void timer_disable(timer_dev *dev);
 void timer_set_mode(timer_dev *dev, uint8 channel, timer_mode mode);
 void timer_foreach(void (*fn)(timer_dev*));
+void timer_default_config(timer_dev *dev);
 int timer_has_cc_channel(timer_dev *dev, uint8 channel);
 
 /**

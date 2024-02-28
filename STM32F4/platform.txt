@@ -31,10 +31,9 @@ compiler.define=-DARDUINO=
 
 # this can be overriden in boards.txt
 build.mcu=cortex-m4
-build.cpu_flags=
-build.hs_flag=
+build.cpu_flags=-mfloat-abi=hard -mfpu=fpv4-sp-d16 -fsingle-precision-constant -D__FPU_PRESENT=1
+build.usb_flag=
 build.common_flags=-mthumb -D__STM32F4__ -DSTM32F4
-build.extra_flags= {build.cpu_flags} {build.hs_flag} {build.common_flags}
 build.flags.optimize=-Os
 build.flags.ldspecs=
 
@@ -42,9 +41,9 @@ build.flags.ldspecs=
 compiler.c.extra_flags=
 #compiler.combine.flags=-u _printf_float -u _sbrk -u link -u _close -u _fstat -u _isatty -u _lseek -u _read -u _write -u _exit -u kill -u _getpid
 compiler.combine.flags=
-#compiler.c.elf.extra_flags="-L{build.variant.path}/ld" -specs=nosys.specs -specs=nano.specs {compiler.combine.flags}
+#compiler.c.elf.extra_flags="-L{build.variant.path}/ld" -specs=nosys.specs -specs=nano.specs {compiler.combine.flags} {build.cpu_flags}
 compiler.c.elf.extra_flags="-L{build.variant.path}/ld" "-Wl,--wrap=atexit,--wrap=__cxa_atexit,--wrap=exit" -specs=nano.specs
-compiler.cpp.extra_flags= 
+compiler.cpp.extra_flags=
 compiler.S.extra_flags=
 compiler.ar.extra_flags=
 compiler.elf2hex.extra_flags=
@@ -67,19 +66,19 @@ compiler.libs.c.flags="-I{build.system.path}/libmaple" "-I{build.core.path}/libm
 # ---------------------
 
 ## Compile c files
-recipe.c.o.pattern="{compiler.path}{compiler.c.cmd}" {compiler.c.flags} -mcpu={build.mcu} -DF_CPU={build.f_cpu} -DARDUINO={runtime.ide.version} -DVARIANT_{build.variant} -DARDUINO_ARCH_{build.arch} {compiler.c.extra_flags} {build.extra_flags} {build.cpu_flags} {build.vect_flags} {build.common_flags} {compiler.libs.c.flags} {includes} "{source_file}" -o "{object_file}"
+recipe.c.o.pattern="{compiler.path}{compiler.c.cmd}" {compiler.c.flags} -mcpu={build.mcu} -DF_CPU={build.f_cpu} -DARDUINO={runtime.ide.version} -DVARIANT_{build.variant} -DARDUINO_ARCH_{build.arch} {build.cpu_flags} {build.vect_flags} {build.usb_flag} {build.common_flags} {build.extra_flags} {compiler.c.extra_flags} {compiler.libs.c.flags} {includes} "{source_file}" -o "{object_file}"
 
 ## Compile c++ files
-recipe.cpp.o.pattern="{compiler.path}{compiler.cpp.cmd}" {compiler.cpp.flags} -mcpu={build.mcu} -DF_CPU={build.f_cpu} -DARDUINO={runtime.ide.version} -DVARIANT_{build.variant} -DARDUINO_ARCH_{build.arch} {compiler.cpp.extra_flags} {build.extra_flags} {build.cpu_flags} {build.vect_flags} {build.hs_flag} {build.common_flags} {compiler.libs.c.flags} {includes} "{source_file}" -o "{object_file}"
+recipe.cpp.o.pattern="{compiler.path}{compiler.cpp.cmd}" {compiler.cpp.flags} -mcpu={build.mcu} -DF_CPU={build.f_cpu} -DARDUINO={runtime.ide.version} -DVARIANT_{build.variant} -DARDUINO_ARCH_{build.arch} {build.cpu_flags} {build.vect_flags} {build.usb_flag} {build.common_flags} {build.extra_flags} {compiler.cpp.extra_flags} {compiler.libs.c.flags} {includes} "{source_file}" -o "{object_file}"
 
 ## Compile S files
-recipe.S.o.pattern="{compiler.path}{compiler.c.cmd}" {compiler.S.flags} -mcpu={build.mcu} -DF_CPU={build.f_cpu} -DARDUINO={runtime.ide.version} -DVARIANT_{build.variant} -DARDUINO_ARCH_{build.arch} {compiler.S.extra_flags} {build.extra_flags} {build.cpu_flags} {build.vect_flags} {build.hs_flag} {build.common_flags} {compiler.libs.c.flags} {includes} "{source_file}" -o "{object_file}"
+recipe.S.o.pattern="{compiler.path}{compiler.c.cmd}" {compiler.S.flags} -mcpu={build.mcu} -DF_CPU={build.f_cpu} -DARDUINO={runtime.ide.version} -DVARIANT_{build.variant} -DARDUINO_ARCH_{build.arch} {build.cpu_flags} {build.vect_flags} {build.usb_flag} {build.common_flags} {build.extra_flags} {compiler.S.extra_flags} {compiler.libs.c.flags} {includes} "{source_file}" -o "{object_file}"
 
 ## Create archives
 recipe.ar.pattern="{compiler.path}{compiler.ar.cmd}" {compiler.ar.flags} {compiler.ar.extra_flags} "{archive_file_path}" "{object_file}"
 
 ## Combine gc-sections, archives, and objects
-recipe.c.combine.pattern="{compiler.path}{compiler.c.elf.cmd}" {compiler.c.elf.flags} -mcpu={build.mcu} "-T{build.variant.path}/{build.ldscript}" "-Wl,-Map,{build.path}/{build.project_name}.map" {compiler.c.elf.extra_flags} -o "{build.path}/{build.project_name}.elf" "-L{build.path}" -lm -lgcc -mthumb -Wl,--cref -Wl,--check-sections -Wl,--gc-sections -Wl,--unresolved-symbols=report-all -Wl,--warn-common -Wl,--warn-section-align -Wl,--warn-unresolved-symbols -Wl,--start-group {object_files} -Wl,--whole-archive "{archive_file_path}" -Wl,--no-whole-archive -Wl,--end-group
+recipe.c.combine.pattern="{compiler.path}{compiler.c.elf.cmd}" {compiler.c.elf.flags} -mcpu={build.mcu} {build.cpu_flags} "-T{build.variant.path}/{build.ldscript}" "-Wl,-Map,{build.path}/{build.project_name}.map" {compiler.c.elf.extra_flags} -o "{build.path}/{build.project_name}.elf" "-L{build.path}" -lm -lgcc -mthumb -Wl,--cref -Wl,--check-sections -Wl,--gc-sections -Wl,--unresolved-symbols=report-all -Wl,--warn-common -Wl,--warn-section-align -Wl,--warn-unresolved-symbols -Wl,--start-group {object_files} -Wl,--whole-archive "{archive_file_path}" -Wl,--no-whole-archive -Wl,--end-group
 
 
 ## Create eeprom

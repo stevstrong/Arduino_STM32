@@ -42,8 +42,9 @@
 #define ERROR_USART            USART2
 #define ERROR_USART_CLK_SPEED  STM32_PCLK1
 #define ERROR_USART_BAUD       115200
-#define ERROR_TX_PORT          GPIOA
-#define ERROR_TX_PIN           2
+// #define ERROR_TX_PORT          GPIOA
+#define ERROR_TX_PIN           PA2
+uint8_t usart_buf[1024];
 #endif
 
 /* If you define ERROR_LED_PIN, then a failed
@@ -94,10 +95,13 @@ void __error(int num) {
  */
 void _fail(const char* file, int line, const char* exp) {
     /* Initialize the error USART */
-    //gpio_set_mode(ERROR_TX_PORT, ERROR_TX_PIN, GPIO_AF_OUTPUT_PP);
-    //usart_init(ERROR_USART);
+    gpio_set_af_mode(ERROR_TX_PIN, GPIO_AFMODE_USART1_3);
+    gpio_set_mode(ERROR_TX_PIN, (gpio_pin_mode)(GPIO_AF_OUTPUT_PP_PU | 0x700));
+    usart_init(ERROR_USART);
+    nvic_irq_set_priority(ERROR_USART->irq_num, 4); // set IRQ prio higher than I2C
     //usart_set_baud_rate(ERROR_USART, ERROR_USART_CLK_SPEED, ERROR_USART_BAUD);
     usart_set_baud_rate(ERROR_USART, ERROR_USART_BAUD);
+    usart_enable(ERROR_USART);
 
     /* Print failed assert message */
     usart_putstr(ERROR_USART, "ERROR: FAILED ASSERT(");

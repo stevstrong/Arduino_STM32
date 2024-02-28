@@ -244,6 +244,10 @@ SPIClass::SPIClass(uint32_t spi_num)
 	{
 		_settings[0].spi_d = SPI1;
 		_settings[0].spiDmaDev = DMA1;
+		_settings[0].bitOrder = MSBFIRST;
+		_settings[0].dataMode = SPI_MODE0;
+		_settings[0].dataSize = SPI_DATA_SIZE_8BIT;
+		_settings[0].clock = 20e6;
 		_settings[0].clockDivider = determine_baud_rate(_settings[0].spi_d, _settings[0].clock);
 		_settings[0].spiRxDmaChannel = DMA_CH2;
 		_settings[0].spiTxDmaChannel = DMA_CH3;
@@ -252,6 +256,10 @@ SPIClass::SPIClass(uint32_t spi_num)
 #if BOARD_NR_SPI >= 2
 		_settings[1].spi_d = SPI2;
 		_settings[1].spiDmaDev = DMA1;
+		_settings[1].bitOrder = MSBFIRST;
+		_settings[1].dataMode = SPI_MODE0;
+		_settings[1].dataSize = SPI_DATA_SIZE_8BIT;
+		_settings[1].clock = 20e6;
 		_settings[1].clockDivider = determine_baud_rate(_settings[1].spi_d, _settings[1].clock);
 		_settings[1].spiRxDmaChannel = DMA_CH4;
 		_settings[1].spiTxDmaChannel = DMA_CH5;
@@ -261,6 +269,10 @@ SPIClass::SPIClass(uint32_t spi_num)
 #if BOARD_NR_SPI >= 3
 		_settings[2].spi_d = SPI3;
 		_settings[2].spiDmaDev = DMA2;
+		_settings[2].bitOrder = MSBFIRST;
+		_settings[2].dataMode = SPI_MODE0;
+		_settings[2].dataSize = SPI_DATA_SIZE_8BIT;
+		_settings[2].clock = 20e6;
 		_settings[2].clockDivider = determine_baud_rate(_settings[2].spi_d, _settings[2].clock);
 		_settings[2].spiRxDmaChannel = DMA_CH1;
 		_settings[2].spiTxDmaChannel = DMA_CH2;
@@ -331,6 +343,10 @@ void SPIClass::setClockDivider(uint32_t clockDivider)
     uint32_t cr1 = _currentSetting->spi_d->regs->CR1 & ~(SPI_CR1_BR);
     _currentSetting->spi_d->regs->CR1 = cr1 | (clockDivider & SPI_CR1_BR);
 }
+
+void SPIClass::setFrequency(uint32_t freq) {
+    setClockDivider(determine_baud_rate(_currentSetting->spi_d, freq));
+};
 
 void SPIClass::setBitOrder(BitOrder bitOrder)
 {
@@ -456,7 +472,7 @@ void SPIClass::write(const uint16_t data)
 //-----------------------------------------------------------------------------
 //  Added by stevestrong: write two consecutive bytes in 8 bit mode (DFF=0)
 //-----------------------------------------------------------------------------
-void SPIClass::write2(const uint16_t data)
+void SPIClass::write16(const uint16_t data)
 {
     spi_tx_reg(_currentSetting->spi_d, data>>8); // write high byte
     while (spi_is_tx_empty(_currentSetting->spi_d) == 0); // Wait until TXE=1
@@ -483,14 +499,14 @@ void SPIClass::write(const void *data, uint32_t length)
     waitSpiTxEnd(spi_d); // "5. Wait until TXE=1 and then wait until BSY=0 before disabling the SPI."
 }
 
-uint8_t SPIClass::transfer(uint8_t byte) const
-{
-    spi_dev * spi_d = _currentSetting->spi_d;
-    spi_rx_reg(spi_d); // read any previous data
-    spi_tx_reg(spi_d, byte); // Write the data item to be transmitted into the SPI_DR register
-    waitSpiTxEnd(spi_d);
-    return (uint8)spi_rx_reg(spi_d); // "... and read the last received data."
-}
+// uint8_t SPIClass::transfer(uint8_t byte) const
+// {
+//     spi_dev * spi_d = _currentSetting->spi_d;
+//     spi_rx_reg(spi_d); // read any previous data
+//     spi_tx_reg(spi_d, byte); // Write the data item to be transmitted into the SPI_DR register
+//     waitSpiTxEnd(spi_d);
+//     return (uint8)spi_rx_reg(spi_d); // "... and read the last received data."
+// }
 uint16_t SPIClass::transfer(uint16_t data) const
 {
     spi_dev * spi_d = _currentSetting->spi_d;
@@ -505,8 +521,6 @@ uint16_t SPIClass::transfer(uint16_t data) const
 //-----------------------------------------------------------------------------
 uint16_t SPIClass::transfer16(const uint16_t data) const
 {
-    // Modified by stevestrong: write & read two consecutive bytes in 8 bit mode (DFF=0)
-    // This is more effective than two distinct byte transfers
     spi_dev * spi_d = _currentSetting->spi_d;
     spi_rx_reg(spi_d);                   // read any previous data
     spi_tx_reg(spi_d, data>>8);          // write high byte

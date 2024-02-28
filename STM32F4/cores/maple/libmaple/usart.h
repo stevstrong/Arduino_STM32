@@ -245,8 +245,8 @@ typedef struct usart_dev {
     uint32 max_baud;                 /**< Maximum baud */
     rcc_clk_id clk_id;               /**< RCC clock information */
     nvic_irq_num irq_num;            /**< USART NVIC interrupt */
-    ring_buffer rbRX;                 /**< RX ring buffer */
-    ring_buffer rbTX;                 /**< RX ring buffer */
+    ring_buffer_t rbRX;              /**< RX ring buffer */
+    ring_buffer_t rbTX;              /**< RX ring buffer */
     uint8 rx_buf[USART_RX_BUF_SIZE]; /**< @brief Deprecated.
                                       * Actual RX buffer used by rb.
                                       * This field will be removed in
@@ -325,7 +325,7 @@ static inline void usart_putstr(usart_dev *dev, const char* str) {
  * @see usart_data_available()
  */
 static inline uint8 usart_getc(usart_dev *dev) {
-    return rb_remove(&dev->rbRX);
+    return rb_read(&dev->rbRX);
 }
 
 /*
@@ -346,7 +346,7 @@ static inline int usart_peek(usart_dev *dev)
  * @return Number of bytes in dev's RX buffer.
  */
 static inline uint32 usart_data_available(usart_dev *dev) {
-    return rb_full_count(&dev->rbRX);
+    return rb_rd_available(&dev->rbRX);
 }
 
 /**
@@ -355,7 +355,7 @@ static inline uint32 usart_data_available(usart_dev *dev) {
  * @return Number of bytes in dev's TX buffer.
  */
 static inline uint32 usart_data_pending(usart_dev *dev) {
-    return rb_full_count(&dev->rbTX);
+    return rb_rd_available(&dev->rbTX);
 }
 
 /**

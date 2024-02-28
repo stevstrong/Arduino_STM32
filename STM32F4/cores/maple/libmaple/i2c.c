@@ -245,8 +245,8 @@ void i2c_master_enable(i2c_dev *dev, uint32 flags) {
      * interrupt in the system (priority level 0). All other interrupts have
      * been initialized to priority level 16. See nvic_init().
      */
-    nvic_irq_set_priority(dev->ev_nvic_line, 0);
-    nvic_irq_set_priority(dev->er_nvic_line, 0);
+    nvic_irq_set_priority(dev->ev_nvic_line, 8);
+    nvic_irq_set_priority(dev->er_nvic_line, 8);
 
     /* Make it go! */
     i2c_peripheral_enable(dev);

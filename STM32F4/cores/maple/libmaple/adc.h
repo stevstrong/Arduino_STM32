@@ -85,8 +85,8 @@ typedef struct adc_dev
 {
     adc_reg_map *regs; /**< Register map */
     rcc_clk_id clk_id; /**< RCC clock information */
-	dma_stream dmaStream;
-	dma_channel dmaChannel;
+	dma_stream_nr_t dmaStream;
+	dma_channel_t dmaChannel;
 	voidFuncPtr (*handler_p)[];
 } adc_dev;
 

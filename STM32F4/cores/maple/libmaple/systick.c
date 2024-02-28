@@ -32,7 +32,9 @@
 #include "systick.h"
 #include "nvic.h"
 volatile uint32 systick_uptime_millis;
-static void (*systick_user_callback)(void);
+#define MAX_USR_CALLBACKS 4
+static voidFuncPtr systick_user_callbacks[MAX_USR_CALLBACKS];
+static uint8_t systick_usr_cb_count;
 
 systick_reg_map * const SYSTICK = SYSTICK_BASE;
 
@@ -46,6 +48,7 @@ systick_reg_map * const SYSTICK = SYSTICK_BASE;
  */
 void systick_init(uint32 reload_val) {
     SYSTICK->LOAD = reload_val;
+    systick_usr_cb_count = 0;
     systick_enable();
 }
 
@@ -71,23 +74,47 @@ void systick_enable() {
 /**
  * @brief Attach a callback to be called from the SysTick exception handler.
  *
- * To detach a callback, call this function again with a null argument.
+ * To detach a callback, call this function again with the callback as parameter.
+ * Allows a maximum of 4 callbacks.
  */
-void systick_attach_callback(void (*callback)(void)) {
-    systick_user_callback = callback;
+int8_t systick_attach_callback(voidFuncPtr callback)
+{
+    if (!callback) return -1;
+    for (uint8_t i = 0; i < MAX_USR_CALLBACKS; i ++) {
+        if (systick_user_callbacks[i] == 0) {
+            systick_user_callbacks[i] = callback;
+            return i;
+        }
+    }
+    return -1;
+}
+
+int8_t systick_detach_callback(voidFuncPtr callback)
+{
+    if (callback == NULL) return -1;
+    for (uint8_t i = 0; i < MAX_USR_CALLBACKS; i ++) {
+        if (systick_user_callbacks[i] == callback) {
+            systick_user_callbacks[i] = NULL;
+            return i;
+        }
+    }
+    return -1;
 }
 
 /*
  * SysTick ISR
  */
 
-void __exc_systick(void) {
+void __exc_systick(void)
+{
     nvic_globalirq_disable();
 	systick_check_underflow();
 	systick_uptime_millis++;
     nvic_globalirq_enable();
 
-    if (systick_user_callback) {
-        systick_user_callback();
+    for (uint8_t i = 0; i < 4; i ++) {
+        if (systick_user_callbacks[i]) {
+            systick_user_callbacks[i]();
+        }
     }
 }

@@ -43,6 +43,15 @@ void pinMode(uint8 pin, WiringPinMode mode) {
     case OUTPUT:
         outputMode = GPIO_OUTPUT_PP;
         break;
+    case OUTPUT_VHS:
+        outputMode = GPIO_OUTPUT_PP_VHS;
+        break;
+    case OUTPUT_LS:
+        outputMode = GPIO_OUTPUT_PP_LS;
+        break;
+    case OUTPUT_HS:
+        outputMode = GPIO_OUTPUT_PP_HS;
+        break;
     case OUTPUT_OPEN_DRAIN:
         outputMode = GPIO_OUTPUT_OD;
         break;
@@ -79,8 +88,10 @@ void pinMode(uint8 pin, WiringPinMode mode) {
         // Enable/disable timer channels if we're switching into or out of PWM.
         timer_set_mode(dev, timer_map[pin].channel,
                        pwm ? TIMER_PWM : TIMER_DISABLED);
-        if ( pwm )
+        if ( pwm ) {
             gpio_set_af_mode(pin, dev->af_mode);
+            timer_resume(dev);
+        }
     }
 }
 

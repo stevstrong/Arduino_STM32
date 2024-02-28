@@ -30,11 +30,11 @@ discovery_f407.build.board=discovery_f4
 discovery_f407.build.vect_flags=-DUSER_ADDR_ROM=0x08000000
 
 discovery_f407.menu.usb_cfg.usb_serial=USB serial (CDC)
-discovery_f407.menu.usb_cfg.usb_serial.build.cpu_flags=-DSERIAL_USB
+discovery_f407.menu.usb_cfg.usb_serial.build.usb_flag=-DSERIAL_USB
 discovery_f407.menu.usb_cfg.usb_nc=USB inactive
-discovery_f407.menu.usb_cfg.usb_nc.build.cpu_flags=-DUSB_NC
+discovery_f407.menu.usb_cfg.usb_nc.build.usb_flag=-DUSB_NC
 discovery_f407.menu.usb_cfg.usb_msc=USB Mass Storage (MSC)
-discovery_f407.menu.usb_cfg.usb_msc.build.cpu_flags=-DUSB_MSC
+discovery_f407.menu.usb_cfg.usb_msc.build.usb_flag=-DUSB_MSC
 
 #-- Optimizations
 discovery_f407.menu.opt.osstd=Smallest (default)
@@ -83,11 +83,11 @@ blackpill_f401.build.board=blackpill_f401
 blackpill_f401.build.vect_flags=-DUSER_ADDR_ROM=0x08000000
 
 blackpill_f401.menu.usb_cfg.usb_serial=USB serial (CDC)
-blackpill_f401.menu.usb_cfg.usb_serial.build.cpu_flags=-DSERIAL_USB
+blackpill_f401.menu.usb_cfg.usb_serial.build.usb_flag=-DSERIAL_USB
 blackpill_f401.menu.usb_cfg.usb_nc=USB inactive
-blackpill_f401.menu.usb_cfg.usb_nc.build.cpu_flags=-DUSB_NC
+blackpill_f401.menu.usb_cfg.usb_nc.build.usb_flag=-DUSB_NC
 blackpill_f401.menu.usb_cfg.usb_msc=USB Mass Storage (MSC)
-blackpill_f401.menu.usb_cfg.usb_msc.build.cpu_flags=-DUSB_MSC
+blackpill_f401.menu.usb_cfg.usb_msc.build.usb_flag=-DUSB_MSC
 
 #-- Optimizations
 blackpill_f401.menu.opt.osstd=Smallest (default)
@@ -131,11 +131,11 @@ devebox_f407.build.error_led_pin=PA7
 devebox_f407.build.board=generic_f407v
 
 devebox_f407.menu.usb_cfg.usb_serial=USB serial (CDC)
-devebox_f407.menu.usb_cfg.usb_serial.build.cpu_flags=-DSERIAL_USB
+devebox_f407.menu.usb_cfg.usb_serial.build.usb_flag=-DSERIAL_USB
 devebox_f407.menu.usb_cfg.usb_nc=USB inactive
-devebox_f407.menu.usb_cfg.usb_nc.build.cpu_flags=-DUSB_NC
+devebox_f407.menu.usb_cfg.usb_nc.build.usb_flag=-DUSB_NC
 devebox_f407.menu.usb_cfg.usb_msc=USB Mass Storage (MSC)
-devebox_f407.menu.usb_cfg.usb_msc.build.cpu_flags=-DUSB_MSC
+devebox_f407.menu.usb_cfg.usb_msc.build.usb_flag=-DUSB_MSC
 
 #note STLink is the default from the main block of config above, so does not need settings for everything
 devebox_f407.menu.upload_method.STLinkMethod=STLink
@@ -197,11 +197,11 @@ generic_f407v.build.error_led_pin=PA7
 generic_f407v.build.board=generic_f407v
 
 generic_f407v.menu.usb_cfg.usb_serial=USB serial (CDC)
-generic_f407v.menu.usb_cfg.usb_serial.build.cpu_flags=-DSERIAL_USB
+generic_f407v.menu.usb_cfg.usb_serial.build.usb_flag=-DSERIAL_USB
 generic_f407v.menu.usb_cfg.usb_nc=USB inactive
-generic_f407v.menu.usb_cfg.usb_nc.build.cpu_flags=-DUSB_NC
+generic_f407v.menu.usb_cfg.usb_nc.build.usb_flag=-DUSB_NC
 generic_f407v.menu.usb_cfg.usb_msc=USB Mass Storage (MSC)
-generic_f407v.menu.usb_cfg.usb_msc.build.cpu_flags=-DUSB_MSC
+generic_f407v.menu.usb_cfg.usb_msc.build.usb_flag=-DUSB_MSC
 
 #note STLink is the default from the main block of config above, so does not need settings for everything
 generic_f407v.menu.upload_method.STLinkMethod=STLink
@@ -264,11 +264,11 @@ generic_f407v_mini.build.error_led_pin=PB9
 generic_f407v_mini.build.board=generic_f407v_mini
 
 generic_f407v_mini.menu.usb_cfg.usb_serial=USB serial (CDC)
-generic_f407v_mini.menu.usb_cfg.usb_serial.build.cpu_flags=-DSERIAL_USB
+generic_f407v_mini.menu.usb_cfg.usb_serial.build.usb_flag=-DSERIAL_USB
 generic_f407v_mini.menu.usb_cfg.usb_nc=USB inactive
-generic_f407v_mini.menu.usb_cfg.usb_nc.build.cpu_flags=-DUSB_NC
+generic_f407v_mini.menu.usb_cfg.usb_nc.build.usb_flag=-DUSB_NC
 generic_f407v_mini.menu.usb_cfg.usb_msc=USB Mass Storage (MSC)
-generic_f407v_mini.menu.usb_cfg.usb_msc.build.cpu_flags=-DUSB_MSC
+generic_f407v_mini.menu.usb_cfg.usb_msc.build.usb_flag=-DUSB_MSC
 
 #note STLink is the default from the main block of config above, so does not need settings for everything
 generic_f407v_mini.menu.upload_method.STLinkMethod=STLink
@@ -318,7 +318,7 @@ disco_f411.upload.tool=stlink_upload
 disco_f411.upload.protocol=stlink
 
 disco_f411.upload.file_type=bin
-disco_f411.upload.maximum_size=1048576
+disco_f411.upload.maximum_size=524288
 disco_f411.upload.maximum_data_size=131072
 
 disco_f411.build.core=maple
@@ -332,11 +332,11 @@ disco_f411.build.board=disco_f411
 disco_f411.build.vect_flags=-DUSER_ADDR_ROM=0x08000000
 
 disco_f411.menu.usb_cfg.usb_serial=USB serial (CDC)
-disco_f411.menu.usb_cfg.usb_serial.build.cpu_flags=-DSERIAL_USB
+disco_f411.menu.usb_cfg.usb_serial.build.usb_flag=-DSERIAL_USB
 disco_f411.menu.usb_cfg.usb_nc=USB inactive
-disco_f411.menu.usb_cfg.usb_nc.build.cpu_flags=-DUSB_NC
+disco_f411.menu.usb_cfg.usb_nc.build.usb_flag=-DUSB_NC
 disco_f411.menu.usb_cfg.usb_msc=USB Mass Storage (MSC)
-disco_f411.menu.usb_cfg.usb_msc.build.cpu_flags=-DUSB_MSC
+disco_f411.menu.usb_cfg.usb_msc.build.usb_flag=-DUSB_MSC
 
 #-- Optimizations
 disco_f411.menu.opt.osstd=Smallest (default)
@@ -380,11 +380,11 @@ arch_max.build.error_led_pin=PB3
 arch_max.build.board=arch_max
 
 arch_max.menu.usb_cfg.usb_serial=USB serial (CDC)
-arch_max.menu.usb_cfg.usb_serial.build.cpu_flags=-DSERIAL_USB
+arch_max.menu.usb_cfg.usb_serial.build.usb_flag=-DSERIAL_USB
 arch_max.menu.usb_cfg.usb_nc=USB inactive
-arch_max.menu.usb_cfg.usb_nc.build.cpu_flags=-DUSB_NC
+arch_max.menu.usb_cfg.usb_nc.build.usb_flag=-DUSB_NC
 arch_max.menu.usb_cfg.usb_msc=USB Mass Storage (MSC)
-arch_max.menu.usb_cfg.usb_msc.build.cpu_flags=-DUSB_MSC
+arch_max.menu.usb_cfg.usb_msc.build.usb_flag=-DUSB_MSC
 
 #note STLink is the default from the main block of config above, so does not need settings for everything
 arch_max.menu.upload_method.STLinkMethod=STLink

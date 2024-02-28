@@ -111,6 +111,67 @@
 #define BOARD_SPI5_SCK_PIN      PE12
 #define BOARD_SPI5_MISO_PIN     PE13
 #define BOARD_SPI5_MOSI_PIN     PE14
+#define BOARD_SPI5A_NSS_PIN      PB1
+#define BOARD_SPI5A_SCK_PIN      PB0
+#define BOARD_SPI5A_MISO_PIN     PE13
+#define BOARD_SPI5A_MOSI_PIN     PE14
+
+
+// I2S pins
+#define BOARD_I2S1_WS_PIN       PA4
+#define BOARD_I2S1_CK_PIN       PA5
+#define BOARD_I2S1_SD_PIN       PA7
+#define BOARD_I2S1A_WS_PIN      PA15
+#define BOARD_I2S1A_CK_PIN      PB3
+#define BOARD_I2S1A_SD_PIN      PB5
+
+#define BOARD_I2S2_WS_PIN       PB12
+#define BOARD_I2S2_CKIN_PIN     PA2
+#define BOARD_I2S2_CK_PIN       PB10
+#define BOARD_I2S2_MCK_PIN      PA6
+#define BOARD_I2S2_SD_PIN       PB15
+#define BOARD_I2S2A_WS_PIN      PB9
+#define BOARD_I2S2A_CK_PIN      PC7
+#define BOARD_I2S2B_CK_PIN      PB13
+#define BOARD_I2S2C_CK_PIN      PD3
+#define BOARD_I2S2A_MCK_PIN     PC6
+#define BOARD_I2S2B_MCK_PIN     PA3
+#define BOARD_I2S2A_CKIN_PIN    PB11
+#define BOARD_I2S2B_CKIN_PIN    PC9
+#define BOARD_I2S2A_SD_PIN      PC3
+
+#define BOARD_I2S3_WS_PIN       PA15
+#define BOARD_I2S3_CK_PIN       PB3
+#define BOARD_I2S3_MCK_PIN      PB10
+#define BOARD_I2S3_SD_PIN       PB5
+#define BOARD_I2S3A_WS_PIN      PA4
+#define BOARD_I2S3A_CK_PIN      PC10
+#define BOARD_I2S3A_MCK_PIN     PC7
+#define BOARD_I2S3A_SD_PIN      PC12
+// #define BOARD_I2S3B_CK_PIN      PB12 // uses GPIO_AFMODE_USART1_3
+// #define BOARD_I2S3B_SD_PIN      PD6 // uses GPIO_AFMODE_SPI1_4
+
+#define BOARD_I2S4_WS_PIN       PE4
+#define BOARD_I2S4_CK_PIN       PE12
+#define BOARD_I2S4_SD_PIN       PA1
+#define BOARD_I2S4A_WS_PIN      PE11
+#define BOARD_I2S4B_WS_PIN      PB12
+#define BOARD_I2S4A_CK_PIN      PE2
+#define BOARD_I2S4B_CK_PIN      PB13
+#define BOARD_I2S4B_SD_PIN      PE14
+#define BOARD_I2S4A_SD_PIN      PE6
+
+#define BOARD_I2S5_CK_PIN       PE2
+#define BOARD_I2S5_WS_PIN       PE11
+#define BOARD_I2S5_SD_PIN       PE6
+#define BOARD_I2S5A_WS_PIN      PE4
+#define BOARD_I2S5B_WS_PIN      PB1
+#define BOARD_I2S5A_CK_PIN      PE12
+#define BOARD_I2S5B_CK_PIN      PB0
+#define BOARD_I2S5A_SD_PIN      PE14
+#define BOARD_I2S5B_SD_PIN      PA10
+#define BOARD_I2S5C_SD_PIN      PB8
+
 
 #define BOARD_NR_PWM_PINS       22
 #define BOARD_NR_ADC_PINS       16

@@ -37,8 +37,8 @@
  * See /notes/dma.txt for more information.
  */
 
-#ifndef _DMA_H_
-#define _DMA_H_
+#ifndef _DMAF4_H_
+#define _DMAF4_H_
 
 #include "libmaple_types.h"
 #include "rcc.h"
@@ -56,14 +56,14 @@ extern "C"{
  * @brief DMA stream type.
  *
  */
-typedef struct dma_stream_t {
+typedef struct dma_stream_reg_t {
     __IO uint32 CR;           /**< Stream configuration register */
     __IO uint32 NDTR;         /**< Stream number of data register */
     __IO uint32 PAR;          /**< Stream peripheral address register */
     __IO uint32 M0AR;         /**< Stream memory address register 0 */
     __IO uint32 M1AR;         /**< Stream memory address register 1 */
     __IO uint32 FCR;          /**< Stream FIFO configuration register */
-} dma_stream_t;
+} dma_stream_reg_t;
 /**
  * @brief DMA register map type.
  *
@@ -73,7 +73,7 @@ typedef struct dma_reg_map {
     __IO uint32  HISR;         /**< High interrupt status register */
     __IO uint32  LIFCR;        /**< Low interrupt flag clear register */
     __IO uint32  HIFCR;        /**< High interrupt flag clear register */
-    dma_stream_t STREAM[8];
+    dma_stream_reg_t STREAM[8];
 } dma_reg_map;
 
 /** DMA controller register map base pointers */
@@ -163,7 +163,7 @@ typedef struct dma_reg_map {
 #define DMA_FCR_FTH_FULL               (0x3 << 0) //  full FIFO
 
 
-typedef enum {
+typedef enum dma_channel_t {
     DMA_CH0 = DMA_CR_CH0,                /**< Channel 0 */
     DMA_CH1 = DMA_CR_CH1,                /**< Channel 1 */
     DMA_CH2 = DMA_CR_CH2,                /**< Channel 2 */
@@ -172,7 +172,7 @@ typedef enum {
     DMA_CH5 = DMA_CR_CH5,                /**< Channel 5 */
     DMA_CH6 = DMA_CR_CH6,                /**< Channel 6 */
     DMA_CH7 = DMA_CR_CH7,                /**< Channel 7 */
-} dma_channel;
+} dma_channel_t;
 
 /** Encapsulates state related to a DMA channel interrupt. */
 typedef struct dma_handler_config {
@@ -182,20 +182,20 @@ typedef struct dma_handler_config {
 } dma_handler_t;
 
 /** DMA device type */
-typedef struct dma_dev {
+typedef struct dma_dev_t {
     dma_reg_map *regs;             /**< Register map */
     rcc_clk_id clk_id;             /**< Clock ID */
     dma_handler_t (*handler_p)[]; /**<
                                     * @brief IRQ handlers and NVIC numbers.
                                     * @see dma_detach_interrupt()
                                     */
-} dma_dev;
+} dma_dev_t;
 
 /*
  * Devices
  */
-extern const dma_dev dma1;
-extern const dma_dev dma2;
+extern const dma_dev_t dma1;
+extern const dma_dev_t dma2;
 #define DMA1 (&dma1)
 #define DMA2 (&dma2)
 
@@ -246,7 +246,7 @@ typedef enum {
     DMA_STREAM5 = 5,                /**< Stream 5 */
     DMA_STREAM6 = 6,                /**< Stream 6 */
     DMA_STREAM7 = 7,                /**< Stream 7 */
-} dma_stream;
+} dma_stream_nr_t;
 
 /*
  * Convenience functions
@@ -255,14 +255,14 @@ typedef enum {
  * @brief Initialize a DMA device.
  * @param dev Device to initialize.
  */
-static inline void dma_init(const dma_dev *dev)
+static inline void dma_init(const dma_dev_t *dev)
 {
 	rcc_clk_enable(dev->clk_id);
 }
 
-static inline void dma_setup_transfer(const dma_dev *dev,
-                                      dma_stream    stream,
-                                      dma_channel   channel,
+static inline void dma_setup_transfer(const dma_dev_t *dev,
+                                      dma_stream_nr_t    stream,
+                                      dma_channel_t   channel,
                                       dma_xfer_size trx_size,
                                       __IO void     *peripheral_address,
                                       const void    *memory_address0,
@@ -277,26 +277,26 @@ static inline void dma_setup_transfer(const dma_dev *dev,
     dev->regs->STREAM[stream].CR = (uint32)((flags|channel|trx_size) & 0x0feffffe); // mask out reserved and enable
 }
 
-static inline void dma_set_num_transfers(const dma_dev *dev, dma_stream stream, uint16 num_transfers)
+static inline void dma_set_num_transfers(const dma_dev_t *dev, dma_stream_nr_t stream, uint16 num_transfers)
 {
     dev->regs->STREAM[stream].NDTR = (uint32)num_transfers;
 }
 
-static inline void dma_set_fifo_flags(const dma_dev *dev, dma_stream stream, uint8 fifo_flags)
+static inline void dma_set_fifo_flags(const dma_dev_t *dev, dma_stream_nr_t stream, uint8 fifo_flags)
 {
     dev->regs->STREAM[stream].FCR = (uint32)(fifo_flags & 0x87); // mask out reserved bits
 }
 
-void dma_attach_interrupt(const dma_dev *dev, dma_stream stream, void (*handler)(void));
+void dma_attach_interrupt(const dma_dev_t *dev, dma_stream_nr_t stream, void (*handler)(void));
 
-void dma_detach_interrupt(const dma_dev *dev, dma_stream stream);
+void dma_detach_interrupt(const dma_dev_t *dev, dma_stream_nr_t stream);
 
-static inline void dma_enable(const dma_dev *dev, dma_stream stream)
+static inline void dma_enable(const dma_dev_t *dev, dma_stream_nr_t stream)
 {
     dev->regs->STREAM[stream].CR |= (uint32)DMA_CR_EN;
 }
 
-static inline void dma_disable(const dma_dev *dev, dma_stream stream)
+static inline void dma_disable(const dma_dev_t *dev, dma_stream_nr_t stream)
 {
     dev->regs->STREAM[stream].CR &= (uint32)(~DMA_CR_EN);
 	while (dev->regs->STREAM[stream].CR & DMA_CR_EN); // wait till EN bit is reset, see AN4031, chapter 4.1
@@ -307,7 +307,7 @@ static inline void dma_disable(const dma_dev *dev, dma_stream stream)
  * @param dev DMA device
  * @param stream Stream whose enabled bit to check.
  */
-static inline uint8 dma_is_enabled(const dma_dev *dev, dma_stream stream)
+static inline uint8 dma_is_enabled(const dma_dev_t *dev, dma_stream_nr_t stream)
 {
     return (uint8)(dev->regs->STREAM[stream].CR & DMA_CR_EN);
 }
@@ -322,9 +322,9 @@ static inline uint8 dma_is_enabled(const dma_dev *dev, dma_stream stream)
  * @param dev DMA device
  * @param stream Stream whose ISR bits to return.
  */
-uint8 dma_get_isr_bit(const dma_dev *dev, dma_stream stream, uint8_t mask);
+uint8 dma_get_isr_bit(const dma_dev_t *dev, dma_stream_nr_t stream, uint8_t mask);
 
-static inline uint8 dma_get_isr_bits(const dma_dev *dev, dma_stream stream)
+static inline uint8 dma_get_isr_bits(const dma_dev_t *dev, dma_stream_nr_t stream)
 {
 	return dma_get_isr_bit(dev, stream, DMA_ISR_BIT_MASK);
 }
@@ -335,14 +335,14 @@ static inline uint8 dma_get_isr_bits(const dma_dev *dev, dma_stream stream)
  * @param dev DMA device
  * @param stream Stream whose ISR bits to clear.
  */
-void dma_clear_isr_bit(const dma_dev *dev, dma_stream stream, uint8_t mask);
+void dma_clear_isr_bit(const dma_dev_t *dev, dma_stream_nr_t stream, uint8_t mask);
 
-static inline void dma_clear_isr_bits(const dma_dev *dev, dma_stream stream)
+static inline void dma_clear_isr_bits(const dma_dev_t *dev, dma_stream_nr_t stream)
 {
 	dma_clear_isr_bit(dev, stream, DMA_ISR_BIT_MASK);
 }
 
-static inline uint16 dma_get_count(const dma_dev *dev, dma_stream stream) {
+static inline uint16 dma_get_count(const dma_dev_t *dev, dma_stream_nr_t stream) {
     return dev->regs->STREAM[stream].NDTR;
 }
 
@@ -360,7 +360,7 @@ static inline uint16 dma_get_count(const dma_dev *dev, dma_stream stream) {
  * @param tube Tube whose base memory address to set.
  * @param address Memory base address to use.
  */
-extern void dma_set_mem_addr(const dma_dev *dev, dma_stream stream, __IO void *address);
+extern void dma_set_mem_addr(const dma_dev_t *dev, dma_stream_nr_t stream, __IO void *address);
 
 /**
  * @brief Set the base peripheral address where data will be read from
@@ -376,7 +376,7 @@ extern void dma_set_mem_addr(const dma_dev *dev, dma_stream stream, __IO void *a
  * @param tube Tube whose peripheral data register base address to set.
  * @param address Peripheral memory base address to use.
  */
-extern void dma_set_per_addr(const dma_dev *dev, dma_stream stream, __IO void *address);
+extern void dma_set_per_addr(const dma_dev_t *dev, dma_stream_nr_t stream, __IO void *address);
 
 #ifdef __cplusplus
 } // extern "C"

@@ -56,7 +56,6 @@ static void setup_flash(void);
 static void setup_clocks(void);
 static void setup_nvic(void);
 static void setup_adcs(void);
-static void setup_timers(void);
 
 /*
  * Exported functions
@@ -69,7 +68,6 @@ void init(void) {
     systick_init(SYSTICK_RELOAD_VAL);
     wirish::priv::board_setup_gpio();
     setup_adcs();
-    setup_timers();
     wirish::priv::board_setup_usb();
     wirish::priv::series_init();
     boardInit();
@@ -185,9 +183,8 @@ static void setup_adcs(void) {
     adc_foreach(adc_default_config);
 }
 
-static void timer_default_config(timer_dev *dev)
+void timer_default_config(timer_dev *dev)
 {
-return;
     timer_adv_reg_map *regs = (dev->regs).adv;
     const uint16 full_overflow = 0xFFFF;
     const uint16 half_duty = 0x8FFF;
@@ -222,6 +219,4 @@ return;
     timer_resume(dev);
 }
 
-static void setup_timers(void) {
-    timer_foreach(timer_default_config);
-}
+#endif

@@ -83,7 +83,7 @@
 
 typedef void (*u32FuncPtr)(uint32_t);
 
-typedef enum {
+typedef enum spi_mode_t {
     SPI_STATE_IDLE,
     SPI_STATE_READY,
     SPI_STATE_RECEIVE,
@@ -199,6 +199,7 @@ public:
     void beginTransactionSlave(SPISettings settings);
 
     void setClockDivider(uint32_t clockDivider);
+    void setFrequency(uint32_t freq);
     void setBitOrder(BitOrder bitOrder);
     void setDataMode(uint8_t dataMode);
     
@@ -249,7 +250,7 @@ public:
      * @param data to transmit.
      */
     void write(const uint16_t data);
-    void write2(const uint16_t data); // write 2 bytes in 8 bit mode (DFF=0)
+    void write16(const uint16_t data); // write 2 bytes in 8 bit mode (DFF=0)
 
     /**
      * @brief Transmit one byte/word a specified number of times.
@@ -272,7 +273,6 @@ public:
      * @param data Byte to transmit.
      * @return Next unread byte.
      */
-    uint8_t transfer(uint8_t data) const;
     uint16_t transfer(uint16_t data) const;
     uint16_t transfer16(const uint16_t data) const;
     void transfer(const uint8_t * tx_buf, uint8_t * rx_buf, uint32_t len);
@@ -379,6 +379,7 @@ public:
         _currentSetting = &_settings[spi_num-1];
     }
     uint8_t getModule(void) { return _currentSetting->dev_index + 1; }
+    uint32_t getCrtSetting(void) { return (uint32_t)_currentSetting; }
 
     /* -- The following methods are deprecated --------------------------- */
 
@@ -402,8 +403,6 @@ public:
      * @see HardwareSPI::transfer()
      */
     uint8_t send(uint8_t *data, uint32_t length);
-
-    void EventCallback(uint16_t spi_num);
 
 private:
 
