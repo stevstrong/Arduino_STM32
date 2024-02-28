@@ -4,16 +4,16 @@
 
 static void vLEDFlashTask(void *pvParameters) {
     for (;;) {
-        vTaskDelay(1000);
-        digitalWrite(BOARD_LED_PIN, HIGH);
-        vTaskDelay(50);
-        digitalWrite(BOARD_LED_PIN, LOW);
+        vTaskDelay(750);
+        digitalWrite(LED_BUILTIN, HIGH);
+        vTaskDelay(250);
+        digitalWrite(LED_BUILTIN, LOW);
     }
 }
 
 void setup() {
     // initialize the digital pin as an output:
-    pinMode(BOARD_LED_PIN, OUTPUT);
+    pinMode(LED_BUILTIN, OUTPUT);
 
     xTaskCreate(vLEDFlashTask,
                 "Task1",

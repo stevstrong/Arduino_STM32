@@ -1,5 +1,14 @@
-#include <MapleFreeRTOS900.h>
+#include <MapleFreeRTOS10.h>
 #include <Adafruit_ILI9341_STM.h>
+
+
+#if 1
+#include <stdio.h>
+#include <usb_serial.h>
+static char dbg_s[200];
+#define PRINTF(...) { sprintf(dbg_s, __VA_ARGS__); Serial.print(dbg_s); }
+#endif
+
 
 #define __CS  PA4
 #define __RST PA2
@@ -7,7 +16,7 @@
 
 Adafruit_ILI9341_STM tft(__CS, __DC, __RST);
 
-xSemaphoreHandle xDisplayFree;
+SemaphoreHandle_t xDisplayFree;
 
 
 const float sin_d[] = {
@@ -66,52 +75,59 @@ int cube2_r[] = {
 };
 
 uint16 cube1_x, cube1_y, cube2_x, cube2_y, cube1_color, cube2_color;
+#define BACKGROUND_COLOR ILI9341_YELLOW 
+static uint32_t tick, fail1, fail2;
 
 static void vLEDFlashTask(void *pvParameters) {
-  (void) pvParameters; // unused
+  (void) pvParameters; // ununsed
   for (;;) {
-    vTaskDelay(1000);
-    digitalWrite(LED_BUILTIN, HIGH);
-    vTaskDelay(50);
-    digitalWrite(LED_BUILTIN, LOW);
+    digitalWrite(LED_BUILTIN, LOW); // LED ON
+    vTaskDelay(500 / TICK_DIVISOR);
+    digitalWrite(LED_BUILTIN, HIGH); // LED OFF
+    vTaskDelay((500) / TICK_DIVISOR);
+    PRINTF("Tick: %04lu, fail1: %lu, fail2: %lu\n", tick++, fail1, fail2);
   }
 }
 
 static void vCube1LoopTask(void *pvParameters) {
-  (void) pvParameters; // unused
+  (void) pvParameters; // ununsed
   while (1) {
-    if ( xSemaphoreTake( xDisplayFree, ( portTickType ) 10 ) == pdTRUE )
+    if ( xSemaphoreTake( xDisplayFree, ( TickType_t ) 2 ) == pdTRUE )
     {
       cube(cube1_px, cube1_py, cube1_pz, cube1_p2x, cube1_p2y, cube1_r, &cube1_x, &cube1_y, &cube1_color);
       xSemaphoreGive( xDisplayFree );
-        vTaskDelay(15);
+        vTaskDelay(15 / TICK_DIVISOR);
+    } else {
+      fail1 ++;
     }
   }
 }
 
 static void vCube2LoopTask(void *pvParameters) {
-  (void) pvParameters; // unused
+  (void) pvParameters; // ununsed
   while (1) {
-    if ( xSemaphoreTake( xDisplayFree, ( portTickType ) 10 ) == pdTRUE )
+    if ( xSemaphoreTake( xDisplayFree, ( TickType_t ) 2 ) == pdTRUE )
     {
       cube(cube2_px, cube2_py, cube2_pz, cube2_p2x, cube2_p2y, cube2_r, &cube2_x, &cube2_y, &cube2_color);
       xSemaphoreGive( xDisplayFree );
-        vTaskDelay(40);
+        vTaskDelay(40 / TICK_DIVISOR);
+    } else {
+      fail2 ++;
     }
   }
 }
 
 
-void cube(float *px, float *py, float *pz, float *p2x, float *p2y, int *r, uint16 *x, uint16 *y, uint16 *color) {
-
+void cube(float *px, float *py, float *pz, float *p2x, float *p2y, int *r, uint16 *x, uint16 *y, uint16 *color)
+{
   for (int i = 0; i < 3; i++) {
-    tft.drawLine(p2x[i], p2y[i], p2x[i + 1], p2y[i + 1], ILI9341_WHITE);
-    tft.drawLine(p2x[i + 4], p2y[i + 4], p2x[i + 5], p2y[i + 5], ILI9341_WHITE);
-    tft.drawLine(p2x[i], p2y[i], p2x[i + 4], p2y[i + 4], ILI9341_WHITE);
+    tft.drawLine(p2x[i], p2y[i], p2x[i + 1], p2y[i + 1], BACKGROUND_COLOR);
+    tft.drawLine(p2x[i + 4], p2y[i + 4], p2x[i + 5], p2y[i + 5], BACKGROUND_COLOR);
+    tft.drawLine(p2x[i], p2y[i], p2x[i + 4], p2y[i + 4], BACKGROUND_COLOR);
   }
-  tft.drawLine(p2x[3], p2y[3], p2x[0], p2y[0], ILI9341_WHITE);
-  tft.drawLine(p2x[7], p2y[7], p2x[4], p2y[4], ILI9341_WHITE);
-  tft.drawLine(p2x[3], p2y[3], p2x[7], p2y[7], ILI9341_WHITE);
+  tft.drawLine(p2x[3], p2y[3], p2x[0], p2y[0], BACKGROUND_COLOR);
+  tft.drawLine(p2x[7], p2y[7], p2x[4], p2y[4], BACKGROUND_COLOR);
+  tft.drawLine(p2x[3], p2y[3], p2x[7], p2y[7], BACKGROUND_COLOR);
 
   r[0] = r[0] + 1;
   r[1] = r[1] + 1;
@@ -147,10 +163,9 @@ void cube(float *px, float *py, float *pz, float *p2x, float *p2y, int *r, uint1
 }
 
 static void vSqrtTask(void *pvParameters) {
-  (void) pvParameters; // unused
+  (void) pvParameters; // ununsed
   while (1){
   Serial.println ("Starting Sqrt calculations...");
-  // uint16 ixx[1001];
   // Library Sqrt
   uint32_t t0 = millis();
   for (uint32_t n = 247583650 ; n > 247400000 ; n--) {
@@ -165,12 +180,11 @@ static void vSqrtTask(void *pvParameters) {
 
 void setup() {
   // initialize the digital pin as an output:
-  Serial.begin(9600);
-  delay (5000);
+  Serial.begin(); delay(100);
   Serial.println ("Running...");
   pinMode(LED_BUILTIN, OUTPUT);
   tft.begin();
-  tft.fillScreen(ILI9341_WHITE);
+  tft.fillScreen(BACKGROUND_COLOR);
   cube1_x = ((tft.width()) / 4);
   cube1_y = ((tft.height()) / 4);
   cube2_x = ((tft.width()) / 2);
@@ -194,7 +208,7 @@ void setup() {
               "Cube2",
               configMINIMAL_STACK_SIZE,
               NULL,
-              tskIDLE_PRIORITY + 1,
+              tskIDLE_PRIORITY+1,
               NULL);
   xTaskCreate(vSqrtTask,
               "Sqrt",

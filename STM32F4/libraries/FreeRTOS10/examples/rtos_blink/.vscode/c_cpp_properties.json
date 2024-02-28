@@ -1,0 +1,33 @@
+{
+    "version": 4,
+    "configurations": [
+        {
+            "name": "Arduino",
+            "compilerPath": "C:\\Users\\Zo\\AppData\\Local\\Arduino15\\packages\\arduino\\tools\\arm-none-eabi-gcc\\4.8.3-2014q1\\bin\\arm-none-eabi-g++",
+            "compilerArgs": [
+                "-w",
+                "-std=gnu++11"
+            ],
+            "intelliSenseMode": "gcc-x64",
+            "includePath": [
+                "C:\\Users\\Zo\\Documents\\Arduino\\hardware\\Arduino_STM32\\STM32F4\\system\\libmaple",
+                "C:\\Users\\Zo\\Documents\\Arduino\\hardware\\Arduino_STM32\\STM32F4\\cores\\maple",
+                "C:\\Users\\Zo\\Documents\\Arduino\\hardware\\Arduino_STM32\\STM32F4\\variants\\generic_f407v",
+                "C:\\Users\\Zo\\Documents\\Arduino\\hardware\\Arduino_STM32\\STM32F4\\libraries\\FreeRTOS10",
+                "c:\\users\\zo\\appdata\\local\\arduino15\\packages\\arduino\\tools\\arm-none-eabi-gcc\\4.8.3-2014q1\\arm-none-eabi\\include\\c++\\4.8.3",
+                "c:\\users\\zo\\appdata\\local\\arduino15\\packages\\arduino\\tools\\arm-none-eabi-gcc\\4.8.3-2014q1\\arm-none-eabi\\include\\c++\\4.8.3\\arm-none-eabi",
+                "c:\\users\\zo\\appdata\\local\\arduino15\\packages\\arduino\\tools\\arm-none-eabi-gcc\\4.8.3-2014q1\\arm-none-eabi\\include\\c++\\4.8.3\\backward",
+                "c:\\users\\zo\\appdata\\local\\arduino15\\packages\\arduino\\tools\\arm-none-eabi-gcc\\4.8.3-2014q1\\lib\\gcc\\arm-none-eabi\\4.8.3\\include",
+                "c:\\users\\zo\\appdata\\local\\arduino15\\packages\\arduino\\tools\\arm-none-eabi-gcc\\4.8.3-2014q1\\lib\\gcc\\arm-none-eabi\\4.8.3\\include-fixed",
+                "c:\\users\\zo\\appdata\\local\\arduino15\\packages\\arduino\\tools\\arm-none-eabi-gcc\\4.8.3-2014q1\\arm-none-eabi\\include"
+            ],
+            "forcedInclude": [
+                "C:\\Users\\Zo\\Documents\\Arduino\\hardware\\Arduino_STM32\\STM32F1\\system\\libmaple\\Arduino.h"
+            ],
+            "cStandard": "c11",
+            "cppStandard": "c++11",
+            "defines": [
+            ]
+        }
+    ]
+}

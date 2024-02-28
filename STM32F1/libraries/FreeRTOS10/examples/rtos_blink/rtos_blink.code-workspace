@@ -1,0 +1,34 @@
+{
+	"folders": [
+		{
+			"path": "."
+		},
+		{
+			"path": "../../../.."
+		}
+	],
+	"settings": {
+		"files.associations": {
+			"*.inc": "c",
+			"algorithm": "cpp",
+			"array": "cpp",
+			"deque": "cpp",
+			"functional": "cpp",
+			"iterator": "cpp",
+			"list": "cpp",
+			"memory": "cpp",
+			"queue": "cpp",
+			"random": "cpp",
+			"vector": "cpp",
+			"xhash": "cpp",
+			"xlocnum": "cpp",
+			"xmemory": "cpp",
+			"xstring": "cpp",
+			"xtree": "cpp",
+			"xutility": "cpp",
+			"*.tcc": "cpp",
+			"string": "cpp",
+			"unordered_map": "cpp"
+		}
+	}
+}
