@@ -1,0 +1,28 @@
+{
+	"folders": [
+		{
+			"path": "../.."
+		},
+		{
+			"path": "../../../.."
+		}
+	],
+	"settings": {
+		"files.associations": {
+			"*.inc": "c",
+			"freertos.h": "c",
+			"freertosconfig.h": "c",
+			"freertos_ip.h": "c",
+			"freertosipconfig.h": "c",
+			"task.h": "c",
+			"freertos_ip_utils.h": "c",
+			"freertos_sockets.h": "c",
+			"event_groups.h": "c",
+			"freertos_ip_private.h": "c",
+			"freertos_arp.h": "c",
+			"freertos_udp_ip.h": "c",
+			"freertos_dns.h": "c",
+			"freertos_dns_globals.h": "c"
+		}
+	}
+}
