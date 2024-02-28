@@ -48,6 +48,10 @@ typedef enum WiringPinMode {
                voltage is held at +3.3v (Vcc) and when it is LOW, it
                is pulled down to ground. */
 
+    OUTPUT_LS, /**< Same as above, but using lower speed. */
+    OUTPUT_HS, /**< Same as above, but using higher speed. */
+    OUTPUT_VHS, /**< Same as above, but using very high speed. */
+
     OUTPUT_OPEN_DRAIN, /**< In open drain mode, the pin indicates
                           "low" by accepting current flow to ground
                           and "high" by providing increased

@@ -43,6 +43,15 @@ void pinMode(uint8 pin, WiringPinMode mode) {
     case OUTPUT:
         outputMode = GPIO_OUTPUT_PP;
         break;
+    case OUTPUT_VHS:
+        outputMode = GPIO_OUTPUT_PP_VHS;
+        break;
+    case OUTPUT_LS:
+        outputMode = GPIO_OUTPUT_PP_LS;
+        break;
+    case OUTPUT_HS:
+        outputMode = GPIO_OUTPUT_PP_HS;
+        break;
     case OUTPUT_OPEN_DRAIN:
         outputMode = GPIO_OUTPUT_OD;
         break;
