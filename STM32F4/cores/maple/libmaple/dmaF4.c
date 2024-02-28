@@ -61,14 +61,14 @@ dma_handler_t dma2_handlers[8] = {
 };
 
 /** DMA1 device */
-const dma_dev dma1 = {
+const dma_dev_t dma1 = {
     .regs      = DMA1_BASE,
     .clk_id    = RCC_DMA1,
     .handler_p = &dma1_handlers,
 };
 
 /** DMA2 device */
-const dma_dev dma2 = {
+const dma_dev_t dma2 = {
     .regs      = DMA2_BASE,
     .clk_id    = RCC_DMA2,
     .handler_p = &dma2_handlers,
@@ -90,8 +90,8 @@ const dma_dev dma2 = {
  * @see dma_setup_transfer()
  * @see dma_detach_interrupt()
  */
-void dma_attach_interrupt(const dma_dev *dev,
-                          dma_stream stream,
+void dma_attach_interrupt(const dma_dev_t *dev,
+                          dma_stream_nr_t stream,
                           void (*handler)(void))
 {
 	dma_handler_t * dma_handler_p = &(*(dev->handler_p))[stream];
@@ -110,7 +110,7 @@ void dma_attach_interrupt(const dma_dev *dev,
  * @sideeffect Clears interrupt enable bits in the channel's CCR register.
  * @see dma_attach_interrupt()
  */
-void dma_detach_interrupt(const dma_dev *dev, dma_stream stream)
+void dma_detach_interrupt(const dma_dev_t *dev, dma_stream_nr_t stream)
 {
 	dma_handler_t * dma_handler_p = &(*(dev->handler_p))[stream];
     nvic_irq_disable(dma_handler_p->irq_line);
@@ -119,25 +119,25 @@ void dma_detach_interrupt(const dma_dev *dev, dma_stream stream)
 
 const uint8 dma_isr_bits_shift[] = { 0, 6, 16, 22};
 
-uint8 dma_get_isr_bit(const dma_dev *dev, dma_stream stream, uint8_t mask)
+uint8 dma_get_isr_bit(const dma_dev_t *dev, dma_stream_nr_t stream, uint8_t mask)
 {
 	if ( stream&0xFC )	return ((dev->regs->HISR)>>dma_isr_bits_shift[stream&0x03]) & mask;
 	else				return ((dev->regs->LISR)>>dma_isr_bits_shift[stream&0x03]) & mask;
 }
 
-void dma_clear_isr_bit(const dma_dev *dev, dma_stream stream, uint8_t mask)
+void dma_clear_isr_bit(const dma_dev_t *dev, dma_stream_nr_t stream, uint8_t mask)
 {
 	if ( stream&0xFC )	dev->regs->HIFCR = (uint32)mask << dma_isr_bits_shift[stream&0x03];
 	else				dev->regs->LIFCR = (uint32)mask << dma_isr_bits_shift[stream&0x03];
 }
 
-void dma_set_mem_addr(const dma_dev *dev, dma_stream stream, __IO void *addr)
+void dma_set_mem_addr(const dma_dev_t *dev, dma_stream_nr_t stream, __IO void *addr)
 {
     dma_disable(dev, stream);
     dev->regs->STREAM[stream].M0AR = (uint32)addr;
 }
 
-void dma_set_per_addr(const dma_dev *dev, dma_stream stream, __IO void *addr)
+void dma_set_per_addr(const dma_dev_t *dev, dma_stream_nr_t stream, __IO void *addr)
 {
     dma_disable(dev, stream);
     dev->regs->STREAM[stream].PAR = (uint32)addr;
@@ -148,7 +148,7 @@ void dma_set_per_addr(const dma_dev *dev, dma_stream stream, __IO void *addr)
  * IRQ handlers
  */
 
-static inline void dispatch_handler(const dma_dev *dev, dma_stream stream)
+static inline void dispatch_handler(const dma_dev_t *dev, dma_stream_nr_t stream)
 {
     voidFuncPtr handler = (*(dev->handler_p))[stream].handler;
     if (handler) {

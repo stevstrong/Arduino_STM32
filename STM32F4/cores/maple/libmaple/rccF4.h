@@ -72,6 +72,8 @@ typedef struct
   uint32      RESERVED6[2];  /*!< Reserved, 0x78-0x7C                                                               */
   __IO uint32 SSCGR;         /*!< RCC spread spectrum clock generation register,               Address offset: 0x80 */
   __IO uint32 PLLI2SCFGR;    /*!< RCC PLLI2S configuration register,                           Address offset: 0x84 */
+  uint32      RESERVED7;     /*!< Reserved, 0x88-0x8C                                                               */
+  __IO uint32 DCKCFGR;       /*!< RCC DCK configuration register,                              Address offset: 0x8C */
 } rcc_reg_map;
 
 /** RCC register map base pointer */
@@ -85,6 +87,7 @@ typedef struct
 
 /* Clock control register */
 
+#define RCC_CR_PLLI2SRDY_BIT            27
 #define RCC_CR_PLLI2SON_BIT             26
 #define RCC_CR_PLLRDY_BIT               25
 #define RCC_CR_PLLON_BIT                24
