@@ -1,0 +1,6 @@
+{
+    "configuration": "usb_cfg=usb_serial,upload_method=STLinkMethod,opt=osstd",
+    "board": "Arduino_STM32:STM32F4:devebox_f407",
+    "sketch": "examples\\rtos_display_blink\\rtos_display_blink.ino",
+    "output": "examples/build"
+}
