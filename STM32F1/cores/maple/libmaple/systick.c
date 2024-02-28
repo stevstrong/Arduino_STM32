@@ -33,7 +33,9 @@
 #include <libmaple/systick.h>
 
 volatile uint32 systick_uptime_millis;
-static void (*systick_user_callback)(void);
+// static void (*systick_user_callback)(void);
+#define SYSTICK_CB_COUNT 4
+static voidFuncPtr systick_user_callbacks[SYSTICK_CB_COUNT] = {NULL,};
 
 /**
  * @brief Initialize and enable SysTick.
@@ -70,23 +72,42 @@ void systick_enable() {
 /**
  * @brief Attach a callback to be called from the SysTick exception handler.
  *
- * To detach a callback, call this function again with a null argument.
+ * To detach the callback, call detach function with the callback as argument.
  */
-void systick_attach_callback(void (*callback)(void)) {
-    systick_user_callback = callback;
+int8_t systick_attach_callback(voidFuncPtr callback) {
+    // systick_user_callback = callback;
+    for (uint8_t i = 0; i < SYSTICK_CB_COUNT; i++)
+    {
+        if (!systick_user_callbacks[i]) {
+            systick_user_callbacks[i] = callback;
+            return i;
+        }
+    }
+    return -1;
 }
 
-void systick_dettach_callback() {
-    systick_user_callback = NULL;
+int8_t systick_detach_callback(voidFuncPtr callback)
+{
+    // systick_user_callback = NULL;
+    for (uint8_t i = 0; i < SYSTICK_CB_COUNT; i++)
+    {
+        if (systick_user_callbacks[i] == callback) {
+            systick_user_callbacks[i] = NULL;
+            return i;
+        }
+    }
+    return -1;
 }
 
 /*
  * SysTick ISR
  */
-
 __weak void __exc_systick(void) {
     systick_uptime_millis++;
-    if (systick_user_callback) {
-        systick_user_callback();
+    for (uint8_t i = 0; i < SYSTICK_CB_COUNT; i++)
+    {
+        voidFuncPtr systick_callback = systick_user_callbacks[i];
+        if (systick_callback)
+            systick_callback();
     }
 }

@@ -112,8 +112,8 @@ static inline uint32 systick_check_underflow(void) {
  * @brief prototype for systick_attach_callback
  *
  */
-extern void systick_attach_callback(void (*callback)(void));
-extern void systick_dettach_callback();
+int8_t systick_attach_callback(voidFuncPtr callback);
+int8_t systick_detach_callback(voidFuncPtr callback);
 
 #ifdef __cplusplus
 } // extern "C"
