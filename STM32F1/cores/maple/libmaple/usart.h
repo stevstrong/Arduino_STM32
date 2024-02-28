@@ -429,26 +429,26 @@ typedef struct {
     ring_buffer_t * wb;               /**< TX ring buffer */
     rcc_clk_id clk_id;               /**< RCC clock information */
     nvic_irq_num irq_num;            /**< USART NVIC interrupt */
-} usart_dev;
+} usart_dev_t;
 
 /*
  * Devices
  */
-extern const usart_dev usart1;
-extern const usart_dev usart2;
-extern const usart_dev usart3;
+extern const usart_dev_t usart1;
+extern const usart_dev_t usart2;
+extern const usart_dev_t usart3;
 #define USART1 (&usart1)
 #define USART2 (&usart2)
 #define USART3 (&usart3)
 
 #ifdef STM32_HIGH_DENSITY
-extern const usart_dev uart4;
-extern const usart_dev uart5;
+extern const usart_dev_t uart4;
+extern const usart_dev_t uart5;
 #define UART4 (&uart4)
 #define UART5 (&uart5)
-extern const usart_dev * const usart_devs[5];
+extern const usart_dev_t * const usart_devs[5];
 #else
-extern const usart_dev * const usart_devs[3];
+extern const usart_dev_t * const usart_devs[3];
 #endif
 
 enum uart_parity_t { UART_PARITY_EVEN = USART_CR1_PS_EVEN, UART_PARITY_ODD = USART_CR1_PS_ODD };
@@ -462,7 +462,7 @@ enum uart_stop_bits_t { UART_STOP_BITS_0_5 = USART_CR2_STOP_BITS_0_5, UART_STOP_
 #define SERIAL_RX_BUFFER_SIZE 64
 
 
-void usart_init(const usart_dev *dev);
+void usart_init(const usart_dev_t *dev);
 
 /* FIXME [PRE 0.0.13] decide if flags are necessary */
 /**
@@ -475,17 +475,17 @@ void usart_init(const usart_dev *dev);
  * @param flags  Currently ignored
  */
 
-void usart_config(const usart_dev *udev, uint8 rx_pin, uint8 tx_pin, uint8_t flags);
-void usart_config_line_coding(const usart_dev *udev, usb_cdcacm_line_coding * lc);
-void usart_set_baud_rate(const usart_dev *dev, uint32 baud);
+void usart_config(const usart_dev_t *udev, uint8 rx_pin, uint8 tx_pin, uint8_t flags);
+void usart_config_line_coding(const usart_dev_t *udev, usb_cdcacm_line_coding_t * lc);
+void usart_set_baud_rate(const usart_dev_t *dev, uint32 baud);
 
-void usart_enable(const usart_dev *dev);
-void usart_disable(const usart_dev *dev);
-void usart_foreach(void(*fn)(const usart_dev *dev));
-uint16 usart_tx(const usart_dev *dev, const uint8 *buf, uint16 n);
-void usart_tx_fast(const usart_dev *dev, uint8 *buf, uint16 n);
-uint16 usart_rx(const usart_dev *dev, uint8 *buf, uint16 n);
-void usart_putudec(const usart_dev *dev, uint32 val);
+void usart_enable(const usart_dev_t *dev);
+void usart_disable(const usart_dev_t *dev);
+void usart_foreach(void(*fn)(const usart_dev_t *dev));
+uint16 usart_tx(const usart_dev_t *dev, const uint8 *buf, uint16 n);
+void usart_tx_fast(const usart_dev_t *dev, uint8 *buf, uint16 n);
+uint16 usart_rx(const usart_dev_t *dev, uint8 *buf, uint16 n);
+void usart_putudec(const usart_dev_t *dev, uint32 val);
 
 /**
  * @brief Disable all serial ports.
@@ -503,7 +503,7 @@ static inline void usart_disable_all(void) {
  * @param dev Serial port to send on.
  * @param byte Byte to transmit.
  */
-static inline void usart_putc(const usart_dev* dev, char byte) {
+static inline void usart_putc(const usart_dev_t* dev, char byte) {
     while (!usart_tx(dev, (const uint8*)&byte, 1))
         ;
 }
@@ -516,7 +516,7 @@ static inline void usart_putc(const usart_dev* dev, char byte) {
  * @param dev Serial port to send on
  * @param str String to send
  */
-static inline void usart_putstr(const usart_dev *dev, const char* str) {
+static inline void usart_putstr(const usart_dev_t *dev, const char* str) {
     char c;
     while ( (c=*str++) != '\0') {
         usart_putc(dev, c);
@@ -533,7 +533,7 @@ static inline void usart_putstr(const usart_dev *dev, const char* str) {
  * @return byte read
  * @see usart_data_available()
  */
-static inline uint8_t usart_getc(const usart_dev *dev) {
+static inline uint8_t usart_getc(const usart_dev_t *dev) {
     return rb_read(dev->rb);
 }
 
@@ -543,7 +543,7 @@ static inline uint8_t usart_getc(const usart_dev *dev) {
  * @param dev Serial port to read from
  * @return byte read
  */
-static inline int usart_peek(const usart_dev *dev) {
+static inline int usart_peek(const usart_dev_t *dev) {
 	return rb_peek(dev->rb);
 }
 /**
@@ -551,19 +551,19 @@ static inline int usart_peek(const usart_dev *dev) {
  * @param dev Serial port to check
  * @return Number of free slots in dev's TX buffer.
  */
-static inline uint16_t usart_tx_available(const usart_dev *dev) {
+static inline uint16_t usart_tx_available(const usart_dev_t *dev) {
     return rb_write_available(dev->wb);
 }
 /*
-static inline uint8_t * usart_tx_ptr(usart_dev *dev) {
+static inline uint8_t * usart_tx_ptr(usart_dev_t *dev) {
     return rb_write_ptr(dev->wb);
 }
 */
-static inline void usart_tx_start(const usart_dev *dev) {
+static inline void usart_tx_start(const usart_dev_t *dev) {
 	dev->regs->CR1 |= USART_CR1_TXEIE;
 }
 /*
-static inline void usart_tx_finish(usart_dev *dev, uint16_t nr) {
+static inline void usart_tx_finish(usart_dev_t *dev, uint16_t nr) {
     rb_write_finish(dev->txB, nr);
 }
 */
@@ -572,7 +572,7 @@ static inline void usart_tx_finish(usart_dev *dev, uint16_t nr) {
  * @param dev Serial port to check
  * @return Number of bytes in dev's RX buffer.
  */
-static inline uint16 usart_rx_available(const usart_dev *dev) {
+static inline uint16 usart_rx_available(const usart_dev_t *dev) {
     return rb_read_available(dev->rb);
 }
 
@@ -580,7 +580,7 @@ static inline uint16 usart_rx_available(const usart_dev *dev) {
  * @brief Discard the contents of a serial port's RX buffer.
  * @param dev Serial port whose buffer to empty.
  */
-static inline void usart_reset_rx(const usart_dev *dev) {
+static inline void usart_reset_rx(const usart_dev_t *dev) {
     rb_reset(dev->rb);
 }
 
@@ -588,7 +588,7 @@ static inline void usart_reset_rx(const usart_dev *dev) {
  * @brief Discard the contents of a serial port's RX buffer.
  * @param dev Serial port whose buffer to empty.
  */
-static inline void usart_reset_tx(const usart_dev *dev) {
+static inline void usart_reset_tx(const usart_dev_t *dev) {
     rb_reset(dev->wb);
 }
 

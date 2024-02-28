@@ -50,35 +50,6 @@
  * the documentation accordingly.
  */
 
- 
- 
-/* Roger Clark
- *
- * Added config defines from AVR 
- * Note. The values will need to be changed to match STM32 USART config register values, these are just place holders.
- */
-// Define config for Serial.begin(baud, config);
-// Note. STM32 doesn't support as many different Serial modes as AVR or SAM cores.
-// The word legth bit M must be set when using parity bit.
-
-#define SERIAL_8N1	0B00000000
-#define SERIAL_8N2	0B00100000
-#define SERIAL_9N1	0B00001000
-#define SERIAL_9N2	0B00101000	
-
-#define SERIAL_8E1	0B00001010
-#define SERIAL_8E2	0B00101010
-/* not supported:
-#define SERIAL_9E1	0B00001010
-#define SERIAL_9E2	0B00101010
-*/
-#define SERIAL_8O1	0B00001011
-#define SERIAL_8O2	0B00101011
-/* not supported:
-#define SERIAL_9O1	0B00001011
-#define SERIAL_9O2	0B00101011
-*/
-
 /* Roger Clark 
  * Moved macros from hardwareSerial.cpp
  */
@@ -111,7 +82,7 @@ static inline void disable_timer_if_necessary(timer_dev *dev, uint8 ch)
 class HardwareSerial : public Stream {
 
 public:
-	HardwareSerial(const usart_dev *usart_device, uint8 tx_pin, uint8 rx_pin)
+	HardwareSerial(const usart_dev_t *usart_device, uint8 tx_pin, uint8 rx_pin)
     {
         this->usart_device = usart_device;
         this->tx_pin = tx_pin;
@@ -180,9 +151,9 @@ public:
 
     /* Escape hatch into libmaple */
     /* FIXME [0.0.13] documentation */
-	const usart_dev* c_dev(void) { return this->usart_device; }
+	const usart_dev_t* c_dev(void) { return this->usart_device; }
 private:
-    const usart_dev *usart_device;
+    const usart_dev_t *usart_device;
     uint8 tx_pin;
     uint8 rx_pin;
 

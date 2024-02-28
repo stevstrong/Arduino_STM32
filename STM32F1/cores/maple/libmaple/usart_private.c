@@ -34,7 +34,7 @@
 #include <libmaple/rcc.h>
 #include <libmaple/stm32.h>
 
-uint32 _usart_clock_freq(const usart_dev *dev) {
+uint32 _usart_clock_freq(const usart_dev_t *dev) {
     rcc_clk_domain domain = rcc_dev_clk(dev->clk_id);
     return (domain == RCC_APB1 ? STM32_PCLK1 :
             (domain == RCC_APB2 ? STM32_PCLK2 : 0));

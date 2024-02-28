@@ -3,7 +3,7 @@
 #include <usb_serial.h>
 #include <HardwareSerial.h>
 #include <libmaple/usart.h>
-#include <libmaple/usb_cdcacm.h>
+#include <libmaple/usb/usb_cdc_def.h>
 
 void docmd();
 bool chkcmd();
@@ -14,9 +14,9 @@ void bufsend();
 // bluepill
 //#define LED_BUILTIN PC13
 
-uint8 ledPin = LED_BUILTIN;
-uint8 dtrPin = PB12;
-uint8 rtsPin = PB13;
+uint8_t ledPin = LED_BUILTIN;
+uint8_t dtrPin = PB12;
+uint8_t rtsPin = PB13;
 
 // this is the character used for the +++ escape sequence
 // this would interfere with the escape sequence char of esp8266
@@ -24,9 +24,9 @@ uint8 rtsPin = PB13;
 #define ESCSEQCHAR '+'
 
 bool bcmd;
-uint8 fsendlf;
-uint8 dtr;
-uint8 rts;
+uint8_t fsendlf;
+uint8_t dtr;
+uint8_t rts;
 
 #define INVERT(x) (~x)&1
 
@@ -34,19 +34,15 @@ uint8 rts;
 bool bsetlinecoding = false;
 
 //setup hook flags bsetlinecoding when SET_LINE_CODING is received
-static void usbSetupHook(unsigned hook __attribute__((unused)),
-		void *requestvp) {
-    uint8 request = *(uint8*)requestvp;
-
-    if (request == USB_CDCACM_SET_LINE_CODING) {
-        bsetlinecoding = true;
-    }
-    return;
+static void usbSetupHook(void)
+{
+	bsetlinecoding = true;
 }
 
 
 // the setup() method runs once when the sketch starts
-void setup() {
+void setup()
+{
    //initialize the digital pin as an output:
    pinMode(ledPin, OUTPUT);
    digitalWrite(ledPin, HIGH);
@@ -54,7 +50,7 @@ void setup() {
 
    //disable DTR checks, note this disable DTR "LEAF" magic sequence
    //replace the interface setup hook
-   usb_cdcacm_set_hooks(USB_CDCACM_HOOK_IFACE_SETUP, &usbSetupHook);
+   usb_cdcacm_set_hooks(USB_CDCACM_HOOK_IFACE_SETUP, usbSetupHook);
 
    //AN3155: usart boot loader requires even parity
    // but literally those parity stuff is not (yet) implemented in the core
@@ -73,7 +69,6 @@ void setup() {
    digitalWrite(dtrPin, INVERT(dtr));
    pinMode(rtsPin, OUTPUT);
    digitalWrite(rtsPin, INVERT(rts));
-
 
 }
 
@@ -219,57 +214,55 @@ void docmd() {
 }
 
 //configures serial baud and flags from configuration received from host
-void configserial() {
-	uint32 baud = usb_cdcacm_get_baud();
-//	Serial.print("baud:");
-//	Serial.print(baud);
-//	Serial.println();
-//	Serial.print("bits:");
-//	Serial.print(usb_cdcacm_get_n_data_bits());
-//	Serial.println();
-//	Serial.print("parity:");
-//	Serial.print(usb_cdcacm_get_parity());
-//	Serial.println();
-//	Serial.print("stop:");
-//	Serial.print(usb_cdcacm_get_stop_bits());
-//	Serial.println();
-	//currently the serial line discipline flags are not supported in the core
-	//hence it is hardcoded as default 8N1!
-	//only the baud rate is updated
-	Serial1.begin(baud, SERIAL_8N1);
+void configserial()
+{
+usb_cdcacm_line_coding_t lcData;
+	usb_cdcacm_get_line_coding(&lcData);
 
-	//line discipline handling
-	uint32_t u1cr1 = USART1_BASE->CR1;
-	uint32_t u1cr2 = USART1_BASE->CR2;
-	uint8 bits = usb_cdcacm_get_n_data_bits();
-	if(bits == 9)
-		u1cr1 |= USART_CR1_M;
-	else //8 bits, and all others, zero out M bit
-		u1cr1 &= ~USART_CR1_M;
+// only following configurations are supported:
+// SERIAL_9N1
+// SERIAL_9N2
+// SERIAL_8O1
+// SERIAL_8O2
+// SERIAL_8E1
+// SERIAL_8E2
+// SERIAL_8N1
+// SERIAL_8N2
+	uint8_t cfg = 0;
 
-	uint8 stop = usb_cdcacm_get_stop_bits();
-	//zero out the stop bits, this is 1 stop bits
-	//this is a 2 bits field
-	u1cr2 &= ~USART_CR2_STOP;
-	if(stop == 2)
-		u1cr2 |= USART_CR2_STOP_BITS_1;
-	else if (stop == 1)
-		u1cr2 |= USART_CR2_STOP_BITS_1_POINT_5;
-	//else 1 stop bits
-
-	uint8 parity = usb_cdcacm_get_parity();
-	if(parity == 1) { //odd
-		u1cr1 |= USART_CR1_PCE; //enable parity
-		u1cr1 |= USART_CR1_PS_ODD;
-	} else if (parity == 2) { //even
-		u1cr1 |= USART_CR1_PCE; //enable parity
-		u1cr1 &= ~USART_CR1_PS; //zero out PS - even parity
-	} else {
-		//zero out parity enable and parity selection
-		u1cr1 &= ~(USART_CR1_PCE|USART_CR1_PS);
+	uint8_t stopBits = lcData.stopBits; // 0: 1 Stop bit; 1: 1.5 Stop bits; 2: 2 Stop bits
+	uint8_t parity = lcData.parityType; // 0:None; 1: Odd; 2: Even; 3: Mark; 4: Space
+	uint8_t dataBits = lcData.dataBits; // Data bits (5, 6, 7, 8 or 16)
+	if (dataBits == 9) { // 9 data bits
+		if (stopBits == 2) {
+			cfg = SERIAL_9N2;
+		} else {
+			cfg = SERIAL_9N1;
+		}
+	} else { // otherwise only 8 bit is supported 
+		if (parity == 1) { // odd
+			if (stopBits == 2) {
+				cfg = SERIAL_8O2;
+			} else {
+				cfg = SERIAL_8O1;
+			}
+			
+		} else if (parity == 2) { // even
+			if (stopBits == 2) {
+				cfg = SERIAL_8E2;
+			} else {
+				cfg = SERIAL_8E1;
+			}
+		} else { // no parity or other
+			if (stopBits == 2) {
+				cfg = SERIAL_8N2;
+			} else {
+				cfg = SERIAL_8N1;
+			}
+		}
 	}
-	USART1_BASE->CR1 = u1cr1;
-	USART1_BASE->CR2 = u1cr2;
+
+	Serial1.begin(lcData.baudRate, cfg);
 
 }
 

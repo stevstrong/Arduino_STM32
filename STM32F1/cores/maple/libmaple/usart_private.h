@@ -37,7 +37,7 @@
 #include <libmaple/ring_buffer.h>
 #include <libmaple/usart.h>
 
-static inline void usart_irq(const usart_dev * udev)
+static inline void usart_irq(const usart_dev_t * udev)
 {
     /* Handling RXNEIE and TXEIE interrupts. 
      * See table 198 (sec 27.4, p809) in STM document RM0008 rev 15.
@@ -66,6 +66,6 @@ static inline void usart_irq(const usart_dev * udev)
     }
 }
 
-uint32 _usart_clock_freq(const usart_dev *dev);
+uint32 _usart_clock_freq(const usart_dev_t *dev);
 
 #endif

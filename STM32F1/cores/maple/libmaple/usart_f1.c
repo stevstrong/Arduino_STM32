@@ -44,7 +44,7 @@
 static RING_BUFFER(usart1_rb, SERIAL_RX_BUFFER_SIZE);
 static RING_BUFFER(usart1_wb, SERIAL_TX_BUFFER_SIZE);
 /** USART1 device */
-const usart_dev usart1 = {
+const usart_dev_t usart1 = {
     .regs     = USART1_BASE,
     .rb       = &usart1_rb,
     .wb       = &usart1_wb,
@@ -55,7 +55,7 @@ const usart_dev usart1 = {
 static RING_BUFFER(usart2_rb, SERIAL_RX_BUFFER_SIZE);
 static RING_BUFFER(usart2_wb, SERIAL_TX_BUFFER_SIZE);
 /** USART2 device */
-const usart_dev usart2 = {
+const usart_dev_t usart2 = {
     .regs     = USART2_BASE,
     .rb       = &usart2_rb,
     .wb       = &usart2_wb,
@@ -66,7 +66,7 @@ const usart_dev usart2 = {
 static RING_BUFFER(usart3_rb, SERIAL_RX_BUFFER_SIZE);
 static RING_BUFFER(usart3_wb, SERIAL_TX_BUFFER_SIZE);
 /** USART3 device */
-const usart_dev usart3 = {
+const usart_dev_t usart3 = {
     .regs     = USART3_BASE,
     .rb       = &usart3_rb,
     .wb       = &usart3_wb,
@@ -77,7 +77,7 @@ const usart_dev usart3 = {
 #if defined(STM32_HIGH_DENSITY) || defined(STM32_XL_DENSITY)
 static ring_buffer uart4_rb;
 static ring_buffer uart4_wb;
-static usart_dev uart4 = {
+static usart_dev_t uart4 = {
     .regs     = UART4_BASE,
     .rb       = &uart4_rb,
     .wb       = &uart4_wb,
@@ -86,11 +86,11 @@ static usart_dev uart4 = {
     .irq_num  = NVIC_UART4,
 };
 /** UART4 device */
-usart_dev *UART4 = &uart4;
+usart_dev_t *UART4 = &uart4;
 
 static ring_buffer uart5_rb;
 static ring_buffer uart5_wb;
-static usart_dev uart5 = {
+static usart_dev_t uart5 = {
     .regs     = UART5_BASE,
     .rb       = &uart5_rb,
     .wb       = &uart5_wb,
@@ -99,14 +99,14 @@ static usart_dev uart5 = {
     .irq_num  = NVIC_UART5,
 };
 /** UART5 device */
-usart_dev *UART5 = &uart5;
+usart_dev_t *UART5 = &uart5;
 #endif
 
 /*
  * Routines
  */
 
-void usart_config(const usart_dev *udev, uint8 rx, uint8 tx, uint8 flags)
+void usart_config(const usart_dev_t *udev, uint8_t rx, uint8_t tx, uint8_t flags)
 {
 /*
 CR1 bit 12 Word length 0=8  1=9 
@@ -154,24 +154,52 @@ Word length of 9 bit with parity is not supported.
 	gpio_set_pin_mode(tx, GPIO_AF_OUTPUT_PP);
 }
 
-void usart_set_baud_rate(const usart_dev *dev, uint32 baud)
+void usart_set_baud_rate(const usart_dev_t *dev, uint32_t baud)
 {
-    uint32 clock_speed = _usart_clock_freq(dev);
+    uint32_t clock_speed = _usart_clock_freq(dev);
 
     /* Convert desired baud rate to baud rate register setting. */
-    uint32 integer_part = (25 * clock_speed) / (4 * baud);
-    uint32 tmp = (integer_part / 100) << 4;
-    uint32 fractional_part = integer_part - (100 * (tmp >> 4));
+    uint32_t integer_part = (25 * clock_speed) / (4 * baud);
+    uint32_t tmp = (integer_part / 100) << 4;
+    uint32_t fractional_part = integer_part - (100 * (tmp >> 4));
     tmp |= (((fractional_part * 16) + 50) / 100) & ((uint8)0x0F);
 
     dev->regs->BRR = (uint16)tmp;
+}
+
+void usart_config_line_coding(const usart_dev_t *udev, usb_cdcacm_line_coding_t *lcData)
+{
+    usart_set_baud_rate(udev, lcData->baudRate);
+    uint8_t stopBits = lcData->stopBits; // 0: 1 Stop bit; 1: 1.5 Stop bits; 2: 2 Stop bits
+    uint8_t parity = lcData->parityType; // 0: None; 1: Odd; 2: Even; 3: Mark; 4: Space
+    uint8_t dataBits = lcData->dataBits; // Data bits (5, 6, 7, 8 or 16)
+
+	uint32_t cr1 = 0;
+	uint32_t cr2 = 0;
+	if (dataBits == 9) // 8 bits, and all others, zero out M bit
+		cr1 |= USART_CR1_M_9N1;
+
+	if (stopBits == 2)
+		cr2 |= USART_CR2_STOP_BITS_2;
+	else if (stopBits == 1)
+		cr2 |= USART_CR2_STOP_BITS_1_5;
+
+	if (parity == 1) { //odd
+		cr1 |= USART_CR1_PCE; //enable parity
+		cr1 |= USART_CR1_PS_ODD;
+	} else if (parity == 2) { //even
+		cr1 |= USART_CR1_PCE; //enable parity
+		cr1 &= ~USART_CR1_PS; //zero out PS - even parity
+	}
+	udev->regs->CR1  = (udev->regs->CR1 & 0B1110000111111111) | cr1;
+	udev->regs->CR2  = (udev->regs->CR2 & 0B1100111111111111) | cr2;
 }
 
 /**
  * @brief Call a function on each USART.
  * @param fn Function to call.
  */
-void usart_foreach(void (*fn)(const usart_dev*)) {
+void usart_foreach(void (*fn)(const usart_dev_t*)) {
     fn(USART1);
     fn(USART2);
     fn(USART3);

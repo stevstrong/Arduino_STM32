@@ -484,11 +484,11 @@ static RESULT serialUSBDataSetup(uint8 request, uint8 interface, uint8 requestTy
     
     if ((requestType & (REQUEST_TYPE | RECIPIENT)) == (CLASS_REQUEST | INTERFACE_RECIPIENT) && interface == CCI_INTERFACE_OFFSET) {        
         switch (request) {
-        case USBHID_CDCACM_GET_LINE_CODING:
+        case USBHID_CDC_REQ_GET_LINE_CODING:
             usb_generic_control_tx_setup(&line_coding, sizeof(line_coding), NULL);
             ret = USB_SUCCESS;
             break;
-        case USBHID_CDCACM_SET_LINE_CODING:
+        case USBHID_CDC_REQ_SET_LINE_CODING:
             usb_generic_control_rx_setup(&line_coding, sizeof(line_coding), NULL);
             ret = USB_SUCCESS;
             break;

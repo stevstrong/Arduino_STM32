@@ -75,7 +75,7 @@ void __lm_error(void) {
 /*
  * Enable the error USART for writing.
  */
-const usart_dev* __lm_enable_error_usart() {
+const usart_dev_t * __lm_enable_error_usart() {
     gpio_set_pin_mode(ERROR_TX_PIN, GPIO_AF_OUTPUT_PP);
     usart_init(ERROR_USART);
     usart_set_baud_rate(ERROR_USART, ERROR_USART_BAUD);

@@ -421,8 +421,9 @@ static void CDC_Set_DTR_RTS(void)
 //-----------------------------------------------------------------------------
 static void CDC_SetLineCoding(void)
 {
-	ReadCTRLBlock((uint8_t*) &lineCoding, sizeof(usb_cdcacm_line_coding));
+	ReadCTRLBlock((uint8_t*) &lineCoding, sizeof(usb_cdcacm_line_coding_t));
 	// set the USART parameters according to the new data
+	if (lineCodingHook != NULL) lineCodingHook();
 	// usart_config_line_coding(USART1, &lineCoding);
 }
 //-----------------------------------------------------------------------------

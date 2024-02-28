@@ -74,7 +74,7 @@ uint8 usb_cdcacm_get_rts(void);
  5   bParityType  Parity:    0 - None, 1 - Odd, 2 - Even, 3 - Mark, 4 - Space
  6   bDataBits    Data bits: 5, 6, 7, 8, 16
  */
-typedef struct usb_cdcacm_line_coding {
+typedef struct usb_cdcacm_line_coding_t {
     uint32 baudRate;           /* Baud rate */
 
 #define USB_CDCACM_STOP_BITS_1   0
@@ -90,13 +90,13 @@ typedef struct usb_cdcacm_line_coding {
     uint8 parityType;          /* Parity type */
 
     uint8 dataBits;            /* Data bits: 5, 6, 7, 8, or 16 */
-} __packed usb_cdcacm_line_coding;
-extern usb_cdcacm_line_coding lineCoding;
+} __packed usb_cdcacm_line_coding_t;
+extern usb_cdcacm_line_coding_t lineCoding;
 
 extern uint8_t dtr_rts;
 
 /* Retrieve a copy of the current line coding structure. */
-void usb_cdcacm_get_line_coding(usb_cdcacm_line_coding*);
+void usb_cdcacm_get_line_coding(usb_cdcacm_line_coding_t*);
 
 /* Line coding conveniences. */
 int usb_cdcacm_get_baud(void);        /* dwDTERate */
@@ -113,9 +113,11 @@ extern ring_buffer_t usbTxRB;
 
 #define USB_CDCACM_HOOK_RX 0x1
 #define USB_CDCACM_HOOK_IFACE_SETUP 0x2
+#define USB_CDCACM_LINE_CODING_HOOK 0x2
 
 extern voidFuncPtr dataHook;
 extern voidFuncPtr ifaceHook;
+extern voidFuncPtr lineCodingHook;
 
 void usb_cdcacm_set_hooks(int hook_flags, voidFuncPtr hook);
 
