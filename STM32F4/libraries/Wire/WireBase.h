@@ -44,6 +44,10 @@
 #include "wirish.h"
 #include <libmaple/i2c.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #define BUFFER_LENGTH 32
 
 /* return codes from endTransmission() */
@@ -113,7 +117,7 @@ public:
     /*
      * Stack up bytes from the array to be sent when transmitting
      */
-    void write(uint8*, int);
+    void write(uint8_t*, int);
 
     /*
      * Ensure that a sending data will only be 8-bit bytes
@@ -141,5 +145,9 @@ public:
      */
     uint8 read();
 };
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif // _WIREBASE_H_

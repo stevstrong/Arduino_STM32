@@ -49,7 +49,7 @@ void boardInit(void)
 }
 
 extern const uint8 boardPWMPins[BOARD_NR_PWM_PINS] __FLASH__ = {
-    PB0, PA7, PA6, PA3, PA2, PA1, PA0, PB7, PB6, PA10, PA9, PA8
+        PA0, PA1, PA2, PA3, PA6, PA7, PA8, PA9, PA10, PA11, PB0, PB1, PB6, PB7, PB8, PB9
 };
 
 extern const uint8 boardADCPins[BOARD_NR_ADC_PINS] __FLASH__ = {

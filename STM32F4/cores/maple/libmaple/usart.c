@@ -214,7 +214,7 @@ void usart_foreach(void (*fn)(usart_dev*)) {
 uint32 usart_tx(usart_dev *dev, const uint8 *buf, uint32 len) {
     uint32 txed = 0;
 #ifdef USART_TX_IRQ
-    while (txed < len && rb_safe_insert(&dev->rbTX, buf[txed])) {
+    while (txed < len && rb_safe_write(&dev->rbTX, buf[txed])) {
     	usart_tx_irq_enable(dev);
     	txed++;
     }
@@ -256,7 +256,7 @@ void usart_putudec(usart_dev *dev, uint32 val) {
 /*
  * Interrupt handlers.
  */
-static inline void usart_irq(usart_dev *dev) {
+static void usart_irq(usart_dev *dev) {
 	volatile int sr = dev->regs->SR;
 	if(sr & USART_SR_RXNE) {
 #ifdef USART_SAFE_INSERT
@@ -265,13 +265,13 @@ static inline void usart_irq(usart_dev *dev) {
 		rb_safe_insert(&dev->rbRX, (uint8)dev->regs->DR);
 #else
 		/* By default, push bytes around in the ring buffer. */
-		rb_push_insert(&dev->rbRX, (uint8)dev->regs->DR);
+		rb_push_write(&dev->rbRX, (uint8)dev->regs->DR);
 #endif
 
 #ifdef USART_TX_IRQ
 	} else if(sr & USART_SR_TXE) {
-		if(rb_full_count(&dev->rbTX) > 0) {
-			dev->regs->DR = rb_remove(&dev->rbTX);
+		if(rb_rd_available(&dev->rbTX) > 0) {
+			dev->regs->DR = rb_read(&dev->rbTX);
 		} else {
 			usart_tx_irq_disable(dev); // disable tx irq
 			// nops needed to deactivate the irq before irq handler is left

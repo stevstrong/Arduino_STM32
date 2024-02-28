@@ -187,27 +187,29 @@ static const unsigned char HelloMP3[] = {
   0x20,0x20,0x20,0x4D,0x50,0x33,0x20,0x48,0x65,0x6C,0x6C, /*    MP3 Hell */
   0x6F,0x2C,0x20,0x57,0x6F,0x72,0x6C,0x64,0x21,0x20,0x20, /* o, World!   */
   0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20, /*             */
-  0x00
+  0x00, 0x00,
 };
 
 //Un-comment the line with the SPI port you want to use. Default is SPI1 port.
-SPIClass spiVS(1); //Create an SPI instance on SPI1 port.
-//SPIClass spi(2); //Create an SPI instance on SPI2 port.
+// SPIClass spiVS(1); //Create an SPI instance on SPI1 port.
+SPIClass spiVS(2); //Create an SPI instance on SPI2 port.
 //SPIClass spi(3); //Create an SPI instance on SPI3 port.
 
-VS1003 player(PC14, PB10, PA8, PA9, spiVS); // cs_pin, dcs_pin, dreq_pin, reset_pin, SPI channel - defaults to SPI
+VS1003 player(PB4, PB5, PB3, PB12, spiVS); // cs_pin, dcs_pin, dreq_pin, reset_pin, SPI channel - defaults to SPI
 
 void setup () 
 {
   Serial.begin(9600);
+  // while(!Serial); delay(100);
   Serial.println("VS1003 HelloMP3");
 
   player.begin();
-  player.modeSwitch(); //Change mode from MIDI to MP3 decoding (Vassilis Serasidis).
-  player.setVolume(0x00);  // set maximum output volume
+  // player.modeSwitch(); //Change mode from MIDI to MP3 decoding (Vassilis Serasidis).
+  // player.setVolume(0x00);  // set maximum output volume
+  Serial.println("Setup done.");
 }
 
 void loop() {
    player.playChunk(HelloMP3, sizeof(HelloMP3));  // play hellomp3 - this blocks until the player is ready to receive more data
-   delay(1000);
+   delay(3000);
 }

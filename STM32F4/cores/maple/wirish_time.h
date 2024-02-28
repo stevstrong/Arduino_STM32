@@ -56,11 +56,10 @@ static inline uint32 millis(void) {
  * execution.  On overflow, restarts at 0.
  * @see millis()
  */
-static inline uint32 micros(void) {
+static inline uint32 micros(void)
+{
     uint32 ms;
     uint32 cycle_cnt;
-    uint32 res;
-
     do {
         ms = millis();
         cycle_cnt = systick_get_count();
@@ -68,12 +67,12 @@ static inline uint32 micros(void) {
         asm volatile("nop");
     } while (ms != millis());
 
+#define US_PER_MS               1000
     /* SYSTICK_RELOAD_VAL is 1 less than the number of cycles it
-       actually takes to complete a SysTick reload */
-    res = (ms * US_PER_MS) +
-        (SYSTICK_RELOAD_VAL + 1 - cycle_cnt) / CYCLES_PER_MICROSECOND;
-
-    return res;
+     * actually takes to complete a SysTick reload */
+    return ((ms * US_PER_MS) +
+            (SYSTICK_RELOAD_VAL + 1 - cycle_cnt) / CYCLES_PER_MICROSECOND);
+#undef US_PER_MS
 }
 
 /**

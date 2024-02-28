@@ -42,6 +42,10 @@
 #include "wirish.h"
 #include <libmaple/i2c.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 class TwoWire : public WireBase {
 private:
     i2c_dev* sel_hard;
@@ -59,6 +63,7 @@ public:
      * passed flags
      */
     TwoWire(uint8, uint8 = 0);
+    TwoWire(uint8, uint8, uint8, uint8 = 0);
 	
 	/*
 	 * Shuts down (disables) the hardware I2C
@@ -73,5 +78,11 @@ public:
 
     void begin(void);
 };
+
+#ifdef __cplusplus
+}
+#endif
+
 extern TwoWire Wire;
+
 #endif // _HARDWIRE_H_

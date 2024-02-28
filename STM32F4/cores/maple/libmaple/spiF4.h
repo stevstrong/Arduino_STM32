@@ -57,21 +57,21 @@ struct spi_reg_map;
  * Device pointers
  */
 
-struct spi_dev;
+struct spi_dev_t;
 
-extern struct spi_dev spi1;
-extern struct spi_dev spi2;
-extern struct spi_dev spi3;
+extern struct spi_dev_t spi1;
+extern struct spi_dev_t spi2;
+extern struct spi_dev_t spi3;
 #define SPI1  (&spi1)
 #define SPI2  (&spi2)
 #define SPI3  (&spi3)
 
 #if BOARD_NR_SPI>3
-extern struct spi_dev spi4;
+extern struct spi_dev_t spi4;
 #define SPI4  (&spi4)
 #endif
 #if BOARD_NR_SPI>4
-extern struct spi_dev spi5;
+extern struct spi_dev_t spi5;
 #define SPI5  (&spi5)
 #endif
 

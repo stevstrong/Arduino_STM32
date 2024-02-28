@@ -79,7 +79,8 @@ extern volatile uint32 systick_uptime_millis;
 void systick_init(uint32 reload_val);
 void systick_disable();
 void systick_enable();
-void systick_attach_callback(void (*callback)(void));
+int8_t systick_attach_callback(voidFuncPtr callback);
+int8_t systick_detach_callback(voidFuncPtr callback);
 
 /**
  * @brief Returns the system uptime, in milliseconds.

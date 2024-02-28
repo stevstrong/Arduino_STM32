@@ -61,5 +61,18 @@ typedef struct scb_reg_map {
 /** System control block register map base pointer */
 #define SCB_BASE                        ((struct scb_reg_map*)0xE000ED00)
 
+
+/* Application interrupt and reset control register (SCB_AIRCR) */
+
+#define SCB_AIRCR_VECTKEYSTAT           (0x5FA << 16)
+#define SCB_AIRCR_VECTKEY               (0x5FA << 16)
+#define SCB_AIRCR_ENDIANNESS            (1U << 15)
+#define SCB_AIRCR_PRIGROUP              (0x7 << 8)
+#define SCB_AIRCR_SYSRESETREQ           (1U << 2)
+#define SCB_AIRCR_VECTCLRACTIVE         (1U << 1)
+#define SCB_AIRCR_VECTRESET             (1U << 0)
+
+
+
 #endif
 

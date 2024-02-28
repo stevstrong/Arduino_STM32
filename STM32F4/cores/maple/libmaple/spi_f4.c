@@ -44,14 +44,14 @@
         .irq_num = NVIC_SPI##num,   \
     }
 
-spi_dev spi1 = SPI_DEV(1);
-spi_dev spi2 = SPI_DEV(2);
-spi_dev spi3 = SPI_DEV(3);
+spi_dev_t spi1 = SPI_DEV(1);
+spi_dev_t spi2 = SPI_DEV(2);
+spi_dev_t spi3 = SPI_DEV(3);
 #if BOARD_NR_SPI>3
-spi_dev spi4 = SPI_DEV(4);
+spi_dev_t spi4 = SPI_DEV(4);
 #endif
 #if BOARD_NR_SPI>4
-spi_dev spi5 = SPI_DEV(5);
+spi_dev_t spi5 = SPI_DEV(5);
 #endif
 
 
@@ -59,7 +59,7 @@ spi_dev spi5 = SPI_DEV(5);
  * Routines
  */
 
-void spi_config_gpios(spi_dev *dev,
+void spi_config_gpios(spi_dev_t *dev,
                       uint8 as_master,
                       const spi_pins_t *pins) {
     if (as_master) {
@@ -83,7 +83,7 @@ void spi_config_gpios(spi_dev *dev,
 	gpio_set_af_mode(pins->mosi, af_mode);
 }
 
-void spi_foreach(void (*fn)(spi_dev*)) {
+void spi_foreach(void (*fn)(spi_dev_t*)) {
     fn(SPI1);
     fn(SPI2);
     fn(SPI3);

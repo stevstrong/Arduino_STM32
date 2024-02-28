@@ -38,7 +38,7 @@
 
 #include "Wire.h"
 
-uint8 TwoWire::process(uint8 stop) {
+uint8 TwoWire::process(uint8_t stop) {
     int8 res = i2c_master_xfer(sel_hard, &itc_msg, 1, 0);
     if (res == I2C_ERROR_PROTOCOL) {
         if (sel_hard->error_flags & I2C_SR1_AF) { /* NACK */
@@ -59,7 +59,7 @@ uint8 TwoWire::process(){
 }
 
 // TODO: Add in Error Handling if devsel is out of range for other Maples
-TwoWire::TwoWire(uint8 dev_sel, uint8 flags) {
+TwoWire::TwoWire(uint8_t dev_sel, uint8_t flags) {
     if (dev_sel == 1) {
         sel_hard = I2C1;
     }
@@ -67,10 +67,36 @@ TwoWire::TwoWire(uint8 dev_sel, uint8 flags) {
 	else if (dev_sel == 2) {
         sel_hard = I2C2;
     }
+#elif BOARD_NR_I2C>2
+	else if (dev_sel == 3) {
+        sel_hard = I2C3;
+    }
 #endif
 	else {
         ASSERT(1);
     }
+    dev_flags = flags;
+}
+
+TwoWire::TwoWire(uint8_t dev_sel, uint8_t scl_pin, uint8_t sda_pin, uint8_t flags)
+{
+    if (dev_sel == 1) {
+        sel_hard = I2C1;
+    }
+#if BOARD_NR_I2C>1
+	else if (dev_sel == 2) {
+        sel_hard = I2C2;
+    }
+#elif BOARD_NR_I2C>2
+	else if (dev_sel == 3) {
+        sel_hard = I2C3;
+    }
+#endif
+	else {
+        ASSERT(1);
+    }
+    sel_hard->scl_pin = scl_pin;
+    sel_hard->sda_pin = sda_pin;
     dev_flags = flags;
 }
 

@@ -108,10 +108,10 @@ static PGM_P const register_names[] =
 
 /****************************************************************************/
 
-inline void DMA1_CH3_Event() {
-  dma1_ch3_Active = 0;
-  dma_disable(DMA1, DMA_CH3);
-}
+// inline void DMA1_CH3_Event() {
+//   dma1_ch3_Active = 0;
+//   dma_disable(DMA1, DMA_CH3);
+// }
 
 /****************************************************************************/
 
@@ -119,13 +119,9 @@ uint16_t VS1003::read_register(uint8_t _reg) const
 {
   uint16_t result;
   control_mode_on();
-  delayMicroseconds(1); // tXCSS
-  my_SPI.transfer(VS_READ_COMMAND); // Read operation
-  my_SPI.transfer(_reg); // Which register
-  result = my_SPI.transfer(0xff) << 8; // read high byte
-  result |= my_SPI.transfer(0xff); // read low byte
-  delayMicroseconds(1); // tXCSH
-  await_data_request();
+  my_SPI.write(VS_READ_COMMAND); // Read operation
+  my_SPI.write(_reg); // Which register
+  result = my_SPI.transfer16(0xFFFF);
   control_mode_off();
   return result;
 }
@@ -135,13 +131,9 @@ uint16_t VS1003::read_register(uint8_t _reg) const
 void VS1003::write_register(uint8_t _reg,uint16_t _value) const
 {
   control_mode_on();
-  delayMicroseconds(1); // tXCSS
   my_SPI.transfer(VS_WRITE_COMMAND); // Write operation
   my_SPI.transfer(_reg); // Which register
-  my_SPI.transfer(_value >> 8); // Send hi byte
-  my_SPI.transfer(_value & 0xff); // Send lo byte
-  delayMicroseconds(1); // tXCSH
-  await_data_request();
+  my_SPI.write16(_value); // Send 16 byte
   control_mode_off();
 }
 
@@ -149,40 +141,38 @@ void VS1003::write_register(uint8_t _reg,uint16_t _value) const
 
 void VS1003::sdi_send_buffer(const uint8_t* data, size_t len)
 {
-  data_mode_on();
-  while ( len )
+  while (len)
   {
     await_data_request();
-    delayMicroseconds(3);
-
+    data_mode_on();
     size_t chunk_length = min(len,vs1003_chunk_size);
     len -= chunk_length;
-    while ( chunk_length-- )
-      my_SPI.transfer(*data++);
+    // DO NOT optimize these lines !!! There must be a 1us delay between bytes
+    while (chunk_length--)
+      my_SPI.write(*data++);
+    data_mode_off();
   }
-  data_mode_off();
 }
 
 /****************************************************************************/
 
 void VS1003::sdi_send_zeroes(size_t len)
 {
-  data_mode_on();
-  while ( len )
+  while (len)
   {
     await_data_request();
-
+    data_mode_on();
     size_t chunk_length = min(len,vs1003_chunk_size);
     len -= chunk_length;
-    while ( chunk_length-- )
+    while (chunk_length--)
       my_SPI.transfer(0);
+    data_mode_off();
   }
-  data_mode_off();
 }
 
 /****************************************************************************/
 
-VS1003::VS1003( uint8_t _cs_pin, uint8_t _dcs_pin, uint8_t _dreq_pin, uint8_t _reset_pin, SPIClass _spiChan):
+VS1003::VS1003( uint8_t _cs_pin, uint8_t _dcs_pin, uint8_t _dreq_pin, uint8_t _reset_pin, SPIClass &_spiChan):
   cs_pin(_cs_pin), dcs_pin(_dcs_pin), dreq_pin(_dreq_pin), reset_pin(_reset_pin), my_SPI(_spiChan)
 {
 }
@@ -211,15 +201,17 @@ void VS1003::begin(void)
 
   delay(1);
 
-  my_SPI.begin();
-  my_SPI.setBitOrder(MSBFIRST);
-  my_SPI.setDataMode(SPI_MODE0);
-  // init SPI slow mode
+  // my_SPI.begin();
+  // my_SPI.setBitOrder(MSBFIRST);
+  // my_SPI.setDataMode(SPI_MODE0);
+  // // init SPI slow mode
+  // my_SPI.setClockDivider(SPI_CLOCK_DIV64); // Slow!
  
-  my_SPI.setClockDivider(SPI_CLOCK_DIV64); // Slow!
+  my_SPI.beginTransaction(SPISettings(200000, MSBFIRST, SPI_MODE0));
   
   // release from reset
   digitalWrite(reset_pin,HIGH);
+  delay(1);
   
   // Declick: Immediately switch analog off
   write_register(SCI_VOL,0xffff); // VOL
@@ -252,7 +244,7 @@ void VS1003::begin(void)
 
   // Now you can set high speed SPI clock
   // 72 MHz / 16 = 4.5 MHz max is practically allowed by VS1003 SPI interface.
-  my_SPI.setClockDivider(SPI_CLOCK_DIV16); 
+  my_SPI.setFrequency(2e6); 
 
   //printf(("VS1003 Set\r\n"));
   //printDetails();

@@ -40,15 +40,13 @@ private:
   uint8_t reset_pin; /**< Pin where RESET line is connected */
   uint8_t my_SPCR; /**< Value of the SPCR register how we like it. */
   uint8_t my_SPSR; /**< Value of the SPSR register how we like it. */
-  SPIClass my_SPI;
+  SPIClass &my_SPI;
 
-  inline void await_data_request(void) const
-  {
-    while ( !digitalRead(dreq_pin) );
-  }
+  inline void await_data_request(void) const { while (!digitalRead(dreq_pin)); }
 
   inline void control_mode_on(void) const
   {
+    await_data_request();
     digitalWrite(dcs_pin,HIGH);
     digitalWrite(cs_pin,LOW);
   }
@@ -60,6 +58,7 @@ private:
 
   inline void data_mode_on(void) const
   {
+    await_data_request();
     digitalWrite(cs_pin,HIGH);
     digitalWrite(dcs_pin,LOW);
   }
@@ -90,7 +89,7 @@ public:
    *
    * Only sets pin values.  Doesn't do touch the chip.  Be sure to call begin()!
    */
-  VS1003( uint8_t _cs_pin, uint8_t _dcs_pin, uint8_t _dreq_pin, uint8_t _reset_pin, SPIClass _spi = SPIClass(1));
+  VS1003( uint8_t _cs_pin, uint8_t _dcs_pin, uint8_t _dreq_pin, uint8_t _reset_pin, SPIClass &_spi);
 
   /**
    * Begin operation
@@ -141,6 +140,8 @@ public:
    * @param vol Volume level from 0-255, lower is louder.
    */
   void setVolume(uint8_t vol) const;
+
+  inline bool dataRequested(void) const {  return digitalRead(dreq_pin); };
 
 };
 

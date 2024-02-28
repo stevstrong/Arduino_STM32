@@ -98,24 +98,25 @@ typedef unsigned int word;
 #define _BV(bit) (1 << (bit))
 #endif 
 
-#define clockCyclesPerMicrosecond() ( F_CPU / 1000000L )
+#define clockCyclesPerMicrosecond()  ( F_CPU / 1000000L )
 #define clockCyclesToMicroseconds(a) ( ((a) * 1000L) / (F_CPU / 1000L) )
 #define microsecondsToClockCycles(a) ( (a) * (F_CPU / 1000000L) )
 
 // pin related macros
-#define digitalPinToPort(P)        ( gpio_devs[(P)/16] )
-#define digitalPinToBitMask(P)     ( 1<<((P)&(15)) )
-#define digitalPinToInterrupt(pin) (pin)
+#define digitalPinToPort(pin)        ( gpio_devs[(pin)/16] )
+#define digitalPinToBitMask(pin)     ( 1<<((pin)&(15)) )
+#define digitalPinToInterrupt(pin)   (pin)
+#define NOT_AN_INTERRUPT -1
 
-#define portOutputRegister(port)   ( &(port->regs->ODR) )
-#define portInputRegister(port)    ( &(port->regs->IDR) )
+#define portOutputRegister(port)     ( &(port->regs->ODR) )
+#define portInputRegister(port)      ( &(port->regs->IDR) )
 
-#define portSetRegister(pin)		( &(digitalPinToPort(pin)->regs->BSRR) )
-#define portClearRegister(pin)		( &(digitalPinToPort(pin)->regs->BRR) )
+#define portSetRegister(pin)		     ( &(digitalPinToPort(pin)->regs->BSRR) )
+#define portClearRegister(pin)		   ( &(digitalPinToPort(pin)->regs->BRR) )
 
-#define portConfigRegister(pin)		( &(digitalPinToPort(pin)->regs->CRL) )
+#define portConfigRegister(pin)		   ( &(digitalPinToPort(pin)->regs->CRL) )
 
-#define pinToADCChannel(pin)        ( adc_map[pin] )
+#define pinToADCChannel(pin)         ( adc_map[pin] )
 
 
 #endif

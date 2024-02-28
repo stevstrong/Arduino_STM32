@@ -21,12 +21,43 @@
  * USA
  */
 
-#include <stdlib.h>
-#include "math.h"
+// #include <stdlib.h>
+// #include "math.h"
+#include "ext_interrupts.h"
 
+//------------------------------------------------------------------------------
+// Custom implementation to avoid exception fault with rand() using newlib.c
+// https://github.com/2cats/STM32/blob/master/template/probe/inc/lib_math.h
+//------------------------------------------------------------------------------
+#define RAND_SEED_INIT_VAL 1u
+#define RAND_LCG_PARAM_M 0x7FFFFFFFu   /* See Note #1b2B. */
+#define RAND_LCG_PARAM_A 1103515245u   /* See Note #1b1A2. */
+#define RAND_LCG_PARAM_B 12345u   /* See Note #1b1A3. */
+#define RAND_NBR unsigned int
+RAND_NBR Math_RandSeedCur = RAND_SEED_INIT_VAL; // Cur rand nbr seed.
+
+static inline RAND_NBR Math_RandSeed(RAND_NBR  seed)
+{
+    return (((RAND_NBR)RAND_LCG_PARAM_A * seed) + (RAND_NBR)RAND_LCG_PARAM_B) % ((RAND_NBR)RAND_LCG_PARAM_M + 1u);
+}
+
+RAND_NBR  Math_Rand (void)
+{
+    // CPU_SR_ALLOC();
+    nvic_globalirq_disable(); // CPU_CRITICAL_ENTER();
+    RAND_NBR seed = Math_RandSeedCur;
+    RAND_NBR rand_nbr = Math_RandSeed(seed);
+    Math_RandSeedCur = rand_nbr;
+    nvic_globalirq_enable(); // CPU_CRITICAL_EXIT();
+
+    return (rand_nbr);
+}
+
+//------------------------------------------------------------------------------
 void randomSeed(unsigned int seed) {
     if (seed != 0) {
-        srand(seed);
+        // srand(seed);
+        Math_RandSeed(seed);
     }
 }
 
@@ -34,8 +65,8 @@ long random(long howbig) {
     if (howbig == 0) {
         return 0;
     }
-
-    return rand() % howbig;
+    // return rand() % howbig;
+    return Math_Rand() % howbig;
 }
 
 long random(long howsmall, long howbig) {

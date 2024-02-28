@@ -27,12 +27,16 @@
 //
 
 #include <Wire.h>
+#define SCL_PIN PB6 // BOARD_I2C1_SCL_PIN
+#define SDA_PIN PB9 // BOARD_I2C1A_SDA_PIN, alternate pin
 
-TwoWire HWire(1, I2C_FAST_MODE); // I2c1
+// TwoWire HWire(1, I2C_FAST_MODE); // I2c1
+TwoWire HWire(1, SCL_PIN, SDA_PIN, I2C_FAST_MODE); // I2c1
 // optionally, it is possible to use the default declared Wire(1) instance with normal speed
 //#define HWire Wire
 
-void setup() {
+void setup()
+{
   Serial.begin(115200);
   while(!Serial); delay(1000);
   HWire.begin();

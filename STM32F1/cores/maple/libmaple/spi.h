@@ -287,6 +287,15 @@ static inline uint8 spi_is_enabled(spi_dev *dev) {
 }
 
 /**
+ * @brief Determine if a SPI peripheral is in master mode.
+ * @param dev SPI device
+ * @return True if dev's peripheral is in master mode.
+ */
+static inline uint8 spi_is_master(spi_dev *dev) {
+    return dev->regs->CR1 & SPI_CR1_MSTR;
+}
+
+/**
  * @brief Disable all SPI peripherals
  */
 static inline void spi_peripheral_disable_all(void) {

@@ -104,7 +104,7 @@ void WireBase::write(uint8 value) {
     itc_msg.length++;
 }
 
-void WireBase::write(uint8* buf, int len) {
+void WireBase::write(uint8_t* buf, int len) {
     for (uint8 i = 0; i < len; i++) {
         write(buf[i]);
     }
@@ -115,7 +115,7 @@ void WireBase::write(int value) {
 }
 
 void WireBase::write(int* buf, int len) {
-    write((uint8*)buf, (uint8)len);
+    write((uint8_t*)buf, (uint8)len);
 }
 
 void WireBase::write(char* buf) {
