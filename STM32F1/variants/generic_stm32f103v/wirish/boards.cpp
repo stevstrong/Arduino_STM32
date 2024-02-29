@@ -185,7 +185,7 @@ static void setup_adcs(void) {
     adc_foreach(adc_default_config);
 }
 
-static void timer_default_config(timer_dev *dev) {
+static void timer_default_config(timer_dev_t *dev) {
     timer_adv_reg_map *regs = (dev->regs).adv;
     const uint16 full_overflow = 0xFFFF;
     const uint16 half_duty = 0x8FFF;

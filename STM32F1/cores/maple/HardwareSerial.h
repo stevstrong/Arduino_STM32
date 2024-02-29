@@ -66,7 +66,7 @@
 
 
 //-----------------------------------------------------------------------------
-static inline void disable_timer_if_necessary(timer_dev *dev, uint8 ch)
+static inline void disable_timer_if_necessary(timer_dev_t *dev, uint8 ch)
 {
     if (dev != NULL) {
         timer_set_mode(dev, ch, TIMER_DISABLED);

@@ -568,7 +568,7 @@ static const spi_pins* dev_to_spi_pins(spi_dev *dev) {
 
 static void disable_pwm(const stm32_pin_info *i) {
     if (i->timer_device) {
-        timer_set_mode(i->timer_device, i->timer_channel, TIMER_DISABLED);
+        timer_set_mode(i->timer_device, i->timer_channel_t, TIMER_DISABLED);
     }
 }
 

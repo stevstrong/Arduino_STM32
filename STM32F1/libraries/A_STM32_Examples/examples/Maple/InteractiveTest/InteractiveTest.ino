@@ -688,7 +688,7 @@ void usart_baud_test(HardwareSerial **serials, int n, unsigned baud) {
 
 static uint16 init_all_timers_prescale = 0;
 
-static void set_prescale(timer_dev *dev) {
+static void set_prescale(timer_dev_t *dev) {
     timer_set_prescaler(dev, init_all_timers_prescale);
 }
 

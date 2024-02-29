@@ -111,58 +111,58 @@ typedef union timer_reg_map {
 /**
  * @brief Timer type
  *
- * Type marker for timer_dev.
+ * Type marker for timer_dev_t.
  *
- * @see timer_dev
+ * @see timer_dev_t
  */
-typedef enum timer_type {
+typedef enum timer_type_t {
     TIMER_ADVANCED,             /**< Advanced type */
     TIMER_GENERAL,              /**< General purpose type */
     TIMER_BASIC                 /**< Basic type */
-} timer_type;
+} timer_type_t;
 
 /** Timer device type */
-typedef struct timer_dev {
+typedef struct timer_dev_t {
     timer_reg_map regs;         /**< Register map */
     rcc_clk_id clk_id;          /**< RCC clock information */
-    timer_type type;            /**< Timer's type */
+    timer_type_t type;            /**< Timer's type */
     voidFuncPtr handlers[];     /**< User IRQ handlers */
-} timer_dev __attribute__((aligned (8))); // needed because of timer_map
+} timer_dev_t __attribute__((aligned (8))); // needed because of timer_map
 
-extern timer_dev timer1;
+extern timer_dev_t timer1;
 #define TIMER1 (&timer1)
-extern timer_dev timer2;
+extern timer_dev_t timer2;
 #define TIMER2 (&timer2)
-extern timer_dev timer3;
+extern timer_dev_t timer3;
 #define TIMER3 (&timer3)
-extern timer_dev timer4;
+extern timer_dev_t timer4;
 #define TIMER4 (&timer4)
-extern timer_dev timer5;
+extern timer_dev_t timer5;
 #define TIMER5 (&timer5)
 #if defined(STM32_HIGH_DENSITY) || defined(STM32_XL_DENSITY)
-extern timer_dev timer6;
+extern timer_dev_t timer6;
 #define TIMER6 (&timer6)
-extern timer_dev timer7;
+extern timer_dev_t timer7;
 #define TIMER7 (&timer7)
-extern timer_dev timer8;
+extern timer_dev_t timer8;
 #define TIMER8 (&timer8)
 #endif
 #if defined(STM32_XL_DENSITY)
-extern timer_dev timer9;
+extern timer_dev_t timer9;
 #define TIMER9 (&timer9)
-extern timer_dev timer10;
+extern timer_dev_t timer10;
 #define TIMER10 (&timer10)
-extern timer_dev timer11;
+extern timer_dev_t timer11;
 #define TIMER11 (&timer11)
-extern timer_dev timer12;
+extern timer_dev_t timer12;
 #define TIMER12 (&timer12)
-extern timer_dev timer13;
+extern timer_dev_t timer13;
 #define TIMER13 (&timer13)
-extern timer_dev timer14;
+extern timer_dev_t timer14;
 #define TIMER14 (&timer14)
 #endif
 
-extern timer_dev * const timer_devs[];
+extern timer_dev_t * const timer_devs[];
 #if 0
 /*
  * Device pointers
@@ -173,25 +173,25 @@ extern timer_dev * const timer_devs[];
  * timers cause build errors instead of undefined behavior.
  */
 
-struct timer_dev;
+struct timer_dev_t;
 
-extern struct timer_dev *const TIMER1;
-extern struct timer_dev *const TIMER2;
-extern struct timer_dev *const TIMER3;
-extern struct timer_dev *const TIMER4;
+extern struct timer_dev_t *const TIMER1;
+extern struct timer_dev_t *const TIMER2;
+extern struct timer_dev_t *const TIMER3;
+extern struct timer_dev_t *const TIMER4;
 #if defined(STM32_HIGH_DENSITY) || defined(STM32_XL_DENSITY)
-extern struct timer_dev *const TIMER5;
-extern struct timer_dev *const TIMER6;
-extern struct timer_dev *const TIMER7;
-extern struct timer_dev *const TIMER8;
+extern struct timer_dev_t *const TIMER5;
+extern struct timer_dev_t *const TIMER6;
+extern struct timer_dev_t *const TIMER7;
+extern struct timer_dev_t *const TIMER8;
 #endif
 #ifdef STM32_XL_DENSITY
-extern struct timer_dev *const TIMER9;
-extern struct timer_dev *const TIMER10;
-extern struct timer_dev *const TIMER11;
-extern struct timer_dev *const TIMER12;
-extern struct timer_dev *const TIMER13;
-extern struct timer_dev *const TIMER14;
+extern struct timer_dev_t *const TIMER9;
+extern struct timer_dev_t *const TIMER10;
+extern struct timer_dev_t *const TIMER11;
+extern struct timer_dev_t *const TIMER12;
+extern struct timer_dev_t *const TIMER13;
+extern struct timer_dev_t *const TIMER14;
 #endif
 #endif
 
@@ -577,21 +577,21 @@ typedef enum timer_mode
 } timer_mode;
 
 /** Timer channel numbers */
-typedef enum timer_channel {
+typedef enum timer_channel_t {
     TIMER_CH1 = 1, /**< Channel 1 */
     TIMER_CH2 = 2, /**< Channel 2 */
     TIMER_CH3 = 3, /**< Channel 3 */
     TIMER_CH4 = 4  /**< Channel 4 */
-} timer_channel;
+} timer_channel_t;
 
-typedef uint32 timer_info;
-extern timer_info const timer_map[];
+typedef uint32_t timer_info_t;
+extern timer_info_t const timer_map[];
 
-#define PinTimerDevice(pin) ((pin>PB15)?NULL:(timer_dev*)(timer_map[pin]&0xFFFFFFF8))
+#define PinTimerDevice(pin) ((pin>PB15)?NULL:(timer_dev_t*)(timer_map[pin]&0xFFFFFFF8))
 #define PinTimerChannel(pin) ((pin>PB15)?0:(timer_map[pin]&0x07))
 
 /*
- * Note: Don't require timer_channel arguments! We want to be able to say
+ * Note: Don't require timer_channel_t arguments! We want to be able to say
  *
  * for (int channel = 1; channel <= 4; channel++) {
  *    ...
@@ -600,12 +600,12 @@ extern timer_info const timer_map[];
  * without the compiler yelling at us.
  */
 
-void timer_init(timer_dev *dev);
-void timer_disable(timer_dev *dev);
-void timer_set_mode(timer_dev *dev, uint8 channel, timer_mode mode);
-void timer_foreach(void (*fn)(timer_dev*));
-void timer_default_config(timer_dev *dev);
-int timer_has_cc_channel(timer_dev *dev, uint8 channel);
+void timer_init(timer_dev_t *dev);
+void timer_disable(timer_dev_t *dev);
+void timer_set_mode(timer_dev_t *dev, uint8 channel, timer_mode mode);
+void timer_foreach(void (*fn)(timer_dev_t*));
+void timer_default_config(timer_dev_t *dev);
+int timer_has_cc_channel(timer_dev_t *dev, uint8 channel);
 
 /**
  * @brief Timer interrupt number.
@@ -629,13 +629,13 @@ typedef enum timer_interrupt_id {
     TIMER_BREAK_INTERRUPT /**< Break interrupt, advanced timers only. */
 } timer_interrupt_id;
 
-void timer_attach_interrupt(timer_dev *dev,
+void timer_attach_interrupt(timer_dev_t *dev,
                             uint8 interrupt,
                             voidFuncPtr handler);
-void timer_detach_interrupt(timer_dev *dev, uint8 interrupt);
+void timer_detach_interrupt(timer_dev_t *dev, uint8 interrupt);
 
 //CARLOS 
-uint8 get_direction(timer_dev *dev);
+uint8 get_direction(timer_dev_t *dev);
 
 
 
@@ -660,7 +660,7 @@ static inline void timer_disable_all(void) {
  *
  * @param dev Device whose counter to pause.
  */
-static inline void timer_pause(timer_dev *dev) {
+static inline void timer_pause(timer_dev_t *dev) {
     *bb_perip(&(dev->regs).bas->CR1, TIMER_CR1_CEN_BIT) = 0;
 }
 
@@ -671,7 +671,7 @@ static inline void timer_pause(timer_dev *dev) {
  *
  * @param dev Device whose counter to resume
  */
-static inline void timer_resume(timer_dev *dev) {
+static inline void timer_resume(timer_dev_t *dev) {
     *bb_perip(&(dev->regs).bas->CR1, TIMER_CR1_CEN_BIT) = 1;
 }
 
@@ -680,11 +680,11 @@ static inline void timer_resume(timer_dev *dev) {
  * @param dev Timer device
  * @return Status register value (16bits).
  */
-static inline uint16 timer_get_status(timer_dev *dev) {
+static inline uint16 timer_get_status(timer_dev_t *dev) {
 	return (dev->regs).gen->SR;
 }
 
-static inline void timer_reset_status_bit(timer_dev *dev, uint8 bit) {
+static inline void timer_reset_status_bit(timer_dev_t *dev, uint8 bit) {
     (dev->regs).gen->SR = ~BIT(bit); // rc_w0
 }
 
@@ -696,7 +696,7 @@ static inline void timer_reset_status_bit(timer_dev *dev, uint8 bit) {
  *
  * @param dev Timer whose counter to return
  */
-static inline uint16 timer_get_count(timer_dev *dev) {
+static inline uint16 timer_get_count(timer_dev_t *dev) {
     return (uint16)(dev->regs).bas->CNT;
 }
 
@@ -705,7 +705,7 @@ static inline uint16 timer_get_count(timer_dev *dev) {
  * @param dev Timer whose counter to set
  * @param value New counter value
  */
-static inline void timer_set_count(timer_dev *dev, uint16 value) {
+static inline void timer_set_count(timer_dev_t *dev, uint16 value) {
     (dev->regs).bas->CNT = value;
 }
 
@@ -721,7 +721,7 @@ static inline void timer_set_count(timer_dev *dev, uint16 value) {
  * @param dev Timer whose prescaler to return
  * @see timer_generate_update()
  */
-static inline uint16 timer_get_prescaler(timer_dev *dev) {
+static inline uint16 timer_get_prescaler(timer_dev_t *dev) {
     return (uint16)(dev->regs).bas->PSC;
 }
 
@@ -735,7 +735,7 @@ static inline uint16 timer_get_prescaler(timer_dev *dev) {
  * @param psc New prescaler value
  * @see timer_generate_update()
  */
-static inline void timer_set_prescaler(timer_dev *dev, uint16 psc) {
+static inline void timer_set_prescaler(timer_dev_t *dev, uint16 psc) {
     (dev->regs).bas->PSC = psc;
 }
 
@@ -743,7 +743,7 @@ static inline void timer_set_prescaler(timer_dev *dev, uint16 psc) {
  * @brief Returns a timer's reload value.
  * @param dev Timer whose reload value to return
  */
-static inline uint16 timer_get_reload(timer_dev *dev) {
+static inline uint16 timer_get_reload(timer_dev_t *dev) {
     return (uint16)(dev->regs).bas->ARR;
 }
 
@@ -753,7 +753,7 @@ static inline uint16 timer_get_reload(timer_dev *dev) {
  * @param arr New reload value to use.  Takes effect at next update event.
  * @see timer_generate_update()
  */
-static inline void timer_set_reload(timer_dev *dev, uint16 arr) {
+static inline void timer_set_reload(timer_dev_t *dev, uint16 arr) {
     (dev->regs).bas->ARR = arr;
 }
 
@@ -762,7 +762,7 @@ static inline void timer_set_reload(timer_dev *dev, uint16 arr) {
  * @param dev Timer device, must have type TIMER_ADVANCED or TIMER_GENERAL.
  * @param channel Channel whose compare value to get.
  */
-static inline uint16 timer_get_compare(timer_dev *dev, uint8 channel) {
+static inline uint16 timer_get_compare(timer_dev_t *dev, uint8 channel) {
     __IO uint32 *ccr = &(dev->regs).gen->CCR1 + (channel - 1);
     return *ccr;
 }
@@ -773,14 +773,14 @@ static inline uint16 timer_get_compare(timer_dev *dev, uint8 channel) {
  * @param channel Channel whose compare value to set.
  * @param value   New compare value.
  */
-static inline void timer_set_compare(timer_dev *dev,
+static inline void timer_set_compare(timer_dev_t *dev,
                                      uint8 channel,
                                      uint16 value) {
     __IO uint32 *ccr = &(dev->regs).gen->CCR1 + (channel - 1);
     *ccr = value;
 }
 
-static inline void timer_set_master_mode(timer_dev *dev, timer_mms_t value)
+static inline void timer_set_master_mode(timer_dev_t *dev, timer_mms_t value)
 {
     uint32 cr2 = (dev->regs).bas->CR2 & (~TIMER_CR2_MMS);
     (dev->regs).bas->CR2 = cr2 | value;
@@ -796,7 +796,7 @@ static inline void timer_set_master_mode(timer_dev *dev, timer_mms_t value)
  *
  * @param dev Timer device to generate an update for.
  */
-static inline void timer_generate_update(timer_dev *dev) {
+static inline void timer_generate_update(timer_dev_t *dev) {
     *bb_perip(&(dev->regs).bas->EGR, TIMER_EGR_UG_BIT) = 1;
 }
 
@@ -804,7 +804,7 @@ static inline void timer_generate_update(timer_dev *dev) {
  * @brief Enable a timer's trigger DMA request
  * @param dev Timer device, must have type TIMER_ADVANCED or TIMER_GENERAL
  */
-static inline void timer_dma_enable_trg_req(timer_dev *dev) {
+static inline void timer_dma_enable_trg_req(timer_dev_t *dev) {
     *bb_perip(&(dev->regs).gen->DIER, TIMER_DIER_TDE_BIT) = 1;
 }
 
@@ -812,7 +812,7 @@ static inline void timer_dma_enable_trg_req(timer_dev *dev) {
  * @brief Disable a timer's trigger DMA request
  * @param dev Timer device, must have type TIMER_ADVANCED or TIMER_GENERAL
  */
-static inline void timer_dma_disable_trg_req(timer_dev *dev) {
+static inline void timer_dma_disable_trg_req(timer_dev_t *dev) {
     *bb_perip(&(dev->regs).gen->DIER, TIMER_DIER_TDE_BIT) = 0;
 }
 
@@ -820,7 +820,7 @@ static inline void timer_dma_disable_trg_req(timer_dev *dev) {
  * @brief Enable a timer's update DMA request
  * @param dev Timer device, must have type TIMER_ADVANCED or TIMER_GENERAL
  */
-static inline void timer_dma_enable_upd_req(timer_dev *dev) {
+static inline void timer_dma_enable_upd_req(timer_dev_t *dev) {
     *bb_perip(&(dev->regs).gen->DIER, TIMER_DIER_UDE_BIT) = 1;
 }
 
@@ -828,7 +828,7 @@ static inline void timer_dma_enable_upd_req(timer_dev *dev) {
  * @brief Disable a timer's update DMA request
  * @param dev Timer device, must have type TIMER_ADVANCED or TIMER_GENERAL
  */
-static inline void timer_dma_disable_upd_req(timer_dev *dev) {
+static inline void timer_dma_disable_upd_req(timer_dev_t *dev) {
     *bb_perip(&(dev->regs).gen->DIER, TIMER_DIER_UDE_BIT) = 0;
 }
 
@@ -837,7 +837,7 @@ static inline void timer_dma_disable_upd_req(timer_dev *dev) {
  * @param dev Timer device, must have type TIMER_ADVANCED or TIMER_GENERAL
  * @param channel Channel whose DMA request to enable.
  */
-static inline void timer_dma_enable_req(timer_dev *dev, uint8 channel) {
+static inline void timer_dma_enable_req(timer_dev_t *dev, uint8 channel) {
     *bb_perip(&(dev->regs).gen->DIER, channel + 8) = 1;
 }
 
@@ -846,7 +846,7 @@ static inline void timer_dma_enable_req(timer_dev *dev, uint8 channel) {
  * @param dev Timer device, must have type TIMER_ADVANCED or TIMER_GENERAL.
  * @param channel Channel whose DMA request to disable.
  */
-static inline void timer_dma_disable_req(timer_dev *dev, uint8 channel) {
+static inline void timer_dma_disable_req(timer_dev_t *dev, uint8 channel) {
     *bb_perip(&(dev->regs).gen->DIER, channel + 8) = 0;
 }
 
@@ -856,9 +856,9 @@ static inline void timer_dma_disable_req(timer_dev *dev, uint8 channel) {
  * @param interrupt Interrupt number to enable; this may be any
  *                  timer_interrupt_id value appropriate for the timer.
  * @see timer_interrupt_id
- * @see timer_channel
+ * @see timer_channel_t
  */
-static inline void timer_enable_irq(timer_dev *dev, uint8 interrupt) {
+static inline void timer_enable_irq(timer_dev_t *dev, uint8 interrupt) {
     // clear interrupt flag, use different masks for reserved bits
     (dev->regs).adv->SR = (~BIT(interrupt)) & ( (dev->type==TIMER_ADVANCED) ? 0x1EFF : 
                          ( (dev->type==TIMER_GENERAL) ? 0x1E5F : 0x0001) );
@@ -871,9 +871,9 @@ static inline void timer_enable_irq(timer_dev *dev, uint8 interrupt) {
  * @param interrupt Interrupt number to disable; this may be any
  *                  timer_interrupt_id value appropriate for the timer.
  * @see timer_interrupt_id
- * @see timer_channel
+ * @see timer_channel_t
  */
-static inline void timer_disable_irq(timer_dev *dev, uint8 interrupt) {
+static inline void timer_disable_irq(timer_dev_t *dev, uint8 interrupt) {
     *bb_perip(&(dev->regs).adv->DIER, interrupt) = 0;
 }
 
@@ -888,7 +888,7 @@ static inline void timer_disable_irq(timer_dev *dev, uint8 interrupt) {
  * @param dev Timer device, must have type TIMER_ADVANCED or TIMER_GENERAL.
  * @param channel Channel to enable, from 1 to 4.
  */
-static inline void timer_cc_enable(timer_dev *dev, uint8 channel) {
+static inline void timer_cc_enable(timer_dev_t *dev, uint8 channel) {
     *bb_perip(&(dev->regs).gen->CCER, 4 * (channel - 1)) = 1;
 }
 
@@ -898,7 +898,7 @@ static inline void timer_cc_enable(timer_dev *dev, uint8 channel) {
  * @param channel Channel to disable, from 1 to 4.
  * @see timer_cc_enable()
  */
-static inline void timer_cc_disable(timer_dev *dev, uint8 channel) {
+static inline void timer_cc_disable(timer_dev_t *dev, uint8 channel) {
     *bb_perip(&(dev->regs).gen->CCER, 4 * (channel - 1)) = 0;
 }
 
@@ -909,7 +909,7 @@ static inline void timer_cc_disable(timer_dev *dev, uint8 channel) {
  * @return Polarity, either 0 or 1.
  * @see timer_cc_set_polarity()
  */
-static inline uint8 timer_cc_get_pol(timer_dev *dev, uint8 channel) {
+static inline uint8 timer_cc_get_pol(timer_dev_t *dev, uint8 channel) {
     return *bb_perip(&(dev->regs).gen->CCER, 4 * (channel - 1) + 1);
 }
 
@@ -930,7 +930,7 @@ static inline uint8 timer_cc_get_pol(timer_dev *dev, uint8 channel) {
  * @param channel Channel whose capture/compare output polarity to set.
  * @param pol New polarity, 0 or 1.
  */
-static inline void timer_cc_set_pol(timer_dev *dev, uint8 channel, uint8 pol) {
+static inline void timer_cc_set_pol(timer_dev_t *dev, uint8 channel, uint8 pol) {
     *bb_perip(&(dev->regs).gen->CCER, 4 * (channel - 1) + 1) = pol;
 }
 
@@ -940,7 +940,7 @@ static inline void timer_cc_set_pol(timer_dev *dev, uint8 channel, uint8 pol) {
  * @return Number of transfers per read or write to timer DMA register,
  *         from 1 to 18.
  */
-static inline uint8 timer_dma_get_burst_len(timer_dev *dev) {
+static inline uint8 timer_dma_get_burst_len(timer_dev_t *dev) {
     uint32 dbl = ((dev->regs).gen->DCR & TIMER_DCR_DBL) >> 8;
     return dbl + 1;             /* 0 means 1 transfer, etc. */
 }
@@ -951,7 +951,7 @@ static inline uint8 timer_dma_get_burst_len(timer_dev *dev) {
  * @param length DMA burst length; i.e., number of DMA transfers per
  *               read/write to timer DMA register, from 1 to 18.
  */
-static inline void timer_dma_set_burst_len(timer_dev *dev, uint8 length) {
+static inline void timer_dma_set_burst_len(timer_dev_t *dev, uint8 length) {
     uint32 tmp = (dev->regs).gen->DCR;
     tmp &= ~TIMER_DCR_DBL;
     tmp |= (length - 1) << 8;
@@ -995,7 +995,7 @@ typedef enum timer_dma_base_addr
  * @param dev Timer device, must have type TIMER_ADVANCED or TIMER_GENERAL.
  * @return DMA base address
  */
-static inline timer_dma_base_addr timer_dma_get_base_addr(timer_dev *dev) {
+static inline timer_dma_base_addr timer_dma_get_base_addr(timer_dev_t *dev) {
     uint32 dcr = (dev->regs).gen->DCR;
     return (timer_dma_base_addr)(dcr & TIMER_DCR_DBA);
 }
@@ -1008,7 +1008,7 @@ static inline timer_dma_base_addr timer_dma_get_base_addr(timer_dev *dev) {
  * @param dev Timer device, must have type TIMER_ADVANCED or TIMER_GENERAL.
  * @param dma_base DMA base address.
  */
-static inline void timer_dma_set_base_addr(timer_dev *dev,
+static inline void timer_dma_set_base_addr(timer_dev_t *dev,
                                            timer_dma_base_addr dma_base) {
     uint32 tmp = (dev->regs).gen->DCR;
     tmp &= ~TIMER_DCR_DBA;
@@ -1060,7 +1060,7 @@ typedef enum timer_oc_mode_flags {
  * @see timer_oc_mode
  * @see timer_oc_mode_flags
  */
-static inline void timer_oc_set_mode(timer_dev *dev,
+static inline void timer_oc_set_mode(timer_dev_t *dev,
                                      uint8 channel,
                                      timer_oc_mode mode,
                                      uint8 flags) {
@@ -1084,8 +1084,8 @@ typedef enum timer_ic_input_select {
     TIMER_IC_INPUT_TRC     = TIMER_CCMR_CCS_INPUT_TRC,
 } timer_ic_input_select;
 
-extern void timer_input_capture_mode(timer_dev *dev, uint8 channel, timer_ic_input_select input);
-extern void timer_set_cc_mode(timer_dev *dev, timer_channel channel, uint8 cc_mode, uint8 flags);
+extern void timer_input_capture_mode(timer_dev_t *dev, uint8 channel, timer_ic_input_select input);
+extern void timer_set_cc_mode(timer_dev_t *dev, timer_channel_t channel, uint8 cc_mode, uint8 flags);
 
 
 #ifdef __cplusplus

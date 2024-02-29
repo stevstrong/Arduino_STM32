@@ -75,7 +75,7 @@ extern const stm32_pin_info PIN_MAP[BOARD_NR_GPIO_PINS] = {
     timer_dev *timer_device;    Pin's timer device, if any.
     const adc_dev *adc_device;  ADC device, if any. 
     uint8 gpio_bit;             Pin's GPIO port bit. 
-    uint8 timer_channel;        Timer channel, or 0 if none. 
+    uint8 timer_channel_t;        Timer channel, or 0 if none. 
     uint8 adc_channel;          Pin ADC channel, or ADCx if none. 
 */
 

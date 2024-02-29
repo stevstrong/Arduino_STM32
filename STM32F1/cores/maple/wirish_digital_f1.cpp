@@ -80,7 +80,7 @@ void pinMode(uint8 pin, WiringPinMode mode) {
     gpio_set_pin_mode(pin, outputMode);
 
     uint8 channel = PinTimerChannel(pin);
-    timer_dev * tdev = PinTimerDevice(pin);
+    timer_dev_t * tdev = PinTimerDevice(pin);
     if (tdev != NULL) {
         if ( pwm ) { // we're switching into PWM, enable timer channels
         	timer_set_mode(tdev, channel, TIMER_PWM );

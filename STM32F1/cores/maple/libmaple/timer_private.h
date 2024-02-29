@@ -37,7 +37,7 @@
  * Helper macros for declaring timer_devs of various timer_types
  */
 
-/* The indexes of user handlers in a timer_dev.handlers are just like
+/* The indexes of user handlers in a timer_dev_t.handlers are just like
  * the corresponding DIER bits, as follows: */
 
 /* Advanced timers:
@@ -121,7 +121,7 @@
  * line may be shared with another timer. For example, the timer 1
  * update interrupt shares an IRQ line with the timer 10 interrupt on
  * STM32F1 (XL-density), STM32F2, and STM32F4. */
-__always_inline void dispatch_single_irq(timer_dev *dev,
+__always_inline void dispatch_single_irq(timer_dev_t *dev,
                                 timer_interrupt_id iid,
                                 uint32 irq_mask) {
     timer_bas_reg_map *regs = (dev->regs).bas;
@@ -149,7 +149,7 @@ __always_inline void dispatch_single_irq(timer_dev *dev,
 
 #define dispatch_adv_up(dev) { dispatch_single_irq(dev, TIMER_UPDATE_INTERRUPT, TIMER_SR_UIF); }
 
-__always_inline void dispatch_adv_trg_com(timer_dev *dev) {
+__always_inline void dispatch_adv_trg_com(timer_dev_t *dev) {
     timer_adv_reg_map *regs = (dev->regs).adv;
     uint32 dsr = regs->DIER & regs->SR;
     void (**hs)(void) = dev->handlers;
@@ -164,7 +164,7 @@ __always_inline void dispatch_adv_trg_com(timer_dev *dev) {
     regs->SR = ~handled;
 }
 
-__always_inline void dispatch_adv_cc(timer_dev *dev) {
+__always_inline void dispatch_adv_cc(timer_dev_t *dev) {
     timer_adv_reg_map *regs = (dev->regs).adv;
     uint32 dsr = regs->DIER & regs->SR;
     void (**hs)(void) = dev->handlers;
@@ -178,7 +178,7 @@ __always_inline void dispatch_adv_cc(timer_dev *dev) {
     regs->SR = ~handled;
 }
 
-__always_inline void dispatch_general(timer_dev *dev) {
+__always_inline void dispatch_general(timer_dev_t *dev) {
     timer_gen_reg_map *regs = (dev->regs).gen;
     uint32 dsr = regs->DIER & regs->SR;
     void (**hs)(void) = dev->handlers;
@@ -196,7 +196,7 @@ __always_inline void dispatch_general(timer_dev *dev) {
 
 /* On F1 (XL-density), F2, and F4, TIM9 and TIM12 are restricted
  * general-purpose timers with update, CC1, CC2, and TRG interrupts. */
-__always_inline void dispatch_tim_9_12(timer_dev *dev) {
+__always_inline void dispatch_tim_9_12(timer_dev_t *dev) {
     timer_gen_reg_map *regs = (dev->regs).gen;
     uint32 dsr = regs->DIER & regs->SR;
     void (**hs)(void) = dev->handlers;
@@ -212,7 +212,7 @@ __always_inline void dispatch_tim_9_12(timer_dev *dev) {
 
 /* On F1 (XL-density), F2, and F4, timers 10, 11, 13, and 14 are
  * restricted general-purpose timers with update and CC1 interrupts. */
-__always_inline void dispatch_tim_10_11_13_14(timer_dev *dev) {
+__always_inline void dispatch_tim_10_11_13_14(timer_dev_t *dev) {
     timer_gen_reg_map *regs = (dev->regs).gen;
     uint32 dsr = regs->DIER & regs->SR;
     void (**hs)(void) = dev->handlers;
@@ -224,7 +224,7 @@ __always_inline void dispatch_tim_10_11_13_14(timer_dev *dev) {
     regs->SR = ~handled;
 }
 
-__always_inline void dispatch_basic(timer_dev *dev) {
+__always_inline void dispatch_basic(timer_dev_t *dev) {
     dispatch_single_irq(dev, TIMER_UPDATE_INTERRUPT, TIMER_SR_UIF);
 }
 

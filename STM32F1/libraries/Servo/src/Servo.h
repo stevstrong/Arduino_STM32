@@ -70,7 +70,8 @@
 #define SERVO_DEFAULT_MAX_ANGLE         180
 
 /** Class for interfacing with RC servomotors. */
-class Servo {
+class Servo
+{
 public:
     /**
      * @brief Construct a new Servo instance.
@@ -113,11 +114,11 @@ public:
      *
      * @return true if successful, false when pin doesn't support PWM.
      */
-    bool attach(uint8 pin,
-                uint16 minPulseWidth=SERVO_DEFAULT_MIN_PW,
-                uint16 maxPulseWidth=SERVO_DEFAULT_MAX_PW,
-                int16 minAngle=SERVO_DEFAULT_MIN_ANGLE,
-                int16 maxAngle=SERVO_DEFAULT_MAX_ANGLE);
+    bool attach(uint8_t pin,
+                uint16_t minPulseWidth=SERVO_DEFAULT_MIN_PW,
+                uint16_t maxPulseWidth=SERVO_DEFAULT_MAX_PW,
+                int16_t minAngle=SERVO_DEFAULT_MIN_ANGLE,
+                int16_t maxAngle=SERVO_DEFAULT_MAX_ANGLE);
 
     /**
      * @brief Check if this instance is attached to a servo.
@@ -173,7 +174,7 @@ public:
      *
      * @see Servo::attach()
      */
-    void writeMicroseconds(uint16 pulseWidth);
+    void writeMicroseconds(uint16_t pulseWidth);
 
     /**
      * Get the current pulse width, in microseconds.  This will
@@ -181,14 +182,16 @@ public:
      *
      * @see Servo::attach()
      */
-    uint16 readMicroseconds() const;
+    uint16_t readMicroseconds() const;
 
 private:
-    int16 pin;
-    uint16 minPW;
-    uint16 maxPW;
-    int16 minAngle;
-    int16 maxAngle;
+    timer_dev_t *tDev;
+    int16_t pin;
+    uint16_t minPW;
+    uint16_t maxPW;
+    int16_t minAngle;
+    int16_t maxAngle;
+    timer_channel_t tChan;
 
     void resetFields(void);
 };
