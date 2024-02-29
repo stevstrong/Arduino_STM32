@@ -11,7 +11,7 @@ extern "C" {
 #include "libmaple/nvic.h"
 #include <libmaple/rcc.h>
 //#include "types.h"
-#include "libmaple/usb.h"
+#include "libmaple/usb/usb.h"
 
 #ifndef CAN_RX_QUEUE_SIZE
 	#define CAN_RX_QUEUE_SIZE 16
