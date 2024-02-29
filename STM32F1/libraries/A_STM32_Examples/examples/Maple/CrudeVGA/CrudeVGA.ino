@@ -34,6 +34,7 @@
  This code is released with no strings attached.
  
  */
+#include "libmaple/timer.h"
 
 #define LED_PIN 13
 
@@ -106,24 +107,23 @@ void setup() {
     // a SysTick.end() is required as well
     Serial.end();
     
-
     // Configure
     Timer4.pause(); // while we configure
     Timer4.setPrescaleFactor(1);     // Full speed
-    Timer4.setChannel1Mode(TIMER_OUTPUTCOMPARE);
-    Timer4.setChannel2Mode(TIMER_OUTPUTCOMPARE);
-    Timer4.setChannel3Mode(TIMER_OUTPUTCOMPARE);
-    Timer4.setChannel4Mode(TIMER_OUTPUTCOMPARE);
+    Timer4.setMode(TIMER_CH1, TIMER_OUTPUT_COMPARE);
+    Timer4.setMode(TIMER_CH2, TIMER_OUTPUT_COMPARE);
+    Timer4.setMode(TIMER_CH3, TIMER_OUTPUT_COMPARE);
+    Timer4.setMode(TIMER_CH4, TIMER_OUTPUT_COMPARE);
     Timer4.setOverflow(2287);   // Total line time
 
-    Timer4.setCompare1(200);
-    Timer4.attachCompare1Interrupt(isr_porch);
-    Timer4.setCompare2(300);
-    Timer4.attachCompare2Interrupt(isr_start);
-    Timer4.setCompare3(2170);
-    Timer4.attachCompare3Interrupt(isr_stop);
-    Timer4.setCompare4(1);      // Could be zero I guess
-    Timer4.attachCompare4Interrupt(isr_update);
+    Timer4.setCompare(TIMER_CH1, 200);
+    Timer4.attachInterrupt(TIMER_CH1, isr_porch);
+    Timer4.setCompare(TIMER_CH2, 300);
+    Timer4.attachInterrupt(TIMER_CH2, isr_start);
+    Timer4.setCompare(TIMER_CH3, 2170);
+    Timer4.attachInterrupt(TIMER_CH3, isr_stop);
+    Timer4.setCompare(TIMER_CH4, 1);      // Could be zero I guess
+    Timer4.attachInterrupt(TIMER_CH4, isr_update);
     
     Timer4.setCount(0);         // Ready...
     Timer4.resume();            // Go!
