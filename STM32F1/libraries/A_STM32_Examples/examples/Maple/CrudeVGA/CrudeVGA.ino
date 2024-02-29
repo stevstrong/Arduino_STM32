@@ -34,7 +34,6 @@
  This code is released with no strings attached.
  
  */
-#include "libmaple/timer.h"
 
 #define LED_PIN 13
 
