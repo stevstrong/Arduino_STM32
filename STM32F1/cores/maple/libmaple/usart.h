@@ -468,9 +468,9 @@ void usart_init(const usart_dev_t *dev);
 /**
  * @brief Configure GPIOs for use as USART TX/RX.
  * @param udev USART device to use
- * @param rx_dev RX pin gpio_dev
+ * @param rx_dev RX pin gpio_dev_t
  * @param rx     RX pin bit on rx_dev
- * @param tx_dev TX pin gpio_dev
+ * @param tx_dev TX pin gpio_dev_t
  * @param tx     TX pin bit on tx_dev
  * @param flags  Currently ignored
  */

@@ -66,7 +66,7 @@
  * @param addr Slave address
  * @param rw Read/write bit
  */
-static inline void i2c_send_slave_addr(i2c_dev *dev, uint32 addr, uint32 rw) {
+static inline void i2c_send_slave_addr(i2c_dev_t *dev, uint32 addr, uint32 rw) {
     dev->regs->DR = (addr << 1) | rw;
 }
 
@@ -128,7 +128,7 @@ enum {
  *
  * @param dev I2C device
  */
-void i2c_bus_reset(const i2c_dev *dev) {
+void i2c_bus_reset(const i2c_dev_t *dev) {
     /* Release both lines */
     i2c_master_release_bus(dev);        // Note: This configures the pins as GPIO instead of AF
 
@@ -182,7 +182,7 @@ void i2c_bus_reset(const i2c_dev *dev) {
  * this reset logic will also clear other STM32 controllers
  * on the bus that are also in this stuck-state.
  */
-static void i2c_clear_busy_flag_erratum(const i2c_dev *dev) {
+static void i2c_clear_busy_flag_erratum(const i2c_dev_t *dev) {
     // 1. Clear PE bit.
     dev->regs->CR1 &= ~I2C_CR1_PE;
 
@@ -237,7 +237,7 @@ static void i2c_clear_busy_flag_erratum(const i2c_dev *dev) {
  *        default values.
  * @param dev Device to initialize.
  */
-void i2c_init(i2c_dev *dev) {
+void i2c_init(i2c_dev_t *dev) {
     rcc_clk_enable(dev->clk_id);    // The device's clock should enabled before we reset it
     rcc_reset_dev(dev->clk_id);
     _i2c_irq_priority_fixup(dev);
@@ -264,7 +264,7 @@ void i2c_init(i2c_dev *dev) {
  *              I2C_SLAVE_GENERAL_CALL: SLA+W broadcast to all general call
  *                                      listeners on bus. Addr 0x00
  */
-void i2c_master_enable(i2c_dev *dev, uint32 flags, uint32 freq) {
+void i2c_master_enable(i2c_dev_t *dev, uint32 flags, uint32 freq) {
     /* Remap I2C if needed */
     _i2c_handle_remap(dev, flags);
 
@@ -340,7 +340,7 @@ void i2c_master_enable(i2c_dev *dev, uint32 flags, uint32 freq) {
  *              I2C_SLAVE_GENERAL_CALL: SLA+W broadcast to all general call
  *                                      listeners on bus. Addr 0x00
  */
-void i2c_slave_enable(i2c_dev *dev, uint32 flags, uint32 freq)
+void i2c_slave_enable(i2c_dev_t *dev, uint32 flags, uint32 freq)
 {
     i2c_master_enable(dev, flags | I2C_SLAVE_MODE, freq);
 }
@@ -349,8 +349,8 @@ void i2c_slave_enable(i2c_dev *dev, uint32 flags, uint32 freq)
 /**
  * @brief Process an i2c transaction.
  *
- * Transactions are composed of one or more i2c_msg's, and may be read
- * or write tranfers.  Multiple i2c_msg's will generate a repeated
+ * Transactions are composed of one or more i2c_msg_t's, and may be read
+ * or write tranfers.  Multiple i2c_msg_t's will generate a repeated
  * start in between messages.
  *
  * @param dev I2C device
@@ -362,8 +362,8 @@ void i2c_slave_enable(i2c_dev *dev, uint32 flags, uint32 freq)
  *         I2C_ERROR_PROTOCOL if there was a protocol error,
  *         I2C_ERROR_TIMEOUT if the transfer timed out.
  */
-int8 i2c_master_xfer(i2c_dev *dev,
-                      i2c_msg *msgs,
+int8 i2c_master_xfer(i2c_dev_t *dev,
+                      i2c_msg_t *msgs,
                       uint16 num,
                       uint32 timeout) {
     int32 rc;
@@ -441,10 +441,10 @@ int8 i2c_master_xfer(i2c_dev *dev,
  * @param timeout Timeout, in milliseconds
  * @return 0 if target state is reached, a negative value on error.
  */
-int8 wait_for_state_change(i2c_dev *dev,
-                            i2c_state state,
+int8 wait_for_state_change(i2c_dev_t *dev,
+                            i2c_state_t state,
                             uint32 timeout) {
-    volatile i2c_state devState;
+    volatile i2c_state_t devState;
     volatile uint32 devTimestamp;
 
     while (1) {
@@ -483,7 +483,7 @@ int8 wait_for_state_change(i2c_dev *dev,
  * IRQ handler for I2C master and slave.
  * Handles transmission/reception.
  */
-void _i2c_irq_handler(i2c_dev *dev) {
+void _i2c_irq_handler(i2c_dev_t *dev) {
     // See Note in ST Specs:
     //  Reading I2C_SR2 after reading I2C_SR1 clears the ADDR flag, even if the ADDR flag was
     //  set after reading I2C_SR1. Consequently, I2C_SR2 must be read only when ADDR is found
@@ -497,7 +497,7 @@ void _i2c_irq_handler(i2c_dev *dev) {
 
     if (!(dev->config_flags & I2C_SLAVE_MODE)) {    // Handle Master Mode Here:
         int8_t bDone = 0;                       // Set to true when we're done with this transfer unit
-        i2c_msg *curMsg = dev->msg;
+        i2c_msg_t *curMsg = dev->msg;
         if (curMsg != NULL) {
             int todo = curMsg->length;      // Bytes to transfer
             if (curMsg->flags & I2C_MSG_READ) {         // read transaction:
@@ -769,7 +769,7 @@ void _i2c_irq_handler(i2c_dev *dev) {
  * Interrupt handler for I2C error conditions. Aborts any pending I2C
  * transactions.
  */
-void _i2c_irq_error_handler(i2c_dev *dev) {
+void _i2c_irq_error_handler(i2c_dev_t *dev) {
     __IO uint32_t sr1 = dev->regs->SR1;
     __IO uint32_t sr2 = dev->regs->SR2;
 
@@ -821,7 +821,7 @@ void _i2c_irq_error_handler(i2c_dev *dev) {
 /*
  * CCR/TRISE configuration helper
  */
-void i2c_set_ccr_trise(i2c_dev *dev, uint32 flags, uint32 freq) {
+void i2c_set_ccr_trise(i2c_dev_t *dev, uint32 flags, uint32 freq) {
     uint32 ccr     = 0;
     uint32 trise   = 0;
     uint32 clk_mhz = _i2c_bus_clk(dev);
@@ -865,7 +865,7 @@ void i2c_set_ccr_trise(i2c_dev *dev, uint32 flags, uint32 freq) {
  * @param msg The dev_msg to pass to the slave init code
  * @param func The function pointer to call
  */
-void i2c_slave_attach_recv_handler(i2c_dev *dev, i2c_msg *msg, i2c_slave_recv_callback_func func) {
+void i2c_slave_attach_recv_handler(i2c_dev_t *dev, i2c_msg_t *msg, i2c_slave_recv_callback_func_t func) {
     dev->i2c_slave_recv_callback = func;
     dev->i2c_slave_recv_msg = msg;
     msg->xferred = 0;
@@ -879,7 +879,7 @@ void i2c_slave_attach_recv_handler(i2c_dev *dev, i2c_msg *msg, i2c_slave_recv_ca
  * @param msg The dev_msg to pass to the slave init code
  * @param func The function pointer to call
  */
-void i2c_slave_attach_transmit_handler(i2c_dev *dev, i2c_msg *msg, i2c_slave_xmit_callback_func func) {
+void i2c_slave_attach_transmit_handler(i2c_dev_t *dev, i2c_msg_t *msg, i2c_slave_xmit_callback_func_t func) {
     dev->i2c_slave_xmit_callback = func;
     dev->i2c_slave_xmit_msg = msg;
     msg->xferred = 0;

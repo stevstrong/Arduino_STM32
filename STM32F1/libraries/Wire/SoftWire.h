@@ -127,9 +127,9 @@ class SoftWire : public WireBase {
     uint8 process(uint8);
     uint8 process();
  private:
-	const gpio_dev 	*sdaDevice;
+	const gpio_dev_t 	*sdaDevice;
 	uint8 	sdaBit;
-	const gpio_dev 	*sclDevice;
+	const gpio_dev_t 	*sclDevice;
 	uint8 	sclBit;	
  public:
     /*

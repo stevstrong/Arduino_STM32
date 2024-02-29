@@ -94,8 +94,8 @@ extern "C" {
     usb_descriptor_endpoint DataOutEndpoint;
   } __packed usb_descriptor_config;
 
-  void usb_mass_enable(gpio_dev *disc_dev, uint8 disc_bit);
-  void usb_mass_disable(gpio_dev *disc_dev, uint8 disc_bit);
+  void usb_mass_enable(gpio_dev_t *disc_dev, uint8 disc_bit);
+  void usb_mass_disable(gpio_dev_t *disc_dev, uint8 disc_bit);
   void usb_mass_loop();
 
   void usb_mass_bot_set_csw(uint8_t cswStatus, uint8_t sendPermission);

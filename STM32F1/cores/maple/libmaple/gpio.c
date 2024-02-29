@@ -37,21 +37,21 @@
  */
 
 /** GPIO port A device. */
-const gpio_dev gpioa = {
+const gpio_dev_t gpioa = {
     .regs      = GPIOA_BASE,
     .clk_id    = RCC_GPIOA,
     .exti_port = EXTI_PA,
 };
 
 /** GPIO port B device. */
-const gpio_dev gpiob = {
+const gpio_dev_t gpiob = {
     .regs      = GPIOB_BASE,
     .clk_id    = RCC_GPIOB,
     .exti_port = EXTI_PB,
 };
 
 /** GPIO port C device. */
-const gpio_dev gpioc = {
+const gpio_dev_t gpioc = {
     .regs      = GPIOC_BASE,
     .clk_id    = RCC_GPIOC,
     .exti_port = EXTI_PC,
@@ -59,7 +59,7 @@ const gpio_dev gpioc = {
 
 #if STM32_NR_GPIO_PORTS > 3
 /** GPIO port D device. */
-const gpio_dev gpiod = {
+const gpio_dev_t gpiod = {
     .regs      = GPIOD_BASE,
     .clk_id    = RCC_GPIOD,
     .exti_port = EXTI_PD,
@@ -67,28 +67,28 @@ const gpio_dev gpiod = {
 #endif
 #if STM32_NR_GPIO_PORTS > 4
 /** GPIO port E device. */
-const gpio_dev gpioe = {
+const gpio_dev_t gpioe = {
     .regs      = GPIOE_BASE,
     .clk_id    = RCC_GPIOE,
     .exti_port = EXTI_PE,
 };
 
 /** GPIO port F device. */
-const gpio_dev gpiof = {
+const gpio_dev_t gpiof = {
     .regs      = GPIOF_BASE,
     .clk_id    = RCC_GPIOF,
     .exti_port = EXTI_PF,
 };
 
 /** GPIO port G device. */
-const gpio_dev gpiog = {
+const gpio_dev_t gpiog = {
     .regs      = GPIOG_BASE,
     .clk_id    = RCC_GPIOG,
     .exti_port = EXTI_PG,
 };
 #endif
 
-const gpio_dev* const gpio_devs[] = {
+const gpio_dev_t* const gpio_devs[] = {
 	GPIOA,
 	GPIOB,
 	GPIOC,
@@ -128,7 +128,7 @@ void gpio_init_all(void) {
  * @param mode General purpose or alternate function mode to set the pin to.
  * @see gpio_pin_mode
  */
-void gpio_set_mode(const gpio_dev *dev, uint8 bit, gpio_pin_mode mode) {
+void gpio_set_mode(const gpio_dev_t *dev, uint8 bit, gpio_pin_mode mode) {
     gpio_reg_map *regs = dev->regs;
     __IO uint32 *cr = &regs->CRL + (bit >> 3);
     uint32 shift = (bit & 0x7) * 4;
@@ -145,7 +145,7 @@ void gpio_set_mode(const gpio_dev *dev, uint8 bit, gpio_pin_mode mode) {
     }
 }
 //-----------------------------------------------------------------------------
-gpio_pin_mode gpio_get_mode(const gpio_dev *dev, uint8 pin) {
+gpio_pin_mode gpio_get_mode(const gpio_dev_t *dev, uint8 pin) {
     gpio_reg_map *regs = dev->regs;
     __IO uint32 *cr = &regs->CRL + (pin >> 3);
     uint32 shift = (pin & 0x7) * 4;

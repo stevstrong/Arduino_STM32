@@ -45,7 +45,7 @@
 
 class TwoWire : public WireBase {
 private:
-    i2c_dev* sel_hard;
+    i2c_dev_t* sel_hard;
     uint8    dev_flags;
 	uint32	frequency; //new variable to store i2c frequency
 protected:

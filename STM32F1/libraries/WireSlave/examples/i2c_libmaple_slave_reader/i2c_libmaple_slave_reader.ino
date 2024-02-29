@@ -19,15 +19,15 @@
 #include <Wire_slave.h>
 #include <Arduino.h>
 
-i2c_msg txMsg = {};
-uint8 txBuffer[255];
+i2c_msg_t txMsg = {0,0,0,0,NULL};
+uint8_t txBuffer[255];
 
-i2c_msg rxMsg = {};
-uint8 rxBuffer[255];
+i2c_msg_t rxMsg = {0,0,0,0,NULL};
+uint8_t rxBuffer[255];
 
 volatile uint32_t lastMessageTime;
 
-void funcrx(i2c_msg *msg __attribute__((unused))){
+void funcrx(i2c_msg_t *msg __attribute__((unused))){
   // This function is called when data is received:
   //  msg->addr will be our slave address being accessed
   //  msg->data will point to our receive buffer
@@ -50,7 +50,7 @@ void funcrx(i2c_msg *msg __attribute__((unused))){
   lastMessageTime = millis();
 }
 
-void functx(i2c_msg *msg){
+void functx(i2c_msg_t *msg){
   //
   // We will get this callback for each outgoing packet. Fill in the msg buffer
   // with the data to transmit and set the length to the size of the message.

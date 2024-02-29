@@ -41,32 +41,32 @@
  * Register maps
  */
 
-struct i2c_reg_map;
+struct i2c_reg_map_t;
 
 /** STM32F1 I2C1 register map base pointer */
-#define I2C1_BASE               ((struct i2c_reg_map*)0x40005400)
+#define I2C1_BASE               ((struct i2c_reg_map_t*)0x40005400)
 /** STM32F1 I2C2 register map base pointer */
-#define I2C2_BASE               ((struct i2c_reg_map*)0x40005800)
+#define I2C2_BASE               ((struct i2c_reg_map_t*)0x40005800)
 
 /*
  * Devices
  */
 
-extern i2c_dev* const I2C1;
-extern i2c_dev* const I2C2;
+extern i2c_dev_t* const I2C1;
+extern i2c_dev_t* const I2C2;
 
 /*
  * For internal use
  */
 
-static inline uint32 _i2c_bus_clk(i2c_dev *dev __attribute__((unused))) {
+static inline uint32_t _i2c_bus_clk(i2c_dev_t *dev __attribute__((unused))) {
     /* Both I2C peripherals are on APB1 */
     return STM32_PCLK1 / (1000 * 1000);
 }
 
 #ifndef _I2C_HAVE_IRQ_FIXUP     // Allow disabling of the fixup via external define
 #define _I2C_HAVE_IRQ_FIXUP 1
-void _i2c_irq_priority_fixup(i2c_dev *dev);
+void _i2c_irq_priority_fixup(i2c_dev_t *dev);
 #endif
 
 /*
@@ -76,7 +76,7 @@ void _i2c_irq_priority_fixup(i2c_dev *dev);
 /* Flag to use alternate pin mapping in i2c_master_enable(). */
 #define _I2C_HAVE_DEPRECATED_I2C_REMAP 1
 #define I2C_REMAP 0x4
-static inline void _i2c_handle_remap(i2c_dev *dev, uint32 flags) {
+static inline void _i2c_handle_remap(i2c_dev_t *dev, uint32 flags) {
     if ((dev == I2C1) && (flags & I2C_REMAP)) {
         afio_remap(AFIO_REMAP_I2C1);
         I2C1->sda_pin = 9;

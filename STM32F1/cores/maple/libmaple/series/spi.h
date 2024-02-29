@@ -97,7 +97,7 @@ typedef struct spi_pins {
  * Routines
  */
 
-struct gpio_dev;
+struct gpio_dev_t;
 extern void spi_config_gpios(uint8 as_master, const spi_pins * pins);
 extern void spi_release_gpios(uint8 as_master, const spi_pins * pins);
 

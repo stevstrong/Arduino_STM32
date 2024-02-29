@@ -54,7 +54,7 @@ typedef enum EndTranmissionCodes {
 class TwoWire: public Stream
 {
 private:
-	i2c_dev* sel_hard;			// Pointer to the I2C device for this interface
+	i2c_dev_t* sel_hard;			// Pointer to the I2C device for this interface
 
 	uint8_t *rxBuffer;			// Receive Buffer -- lazily allocated
 	size_t rxBufferAllocated;	// Receive Buffer bytes allocated
@@ -71,8 +71,8 @@ private:
 	bool useGeneralCall;		// Flag indicating if I2C General Call slave address will be processed by slave
 
 	uint32_t dev_flags;			// Flags used for enabling master or slave
-	i2c_msg itc_msg;			// Master Tx/Rx Message and Slave Tx Message
-	i2c_msg itc_slave_msg;		// Slave Rx Message (since it's completely asynchronous)
+	i2c_msg_t itc_msg;			// Master Tx/Rx Message and Slave Tx Message
+	i2c_msg_t itc_slave_msg;		// Slave Rx Message (since it's completely asynchronous)
 
 	uint32_t frequency;			// Frequency to use for I2C Master (defaults to 100000)
 
@@ -86,17 +86,17 @@ protected:
 
 	uint8 process(bool stop = true);	// wrapper for i2c_master_xfer
 
-	inline void __attribute__((always_inline)) onReceiveService(i2c_msg* msg);
-	inline void __attribute__((always_inline)) onRequestService(i2c_msg* msg);
+	inline void __attribute__((always_inline)) onReceiveService(i2c_msg_t* msg);
+	inline void __attribute__((always_inline)) onRequestService(i2c_msg_t* msg);
 
-	static void onRequestService1(i2c_msg*);
-	static void onReceiveService1(i2c_msg*);
+	static void onRequestService1(i2c_msg_t*);
+	static void onReceiveService1(i2c_msg_t*);
 #if WIRE_INTERFACES_COUNT > 1
-	static void onRequestService2(i2c_msg*);
-	static void onReceiveService2(i2c_msg*);
+	static void onRequestService2(i2c_msg_t*);
+	static void onReceiveService2(i2c_msg_t*);
 #endif
 
-	TwoWire(i2c_dev* i2cDevice, uint32_t flags = I2C_SLAVE_GENERAL_CALL, uint32_t frequencyHz = 100000);
+	TwoWire(i2c_dev_t* i2cDevice, uint32_t flags = I2C_SLAVE_GENERAL_CALL, uint32_t frequencyHz = 100000);
 	TwoWire() = delete;
 	TwoWire(const TwoWire&) = delete;
 	TwoWire& operator=(const TwoWire&) = delete;
@@ -137,7 +137,7 @@ public:
 	uint8_t requestFrom(uint16_t slaveAddress, uint8_t num_bytes, uint32_t iaddress, uint8_t isize, bool sendStop);		// Master Request From Slave
 
 	virtual size_t write(uint8_t data) override;	// Write functions for either Master transmission or Slave onRequest handler
-	virtual size_t write(const void *data, uint32_t quantity) override;	// Note: this is the signature of the base Print::write function
+	virtual size_t write(const void *data, uint32_t quantity);	// Note: this is the signature of the base Print::write function
 
 	virtual int available(void) override;		// Bytes available in the receive buffer from either Master Request From or Slave onReceive handler
 	virtual int read(void) override;			// Read byte from receive buffer from either Master Request From or Slave onReceive handler

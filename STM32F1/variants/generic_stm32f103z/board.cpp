@@ -71,7 +71,7 @@ void boardInit(void) {
 
 extern const stm32_pin_info PIN_MAP[BOARD_NR_GPIO_PINS] = {
 /*
-    gpio_dev *gpio_device;      GPIO device 
+    gpio_dev_t *gpio_device;      GPIO device 
     timer_dev *timer_device;    Pin's timer device, if any.
     const adc_dev *adc_device;  ADC device, if any. 
     uint8 gpio_bit;             Pin's GPIO port bit. 

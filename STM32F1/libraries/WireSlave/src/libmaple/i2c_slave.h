@@ -33,14 +33,14 @@
  *  Master Usage notes:
  *
  * - Enable an I2C device with i2c_master_enable().
- * - Initialize an array of struct i2c_msg to suit the bus
+ * - Initialize an array of struct i2c_msg_t to suit the bus
  *   transactions (reads/writes) you wish to perform.
  * - Call i2c_master_xfer() to do the work.
  *
  * Slave Usage notes:
  * - Enable I2C slave by calling i2c_slave_enable().
  *   Check flags for usage. Enabling master also enabled slave.
- * - initialise the i2c_msg struct and the data buffer
+ * - initialise the i2c_msg_t struct and the data buffer
  * - initialise the callback functions
  *
  * I2C slave support added 2012 by Barry Carter. barry.carter@gmail.com, headfuzz.co.uk
@@ -56,7 +56,7 @@ extern "C" {
 /*
  * Series header must provide:
  *
- * - uint32 _i2c_bus_clk(i2c_dev*): Clock frequency of dev's bus, in
+ * - uint32_t _i2c_bus_clk(i2c_dev_t*): Clock frequency of dev's bus, in
  *   MHz. (This is for internal use only).
  *
  * - (optional) _I2C_HAVE_IRQ_FIXUP: Leave undefined, or define to 1.
@@ -65,7 +65,7 @@ extern "C" {
  *   the series header must also declare and implement a routine with
  *   this signature (it may also be provided as a macro):
  *
- *       void _i2c_irq_priority_fixup(i2c_dev*)
+ *       void _i2c_irq_priority_fixup(i2c_dev_t*)
  *
  *   This will be called by i2c_enable_irq() before actually enabling
  *   I2C interrupts.
@@ -82,23 +82,23 @@ extern "C" {
 #include <libmaple/gpio.h>
 
 /** I2C register map type */
-typedef struct i2c_reg_map {
-    __IO uint32 CR1;            /**< Control register 1 */
-    __IO uint32 CR2;            /**< Control register 2 */
-    __IO uint32 OAR1;           /**< Own address register 1 */
-    __IO uint32 OAR2;           /**< Own address register 2 */
-    __IO uint32 DR;             /**< Data register */
-    __IO uint32 SR1;            /**< Status register 1 */
-    __IO uint32 SR2;            /**< Status register 2 */
-    __IO uint32 CCR;            /**< Clock control register */
-    __IO uint32 TRISE;          /**< TRISE (rise time) register */
-} i2c_reg_map;
+typedef struct i2c_reg_map_t {
+    __IO uint32_t CR1;            /**< Control register 1 */
+    __IO uint32_t CR2;            /**< Control register 2 */
+    __IO uint32_t OAR1;           /**< Own address register 1 */
+    __IO uint32_t OAR2;           /**< Own address register 2 */
+    __IO uint32_t DR;             /**< Data register */
+    __IO uint32_t SR1;            /**< Status register 1 */
+    __IO uint32_t SR2;            /**< Status register 2 */
+    __IO uint32_t CCR;            /**< Clock control register */
+    __IO uint32_t TRISE;          /**< TRISE (rise time) register */
+} i2c_reg_map_t;
 
 /**
  * @brief I2C message type
  */
-typedef struct i2c_msg {
-    uint16 addr;                /**< Address */
+typedef struct i2c_msg_t {
+    uint16_t  addr;                /**< Address */
 
 #define I2C_MSG_READ            0x1
 #define I2C_MSG_10BIT_ADDR      0x2
@@ -106,12 +106,12 @@ typedef struct i2c_msg {
      * Bitwise OR of:
      * - I2C_MSG_READ (write is default)
      * - I2C_MSG_10BIT_ADDR (7-bit is default) */
-    uint16 flags;
+    uint16_t  flags;
 
-    uint16 length;              /**< Message length */
-    uint16 xferred;             /**< Messages transferred */
-    uint8 *data;                /**< Data */
-} i2c_msg;
+    uint16_t  length;              /**< Message length */
+    uint16_t  xferred;             /**< Messages transferred */
+    uint8_t *data;                /**< Data */
+} i2c_msg_t;
 
 /*
  * Register bit definitions
@@ -210,14 +210,14 @@ typedef struct i2c_msg {
 #define I2C_SLAVE_USE_TX_BUFFER 0x20          // Use a buffered message when doing a slave transmit
 #define I2C_SLAVE_DUAL_ADDRESS  0x40          // Enable the dual slave address scheme
 #define I2C_SLAVE_GENERAL_CALL  0x80          // Enable the general call on address 0x00
-void i2c_master_enable(i2c_dev *dev, uint32 flags);
-void i2c_slave_enable(i2c_dev *dev, uint32 flags);
+void i2c_master_enable(i2c_dev_t *dev, uint32_t flags);
+void i2c_slave_enable(i2c_dev_t *dev, uint32_t flags);
 
 #define I2C_ERROR_PROTOCOL      (-1)
 #define I2C_ERROR_TIMEOUT       (-2)
-int32 i2c_master_xfer(i2c_dev *dev, i2c_msg *msgs, uint16 num, uint32 timeout);
+int32 i2c_master_xfer(i2c_dev_t *dev, i2c_msg_t *msgs, uint16_t  num, uint32_t timeout);
 
-void i2c_bus_reset(const i2c_dev *dev);
+void i2c_bus_reset(const i2c_dev_t *dev);
 
 /**
  * @brief Disable an I2C device
@@ -227,7 +227,7 @@ void i2c_bus_reset(const i2c_dev *dev);
  *
  * @param dev Device to disable.
  */
-static inline void i2c_disable(i2c_dev *dev) {
+static inline void i2c_disable(i2c_dev_t *dev) {
     dev->regs->CR1 &= ~I2C_CR1_PE;
     dev->state = I2C_STATE_DISABLED;
 }
@@ -238,8 +238,8 @@ static inline void i2c_disable(i2c_dev *dev) {
  * @brief Generate a start condition on the bus.
  * @param dev I2C device
  */
-static inline void i2c_start_condition(i2c_dev *dev) {
-    uint32 cr1;
+static inline void i2c_start_condition(i2c_dev_t *dev) {
+    uint32_t cr1;
     while ((cr1 = dev->regs->CR1) & (I2C_CR1_START |
                                      I2C_CR1_STOP  |
                                      I2C_CR1_PEC)) {
@@ -252,8 +252,8 @@ static inline void i2c_start_condition(i2c_dev *dev) {
  * @brief Generate a stop condition on the bus
  * @param dev I2C device
  */
-static inline void i2c_stop_condition(i2c_dev *dev) {
-    uint32 cr1;
+static inline void i2c_stop_condition(i2c_dev_t *dev) {
+    uint32_t cr1;
     while ((cr1 = dev->regs->CR1) & (I2C_CR1_START |
                                      I2C_CR1_STOP  |
                                      I2C_CR1_PEC)) {
@@ -287,7 +287,7 @@ static inline void i2c_stop_condition(i2c_dev *dev) {
  *             I2C_IRQ_EVENT (event interrupt), and
  *             I2C_IRQ_BUFFER (buffer interrupt).
  */
-static inline void i2c_enable_irq(i2c_dev *dev, uint32 irqs) {
+static inline void i2c_enable_irq(i2c_dev_t *dev, uint32_t irqs) {
     _i2c_irq_priority_fixup(dev);
     dev->regs->CR2 |= irqs;
 }
@@ -300,7 +300,7 @@ static inline void i2c_enable_irq(i2c_dev *dev, uint32 irqs) {
  *             I2C_IRQ_EVENT (event interrupt), and
  *             I2C_IRQ_BUFFER (buffer interrupt).
  */
-static inline void i2c_disable_irq(i2c_dev *dev, uint32 irqs) {
+static inline void i2c_disable_irq(i2c_dev_t *dev, uint32_t irqs) {
     dev->regs->CR2 &= ~irqs;
 }
 
@@ -310,7 +310,7 @@ static inline void i2c_disable_irq(i2c_dev *dev, uint32 irqs) {
  * @brief Enable I2C acknowledgment
  * @param dev I2C device
  */
-static inline void i2c_enable_ack(i2c_dev *dev) {
+static inline void i2c_enable_ack(i2c_dev_t *dev) {
     dev->regs->CR1 |= I2C_CR1_ACK;
 }
 
@@ -318,7 +318,7 @@ static inline void i2c_enable_ack(i2c_dev *dev) {
  * @brief Disable I2C acknowledgment
  * @param dev I2C device
  */
-static inline void i2c_disable_ack(i2c_dev *dev) {
+static inline void i2c_disable_ack(i2c_dev_t *dev) {
     dev->regs->CR1 &= ~I2C_CR1_ACK;
 }
 
@@ -333,7 +333,7 @@ static inline void i2c_disable_ack(i2c_dev *dev) {
  * @param dev I2C Device
  * @see i2c_release_gpios()
  */
-extern void i2c_config_gpios(const i2c_dev *dev);
+extern void i2c_config_gpios(const i2c_dev_t *dev);
 
 /**
  * @brief Release GPIOs controlling an I2C bus
@@ -345,17 +345,17 @@ extern void i2c_config_gpios(const i2c_dev *dev);
  * @param dev I2C device
  * @see i2c_config_gpios()
  */
-extern void i2c_master_release_bus(const i2c_dev *dev);
+extern void i2c_master_release_bus(const i2c_dev_t *dev);
 
 /* Miscellaneous low-level routines */
 
-void i2c_init(i2c_dev *dev);
+void i2c_init(i2c_dev_t *dev);
 
 /**
  * @brief Turn on an I2C peripheral
  * @param dev Device to enable
  */
-static inline void i2c_peripheral_enable(i2c_dev *dev) {
+static inline void i2c_peripheral_enable(i2c_dev_t *dev) {
     dev->regs->CR1 |= I2C_CR1_PE;
 }
 
@@ -363,7 +363,7 @@ static inline void i2c_peripheral_enable(i2c_dev *dev) {
  * @brief Turn off an I2C peripheral
  * @param dev Device to turn off
  */
-static inline void i2c_peripheral_disable(i2c_dev *dev) {
+static inline void i2c_peripheral_disable(i2c_dev_t *dev) {
     dev->regs->CR1 &= ~I2C_CR1_PE;
 }
 
@@ -372,7 +372,7 @@ static inline void i2c_peripheral_disable(i2c_dev *dev) {
  * @param dev I2C device
  * @param byte Byte to write
  */
-static inline void i2c_write(i2c_dev *dev, uint8 byte) {
+static inline void i2c_write(i2c_dev_t *dev, uint8 byte) {
     dev->regs->DR = byte;
 }
 
@@ -384,10 +384,10 @@ static inline void i2c_write(i2c_dev *dev, uint8 byte) {
  *             rcc_dev_clk(dev) == RCC_APB1, freq must be at most
  *             PCLK1, in MHz). There is an additional limit of 46 MHz.
  */
-static inline void i2c_set_input_clk(i2c_dev *dev, uint32 freq) {
+static inline void i2c_set_input_clk(i2c_dev_t *dev, uint32_t freq) {
 #define I2C_MAX_FREQ_MHZ 46
     ASSERT(2 <= freq && freq <= _i2c_bus_clk(dev) && freq <= I2C_MAX_FREQ_MHZ);
-    uint32 cr2 = dev->regs->CR2;
+    uint32_t cr2 = dev->regs->CR2;
     cr2 &= ~I2C_CR2_FREQ;
     cr2 |= freq;
     dev->regs->CR2 = freq;
@@ -403,8 +403,8 @@ static inline void i2c_set_input_clk(i2c_dev *dev, uint32 freq) {
  * @param val Value to use for clock control register (in
  *            Fast/Standard mode)
  */
-static inline void i2c_set_clk_control(i2c_dev *dev, uint32 val) {
-    uint32 ccr = dev->regs->CCR;
+static inline void i2c_set_clk_control(i2c_dev_t *dev, uint32_t val) {
+    uint32_t ccr = dev->regs->CCR;
     ccr &= ~I2C_CCR_CCR;
     ccr |= val;
     dev->regs->CCR = ccr;
@@ -416,7 +416,7 @@ static inline void i2c_set_clk_control(i2c_dev *dev, uint32 val) {
  * @param trise Maximum rise time in fast/standard mode (see chip
  *              reference manual for the relevant formulas).
  */
-static inline void i2c_set_trise(i2c_dev *dev, uint32 trise) {
+static inline void i2c_set_trise(i2c_dev_t *dev, uint32_t trise) {
     dev->regs->TRISE = trise;
 }
 
@@ -428,7 +428,7 @@ static inline void i2c_set_trise(i2c_dev *dev, uint32 trise) {
  * @brief Enable Dual addressing mode to allow peripheral to have 2 addresses
  * @param dev I2C device
   */
-static inline void i2c_slave_dual_address_enable(i2c_dev *dev) {
+static inline void i2c_slave_dual_address_enable(i2c_dev_t *dev) {
     dev->regs->OAR2 |= I2C_OAR2_ENDUAL;
 }
 
@@ -436,25 +436,25 @@ static inline void i2c_slave_dual_address_enable(i2c_dev *dev) {
  * @brief Enable General Call to allow the  unit to respond on addr 0x00
  * @param dev I2C device
   */
-static inline void i2c_slave_general_call_enable(i2c_dev *dev) {
+static inline void i2c_slave_general_call_enable(i2c_dev_t *dev) {
     dev->regs->CR1 |= I2C_CR1_ENGC;
 }
 
 /* callback functions */
 /* Callback handler for data received over the bus */
-void i2c_slave_attach_recv_handler(i2c_dev *dev, i2c_msg *msg, i2c_slave_recv_callback_func func);
+void i2c_slave_attach_recv_handler(i2c_dev_t *dev, i2c_msg_t *msg, i2c_slave_recv_callback_func_t func);
 
 /* Callback handler for data being requested over the bus
  * The callback function must call i2c_write to get the data over the bus
  */
-void i2c_slave_attach_transmit_handler(i2c_dev *dev, i2c_msg *msg, i2c_slave_transmit_callback_func func);
+void i2c_slave_attach_transmit_handler(i2c_dev_t *dev, i2c_msg_t *msg, i2c_slave_transmit_callback_func func);
 
 /**
  * @brief Set the primary I2c slave address
  * @param dev I2C device
  * @param address the 8 or 10 bit i2c address
   */
-static inline void i2c_slave_set_own_address(i2c_dev *dev, uint16 address) {
+static inline void i2c_slave_set_own_address(i2c_dev_t *dev, uint16_t  address) {
     dev->regs->OAR1 = address <<1;
 }
 
@@ -463,7 +463,7 @@ static inline void i2c_slave_set_own_address(i2c_dev *dev, uint16 address) {
  * @param dev I2C device
  * @param address the 8 or 10 bit i2c address
   */
-static inline void i2c_slave_set_own_address2(i2c_dev *dev, uint16 address) {
+static inline void i2c_slave_set_own_address2(i2c_dev_t *dev, uint16_t  address) {
 dev->regs->OAR2 = (address <<1 ) | I2C_OAR2_ENDUAL;
 }
 

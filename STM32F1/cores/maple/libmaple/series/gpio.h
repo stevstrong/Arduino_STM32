@@ -402,7 +402,7 @@ inline void afio_cfg_debug_ports(afio_debug_cfg config) {
  *
  * In previous versions of libmaple, exti_attach_interrupt() took an
  * afio_exti_port argument; afio_exti_port was also a member of struct
- * gpio_dev. This isn't portable, so we now use exti_cfg
+ * gpio_dev_t. This isn't portable, so we now use exti_cfg
  * instead. This typedef (and the macros AFIO_EXTI_PA, ...,
  * AFIO_EXTI_PG) exist to preserve backwards compatibility.
  */

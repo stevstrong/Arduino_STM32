@@ -36,7 +36,7 @@ static constexpr uint16_t MASTER_ADDRESS = 0x01;			// Use 0x01 since it's an inv
 
 // Constructors ////////////////////////////////////////////////////////////////
 
-TwoWire::TwoWire(i2c_dev* i2cDevice, uint32_t flags, uint32_t frequencyHz)
+TwoWire::TwoWire(i2c_dev_t* i2cDevice, uint32_t flags, uint32_t frequencyHz)
 	:	sel_hard(i2cDevice),
 		rxBuffer(nullptr),
 		rxBufferAllocated(0),
@@ -50,8 +50,8 @@ TwoWire::TwoWire(i2c_dev* i2cDevice, uint32_t flags, uint32_t frequencyHz)
 		haveReset(false),
 		useGeneralCall((flags & I2C_SLAVE_GENERAL_CALL) ? true : false),
 		dev_flags(flags),
-		itc_msg({}),
-		itc_slave_msg({}),
+		itc_msg({0,0,0,0,nullptr}),
+		itc_slave_msg({0,0,0,0,nullptr}),
 		frequency((flags & I2C_FAST_MODE) ? 400000 : frequencyHz),
 		user_onRequest(nullptr),
 		user_onReceive(nullptr)
@@ -195,6 +195,7 @@ uint8 TwoWire::process(bool stop)
 // to bulk send
 uint8 TwoWire::requestFrom(uint16_t address, uint8_t num_bytes, uint32_t iaddress, uint8_t isize, bool sendStop)
 {
+	(void)iaddress; (void)isize; // unused
 	if (!isMaster()) return 0;
 
 	allocateRxBuffer(num_bytes);
@@ -400,7 +401,7 @@ void TwoWire::flush(void)
 }
 
 // behind the scenes function that is called when data is received
-void __attribute__((always_inline)) TwoWire::onReceiveService(i2c_msg* msg)
+void __attribute__((always_inline)) TwoWire::onReceiveService(i2c_msg_t* msg)
 {
 	// don't bother if user hasn't registered a callback
 	if (!user_onReceive) {
@@ -423,7 +424,7 @@ void __attribute__((always_inline)) TwoWire::onReceiveService(i2c_msg* msg)
 }
 
 // behind the scenes function that is called when data is requested
-void __attribute__((always_inline)) TwoWire::onRequestService(i2c_msg* msg)
+void __attribute__((always_inline)) TwoWire::onRequestService(i2c_msg_t* msg)
 {
 	// don't bother if user hasn't registered a callback
 	if (!user_onRequest) return;
@@ -435,7 +436,7 @@ void __attribute__((always_inline)) TwoWire::onRequestService(i2c_msg* msg)
 	// alert user program
 	user_onRequest();
 
-	// update i2c_msg
+	// update i2c_msg_t
 	msg->data = txBuffer;				// This assignment is necessary as the writes in user function may change the pointer
 	msg->length = txBufferLength;
 
@@ -500,22 +501,22 @@ TwoWire& Wire1 = TwoWire::getInstance1();
 
 // onRequestServiceX and onReceiveServiceX can't be inline since they
 // are exclusively called via a function pointer
-void TwoWire::onRequestService1(i2c_msg* msg)
+void TwoWire::onRequestService1(i2c_msg_t* msg)
 {
 	Wire.onRequestService(msg);
 }
 
-void TwoWire::onReceiveService1(i2c_msg* msg)
+void TwoWire::onReceiveService1(i2c_msg_t* msg)
 {
 	Wire.onReceiveService(msg);
 }
 
 #if WIRE_INTERFACES_COUNT > 1
-void TwoWire::onRequestService2(i2c_msg* msg)
+void TwoWire::onRequestService2(i2c_msg_t* msg)
 {
 	Wire1.onRequestService(msg);
 }
-void TwoWire::onReceiveService2(i2c_msg* msg)
+void TwoWire::onReceiveService2(i2c_msg_t* msg)
 {
 	Wire1.onReceiveService(msg);
 }
