@@ -185,7 +185,7 @@ extern "C" {
 
 void spi_init(spi_dev *dev);
 
-struct gpio_dev;
+struct gpio_dev_t;
 
 /**
  * @brief SPI mode configuration.

@@ -640,7 +640,7 @@ void measure_adc_noise(uint8 pin) {
 }
 
 void fast_gpio(int maple_pin) {
-    gpio_dev *dev = PIN_MAP[maple_pin].gpio_device;
+    gpio_dev_t *dev = PIN_MAP[maple_pin].gpio_device;
     uint32 bit = PIN_MAP[maple_pin].gpio_bit;
 
     gpio_write_bit(dev, bit, 1);
@@ -688,7 +688,7 @@ void usart_baud_test(HardwareSerial **serials, int n, unsigned baud) {
 
 static uint16 init_all_timers_prescale = 0;
 
-static void set_prescale(timer_dev *dev) {
+static void set_prescale(timer_dev_t *dev) {
     timer_set_prescaler(dev, init_all_timers_prescale);
 }
 

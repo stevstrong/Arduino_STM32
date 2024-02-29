@@ -44,7 +44,7 @@ void pwmWrite(uint8 pin, uint16 duty_cycle) {
     }
 
     uint8 cc_channel = PinTimerChannel(pin);
-    timer_dev *dev = PinTimerDevice(pin);
+    timer_dev_t *dev = PinTimerDevice(pin);
     if (dev && cc_channel)
     	timer_set_compare(dev, cc_channel, duty_cycle);
 }

@@ -37,7 +37,7 @@
 
 /* (Undocumented) hooks used by Wirish to direct our behavior here */
 extern __weak void __lm_error(void);
-extern __weak usart_dev* __lm_enable_error_usart(void);
+extern __weak usart_dev_t* __lm_enable_error_usart(void);
 
 /* If you define ERROR_LED_PORT and ERROR_LED_PIN, then a failed
  * ASSERT() will also throb() an LED connected to that port and pin.
@@ -68,7 +68,7 @@ __attribute__((noreturn)) void __error(void) {
 void _fail(const char* file, int line, const char* exp) {
     if (__lm_enable_error_usart) {
         /* Initialize the error USART */
-        usart_dev *err_usart = __lm_enable_error_usart();
+        usart_dev_t *err_usart = __lm_enable_error_usart();
 
         /* Print failed assert message */
         usart_putstr(err_usart, "ERROR: FAILED ASSERT(");
@@ -100,7 +100,7 @@ void __assert_func(const char* file, int line, const char* method __attribute__(
 void abort() {
     if (__lm_enable_error_usart) {
         /* Initialize the error USART */
-        usart_dev *err_usart = __lm_enable_error_usart();
+        usart_dev_t *err_usart = __lm_enable_error_usart();
         /* Print abort message. */
         usart_putstr(err_usart, "ERROR: PROGRAM ABORTED VIA abort()\r\n");
     }

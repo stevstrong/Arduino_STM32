@@ -40,7 +40,7 @@
  * @brief Initialize a serial port.
  * @param dev         Serial port to be initialized
  */
-void usart_init(const usart_dev *dev) {
+void usart_init(const usart_dev_t *dev) {
     rb_reset(dev->rb);
     rb_reset(dev->wb);
     rcc_clk_enable(dev->clk_id);
@@ -58,7 +58,7 @@ void usart_init(const usart_dev *dev) {
  * @param dev Serial port to enable.
  * @see usart_set_baud_rate()
  */
-void usart_enable(const usart_dev *dev) {
+void usart_enable(const usart_dev_t *dev) {
     usart_reg_map *regs = dev->regs;
     regs->CR1 |= (USART_CR1_TE | USART_CR1_RE | USART_CR1_RXNEIE);// don't change the word length etc, and 'or' in the patten not overwrite |USART_CR1_M_8N1);
     regs->CR1 |= USART_CR1_UE;
@@ -68,7 +68,7 @@ void usart_enable(const usart_dev *dev) {
  * @brief Turn off a serial port.
  * @param dev Serial port to be disabled
  */
-void usart_disable(const usart_dev *dev) {
+void usart_disable(const usart_dev_t *dev) {
     /* FIXME this misbehaves (on F1) if you try to use PWM on TX afterwards */
     usart_reg_map *regs = dev->regs;
 
@@ -93,7 +93,7 @@ void usart_disable(const usart_dev *dev) {
  * @param len Maximum number of bytes to transmit
  * @return Number of bytes transmitted
  */
-uint16 usart_tx(const usart_dev *dev, const uint8 *buf, uint16 len)
+uint16 usart_tx(const usart_dev_t *dev, const uint8 *buf, uint16 len)
 {
     uint16 txed = 0;
 	while ( txed < len )
@@ -114,7 +114,7 @@ uint16 usart_tx(const usart_dev *dev, const uint8 *buf, uint16 len)
  * @param len Maximum number of bytes to store
  * @return Number of bytes received
  */
-uint16 usart_rx(const usart_dev *dev, uint8 *buf, uint16 len) {
+uint16 usart_rx(const usart_dev_t *dev, uint8 *buf, uint16 len) {
     uint16 rxed = 0;
     while (usart_rx_available(dev) && rxed < len) {
         *buf++ = usart_getc(dev);
@@ -133,7 +133,7 @@ uint16 usart_rx(const usart_dev *dev, uint8 *buf, uint16 len) {
  * @param dev Serial port to send on
  * @param val Number to print
  */
-void usart_putudec(const usart_dev *dev, uint32 val) {
+void usart_putudec(const usart_dev_t *dev, uint32 val) {
     char digits[12];
     int i = 0;
 

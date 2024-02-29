@@ -35,10 +35,10 @@
 #include <libmaple/stm32.h>
 #include "timer_private.h"
 
-static void disable_channel(timer_dev *dev, uint8 channel);
-static void encoder_mode(timer_dev *dev); //CARLOS
+static void disable_channel(timer_dev_t *dev, uint8 channel);
+static void encoder_mode(timer_dev_t *dev); //CARLOS
 
-static void enable_irq(timer_dev *dev, timer_interrupt_id iid);
+static void enable_irq(timer_dev_t *dev, timer_interrupt_id iid);
 
 /*
  * Devices
@@ -47,40 +47,40 @@ static void enable_irq(timer_dev *dev, timer_interrupt_id iid);
  */
 
 /** Timer 1 device (advanced) */
-timer_dev timer1 = ADVANCED_TIMER(1);
+timer_dev_t timer1 = ADVANCED_TIMER(1);
 /** Timer 2 device (general-purpose) */
-timer_dev timer2 = GENERAL_TIMER(2);
+timer_dev_t timer2 = GENERAL_TIMER(2);
 /** Timer 3 device (general-purpose) */
-timer_dev timer3 = GENERAL_TIMER(3);
+timer_dev_t timer3 = GENERAL_TIMER(3);
 /** Timer 4 device (general-purpose) */
-timer_dev timer4 = GENERAL_TIMER(4);
+timer_dev_t timer4 = GENERAL_TIMER(4);
 /** Timer 5 device (general-purpose) */
-timer_dev timer5 = GENERAL_TIMER(5);
+timer_dev_t timer5 = GENERAL_TIMER(5);
 #if defined(STM32_HIGH_DENSITY) || defined(STM32_XL_DENSITY)
 /** Timer 6 device (basic) */
-timer_dev timer6 = BASIC_TIMER(6);
+timer_dev_t timer6 = BASIC_TIMER(6);
 /** Timer 7 device (basic) */
-timer_dev timer7 = BASIC_TIMER(7);
+timer_dev_t timer7 = BASIC_TIMER(7);
 /** Timer 8 device (advanced) */
-timer_dev timer8 = ADVANCED_TIMER(8);
+timer_dev_t timer8 = ADVANCED_TIMER(8);
 #endif
 #if defined(STM32_XL_DENSITY)
 /** Timer 9 device (general-purpose) */
-timer_dev timer9 = RESTRICTED_GENERAL_TIMER(9, TIMER_DIER_TIE_BIT);
+timer_dev_t timer9 = RESTRICTED_GENERAL_TIMER(9, TIMER_DIER_TIE_BIT);
 /** Timer 10 device (general-purpose) */
-timer_dev timer10 = RESTRICTED_GENERAL_TIMER(10, TIMER_DIER_CC1IE_BIT);
+timer_dev_t timer10 = RESTRICTED_GENERAL_TIMER(10, TIMER_DIER_CC1IE_BIT);
 /** Timer 11 device (general-purpose) */
-timer_dev timer11 = RESTRICTED_GENERAL_TIMER(11, TIMER_DIER_CC1IE_BIT);
+timer_dev_t timer11 = RESTRICTED_GENERAL_TIMER(11, TIMER_DIER_CC1IE_BIT);
 /** Timer 12 device (general-purpose) */
-timer_dev timer12 = RESTRICTED_GENERAL_TIMER(12, TIMER_DIER_TIE_BIT);
+timer_dev_t timer12 = RESTRICTED_GENERAL_TIMER(12, TIMER_DIER_TIE_BIT);
 /** Timer 13 device (general-purpose) */
-timer_dev timer13 = RESTRICTED_GENERAL_TIMER(13, TIMER_DIER_CC1IE_BIT);
+timer_dev_t timer13 = RESTRICTED_GENERAL_TIMER(13, TIMER_DIER_CC1IE_BIT);
 /** Timer 14 device (general-purpose) */
-timer_dev timer14 = RESTRICTED_GENERAL_TIMER(14, TIMER_DIER_CC1IE_BIT);
+timer_dev_t timer14 = RESTRICTED_GENERAL_TIMER(14, TIMER_DIER_CC1IE_BIT);
 #endif
 
 //-----------------------------------------------------------------------------
-timer_dev * const timer_devs[] =
+timer_dev_t * const timer_devs[] =
 {
 	TIMER1, TIMER2, TIMER3, TIMER4, TIMER5,
 #if defined(STM32_HIGH_DENSITY) || defined(STM32_XL_DENSITY)
@@ -92,7 +92,7 @@ timer_dev * const timer_devs[] =
 };
 	
 //-----------------------------------------------------------------------------
-timer_info const timer_map[32] =
+timer_info_t const timer_map[32] =
 {
 	(uint32)TIMER2 + 1, // PA0
 	(uint32)TIMER2 + 2, // PA1
@@ -157,7 +157,7 @@ timer_info const timer_map[32] =
  * @brief Call a function on timer devices.
  * @param fn Function to call on each timer device.
  */
-void timer_foreach(void (*fn)(timer_dev*))
+void timer_foreach(void (*fn)(timer_dev_t*))
 {
     fn(TIMER1);
     fn(TIMER2);
@@ -183,7 +183,7 @@ void timer_foreach(void (*fn)(timer_dev*))
  * Initialize a timer, and reset its register map.
  * @param dev Timer to initialize
  */
-void timer_init(timer_dev *dev) {
+void timer_init(timer_dev_t *dev) {
     rcc_clk_enable(dev->clk_id);
     rcc_reset_dev(dev->clk_id);
 }
@@ -196,7 +196,7 @@ void timer_init(timer_dev *dev) {
  *
  * @param dev Timer to disable.
  */
-void timer_disable(timer_dev *dev) {
+void timer_disable(timer_dev_t *dev) {
     (dev->regs).bas->CR1 = 0;
     (dev->regs).bas->DIER = 0;
     switch (dev->type) {
@@ -220,7 +220,7 @@ void timer_disable(timer_dev *dev) {
  * @param channel Relevant channel
  * @param mode New timer mode for channel
  */
-void timer_set_mode(timer_dev *dev, uint8 channel, timer_mode mode)
+void timer_set_mode(timer_dev_t *dev, uint8 channel, timer_mode mode)
 {
     if ( channel==0 || channel>4 ) return;
 
@@ -258,7 +258,7 @@ void timer_set_mode(timer_dev *dev, uint8 channel, timer_mode mode)
  * @param channel Capture/compare channel, from 1 to 4
  * @return Nonzero if dev has channel, zero otherwise.
  */
-int timer_has_cc_channel(timer_dev *dev, uint8 channel) {
+int timer_has_cc_channel(timer_dev_t *dev, uint8 channel) {
     /* On all currently supported series: advanced and "full-featured"
      * general purpose timers have all four channels. Of the
      * restricted general timers, timers 9 and 12 have channels 1 and
@@ -279,13 +279,13 @@ int timer_has_cc_channel(timer_dev *dev, uint8 channel) {
  * @brief Attach a timer interrupt.
  * @param dev Timer device
  * @param interrupt Interrupt number to attach to; this may be any
- *                  timer_interrupt_id or timer_channel value appropriate
+ *                  timer_interrupt_id or timer_channel_t value appropriate
  *                  for the timer.
  * @param handler Handler to attach to the given interrupt.
  * @see timer_interrupt_id
- * @see timer_channel
+ * @see timer_channel_t
  */
-void timer_attach_interrupt(timer_dev *dev,
+void timer_attach_interrupt(timer_dev_t *dev,
                             uint8 interrupt,
                             voidFuncPtr handler) {
     dev->handlers[interrupt] = handler;
@@ -297,18 +297,18 @@ void timer_attach_interrupt(timer_dev *dev,
  * @brief Detach a timer interrupt.
  * @param dev Timer device
  * @param interrupt Interrupt number to detach; this may be any
- *                  timer_interrupt_id or timer_channel value appropriate
+ *                  timer_interrupt_id or timer_channel_t value appropriate
  *                  for the timer.
  * @see timer_interrupt_id
- * @see timer_channel
+ * @see timer_channel_t
  */
-void timer_detach_interrupt(timer_dev *dev, uint8 interrupt) {
+void timer_detach_interrupt(timer_dev_t *dev, uint8 interrupt) {
     timer_disable_irq(dev, interrupt);
     dev->handlers[interrupt] = NULL;
 }
 
 //CARLOS 
-uint8 get_direction(timer_dev *dev){
+uint8 get_direction(timer_dev_t *dev){
     return *bb_perip(&(dev->regs).gen->CR1, TIMER_CR1_DIR_BIT);
 }
 
@@ -317,19 +317,19 @@ uint8 get_direction(timer_dev *dev){
 /*
  * Utilities
  */
-static void disable_channel(timer_dev *dev, uint8 channel) {
+static void disable_channel(timer_dev_t *dev, uint8 channel) {
     timer_detach_interrupt(dev, channel);
     timer_cc_disable(dev, channel);
 }
 
-void timer_set_cc_mode(timer_dev *dev, timer_channel channel, uint8 cc_mode, uint8 flags)
+void timer_set_cc_mode(timer_dev_t *dev, timer_channel_t channel, uint8 cc_mode, uint8 flags)
 {
     timer_oc_set_mode(dev, channel, (timer_oc_mode)cc_mode, flags);
     timer_cc_enable(dev, channel);
 }
 
 //added by CARLOS.
-static void encoder_mode(timer_dev *dev) {
+static void encoder_mode(timer_dev_t *dev) {
     
     //prescaler. 
     //(dev->regs).gen->PSC = 1;
@@ -358,7 +358,7 @@ static void encoder_mode(timer_dev *dev) {
  * Note: This function assumes that the only advanced timers are TIM1
  * and TIM8, and needs the obvious changes if that assumption is
  * violated by a later STM32 series. */
-static void enable_adv_irq(timer_dev *dev, timer_interrupt_id id) {
+static void enable_adv_irq(timer_dev_t *dev, timer_interrupt_id id) {
     uint8 is_tim1 = dev->clk_id == RCC_TIMER1;
     nvic_irq_num irq_num;
     switch (id) {
@@ -394,7 +394,7 @@ static void enable_adv_irq(timer_dev *dev, timer_interrupt_id id) {
 
 /* Basic and general purpose timers have a single IRQ line, which is
  * shared by all interrupts supported by a particular timer. */
-static void enable_bas_gen_irq(timer_dev *dev) {
+static void enable_bas_gen_irq(timer_dev_t *dev) {
     nvic_irq_num irq_num;
     switch (dev->clk_id) {
     case RCC_TIMER2:
@@ -440,7 +440,7 @@ static void enable_bas_gen_irq(timer_dev *dev) {
     nvic_irq_enable(irq_num);
 }
 
-static void enable_irq(timer_dev *dev, timer_interrupt_id iid)
+static void enable_irq(timer_dev_t *dev, timer_interrupt_id iid)
 {
     if (dev->type == TIMER_ADVANCED) {
         enable_adv_irq(dev, iid);

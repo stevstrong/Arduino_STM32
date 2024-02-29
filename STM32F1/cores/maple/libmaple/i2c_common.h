@@ -48,52 +48,52 @@
 #include <libmaple/nvic.h>
 #include <libmaple/rcc.h>
 
-struct gpio_dev;
-struct i2c_reg_map;
-struct i2c_msg;
+struct gpio_dev_t;
+struct i2c_reg_map_t;
+struct i2c_msg_t;
 
 /** I2C device states */
-typedef enum i2c_state {
+typedef enum i2c_state_t {
     I2C_STATE_DISABLED          = 0, /**< Disabled */
     I2C_STATE_IDLE              = 1, /**< Idle */
     I2C_STATE_XFER_DONE         = 2, /**< Done with transfer */
     I2C_STATE_BUSY              = 3, /**< Busy */
     I2C_STATE_ERROR             = -1 /**< Error occurred */
-} i2c_state;
+} i2c_state_t;
 
-typedef void (*i2c_slave_recv_callback_func)(struct i2c_msg *);
-typedef void (*i2c_slave_xmit_callback_func)(struct i2c_msg *);
+typedef void (*i2c_slave_recv_callback_func_t)(struct i2c_msg_t *);
+typedef void (*i2c_slave_xmit_callback_func_t)(struct i2c_msg_t *);
 
 /**
  * @brief I2C device type.
  */
-typedef struct i2c_dev {
-    struct i2c_reg_map *regs;   /**< Register map */
-    struct i2c_msg *msg;        /**< Messages */
-    uint32 error_flags;         /**< Error flags, set on I2C error condition */
-    volatile uint32 timestamp;  /**< For internal use */
+typedef struct i2c_dev_t {
+    struct i2c_reg_map_t *regs;   /**< Register map */
+    struct i2c_msg_t *msg;        /**< Messages */
+    uint32_t error_flags;         /**< Error flags, set on I2C error condition */
+    volatile uint32_t timestamp;  /**< For internal use */
 
-    uint16 msgs_left;           /**< Messages left */
-    uint8 sda_pin;              /**< SDA pin */
-    uint8 scl_pin;              /**< SCL pin */
+    uint16_t msgs_left;           /**< Messages left */
+    uint8_t sda_pin;              /**< SDA pin */
+    uint8_t scl_pin;              /**< SCL pin */
     rcc_clk_id clk_id;          /**< RCC clock information */
     nvic_irq_num ev_nvic_line;  /**< Event IRQ number */
     nvic_irq_num er_nvic_line;  /**< Error IRQ number */
-    volatile i2c_state state;   /**< Device state */
+    volatile i2c_state_t state;   /**< Device state */
 
     // --------------------
 
-    uint32 config_flags;        /**< Configuration flags */
+    uint32_t config_flags;        /**< Configuration flags */
 
     /*
      * Slave implementation. Callback functions in this struct allow
      * for a separate callback function for each I2C unit available onboard
      */
-    i2c_slave_xmit_callback_func i2c_slave_xmit_callback;
-    i2c_slave_recv_callback_func i2c_slave_recv_callback;
+    i2c_slave_xmit_callback_func_t i2c_slave_xmit_callback;
+    i2c_slave_recv_callback_func_t i2c_slave_recv_callback;
 
-    struct i2c_msg *i2c_slave_xmit_msg;    /* the message that the i2c slave will use for transmitting */
-    struct i2c_msg *i2c_slave_recv_msg;    /* the message that the i2c slave will use for receiving */
-} i2c_dev;
+    struct i2c_msg_t *i2c_slave_xmit_msg;    /* the message that the i2c slave will use for transmitting */
+    struct i2c_msg_t *i2c_slave_recv_msg;    /* the message that the i2c slave will use for receiving */
+} i2c_dev_t;
 
 #endif

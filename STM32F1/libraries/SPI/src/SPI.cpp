@@ -96,7 +96,7 @@ static const spi_pins * dev_to_spi_pins(spi_dev *dev)
 //-----------------------------------------------------------------------------
 static void disable_pwm(uint8_t pin)
 {
-    timer_dev * t_dev = PinTimerDevice(pin);
+    timer_dev_t * t_dev = PinTimerDevice(pin);
     uint8_t     t_ch  = PinTimerChannel(pin);
     if (t_dev && t_ch) {
         timer_set_mode(t_dev, t_ch, TIMER_DISABLED);

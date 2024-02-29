@@ -46,7 +46,7 @@ typedef timer_mode TimerMode;
 class HardwareTimer
 {
 private:
-    timer_dev *dev;
+    timer_dev_t *dev;
 
 public:
     /**
@@ -174,7 +174,7 @@ public:
      * @see HardwareTimer::attachInterrupt()
      */
     void setCompare(int channel, uint16 compare) {
-        timer_set_compare(this->dev, (timer_channel)channel, min(compare, this->getOverflow()));
+        timer_set_compare(this->dev, (timer_channel_t)channel, min(compare, this->getOverflow()));
     }
 
     /**
@@ -189,7 +189,7 @@ public:
      * @see voidFuncPtr
      */
     void attachInterrupt(int channel, voidFuncPtr handler) {
-        timer_attach_interrupt(this->dev, (timer_channel)channel, handler);
+        timer_attach_interrupt(this->dev, (timer_channel_t)channel, handler);
     }
 
     /**
@@ -203,7 +203,7 @@ public:
      * @see HardwareTimer::attachInterrupt()
      */
     void detachInterrupt(int channel) {
-        timer_detach_interrupt(this->dev, (timer_channel)channel);
+        timer_detach_interrupt(this->dev, (timer_channel_t)channel);
     }
 
     /**
@@ -251,23 +251,23 @@ public:
     void setEdgeCounting(uint32 counting) { setSlaveFlags(counting); }
 
 //set the polarity of counting... not sure how interesting this is.. 
-    void setPolarity(timer_channel channel, uint8 pol) {
+    void setPolarity(timer_channel_t channel, uint8 pol) {
         timer_cc_set_pol(this->dev, channel, pol);
     }
 
-    uint8_t getPolarity(timer_channel channel) {
+    uint8_t getPolarity(timer_channel_t channel) {
         return timer_cc_get_pol(this->dev, channel);
     }
 
-    void setInputCaptureMode(timer_channel channel, timer_ic_input_select input) {
+    void setInputCaptureMode(timer_channel_t channel, timer_ic_input_select input) {
         timer_input_capture_mode(this->dev, channel, input);
     }
 
-    uint8_t getInputCaptureFlag(timer_channel channel) {
+    uint8_t getInputCaptureFlag(timer_channel_t channel) {
         return ( timer_get_status(this->dev) >> channel ) & 0x1;
     }
 
-    uint8_t getInputCaptureFlagOverflow(timer_channel channel) {
+    uint8_t getInputCaptureFlagOverflow(timer_channel_t channel) {
 		uint8 ret = ( timer_get_status(this->dev) >> (8+channel) ) & 0x1;
 		if ( ret ) timer_reset_status_bit(this->dev, (8+channel)); // clear flag
         return ret;
@@ -276,16 +276,16 @@ public:
     /**
      * @brief Enable/disable DMA request for the input channel.
      */
-    void enableDMA(timer_channel channel) { timer_dma_enable_req(this->dev, channel); }
+    void enableDMA(timer_channel_t channel) { timer_dma_enable_req(this->dev, channel); }
 
-    void disableDMA(timer_channel channel) { timer_dma_disable_req(this->dev, channel); }
+    void disableDMA(timer_channel_t channel) { timer_dma_disable_req(this->dev, channel); }
 
 
     /**
-     * @brief Get a pointer to the underlying libmaple timer_dev for
+     * @brief Get a pointer to the underlying libmaple timer_dev_t for
      *        this HardwareTimer instance.
      */
-    timer_dev* c_dev(void) { return this->dev; }
+    timer_dev_t* c_dev(void) { return this->dev; }
 
 
 };

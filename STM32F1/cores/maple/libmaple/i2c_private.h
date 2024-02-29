@@ -71,8 +71,8 @@
         .i2c_slave_recv_msg = NULL,                                 \
     }
 
-void _i2c_irq_handler(i2c_dev *dev);
-void _i2c_irq_error_handler(i2c_dev *dev);
+void _i2c_irq_handler(i2c_dev_t *dev);
+void _i2c_irq_error_handler(i2c_dev_t *dev);
 
 
 #endif  /* _LIBMAPLE_I2C_PRIVATE_H_ */

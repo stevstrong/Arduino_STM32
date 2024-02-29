@@ -55,7 +55,7 @@
 
 class WireBase { // Abstraction is awesome!
 protected:
-    i2c_msg itc_msg;
+    i2c_msg_t itc_msg;
     uint8 rx_buf[BUFFER_LENGTH];      /* receive buffer */
     uint8 rx_buf_idx;               /* first unread idx in rx_buf */
     uint8 rx_buf_len;               /* number of bytes read */

@@ -60,13 +60,13 @@ struct usart_reg_map;
  * Devices
  */
 
-struct usart_dev;
-extern struct usart_dev *USART1;
-extern struct usart_dev *USART2;
-extern struct usart_dev *USART3;
+struct usart_dev_t;
+extern struct usart_dev_t *USART1;
+extern struct usart_dev_t *USART2;
+extern struct usart_dev_t *USART3;
 #ifdef STM32_HIGH_DENSITY
-extern struct usart_dev *UART4;
-extern struct usart_dev *UART5;
+extern struct usart_dev_t *UART4;
+extern struct usart_dev_t *UART5;
 #endif
 
 #ifdef __cplusplus

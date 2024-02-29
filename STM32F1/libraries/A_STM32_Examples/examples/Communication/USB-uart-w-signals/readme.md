@@ -52,7 +52,7 @@ programming/flashing another stm32 over uart section below about disabling the c
 ### esp8266 AT command processor
 
 You can use the usb-serial-uart bridge to connect to an ESP-01 - ESP8266 and simply type, send the relevant 
-AT commands. the commands would be funnelled back and fro between the host - stm32f103 (e.g. blue pill) - 
+AT commands. the commands would be tunnelled back and forth between the host - stm32f103 (e.g. blue pill) - 
 esp8266 (esp-01)
 
 As i found it getting a little tedious doing so, i made a little 'command processor' that hooks into the 

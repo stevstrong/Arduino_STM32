@@ -52,7 +52,7 @@ extern "C"{
  */
 
 /** GPIO device type */
-typedef struct gpio_dev {
+typedef struct gpio_dev_t {
     gpio_reg_map *regs;         /**< Register map */
     rcc_clk_id    clk_id;       /**< RCC clock information */
     /**
@@ -60,28 +60,28 @@ typedef struct gpio_dev {
      * Instead of dev->exti_port, use gpio_exti_port(dev).
      */
     exti_cfg      exti_port;
-} gpio_dev;
+} gpio_dev_t;
 
-extern const gpio_dev gpioa;
+extern const gpio_dev_t gpioa;
 #define GPIOA (&gpioa)
-extern const gpio_dev gpiob;
+extern const gpio_dev_t gpiob;
 #define GPIOB (&gpiob)
-extern const gpio_dev gpioc;
+extern const gpio_dev_t gpioc;
 #define GPIOC (&gpioc)
 #if STM32_NR_GPIO_PORTS > 3
-extern const gpio_dev gpiod;
+extern const gpio_dev_t gpiod;
 #define GPIOD (&gpiod)
 #endif
 #if STM32_NR_GPIO_PORTS > 4
-extern const gpio_dev gpioe;
+extern const gpio_dev_t gpioe;
 #define GPIOE (&gpioe)
-extern const gpio_dev gpiof;
+extern const gpio_dev_t gpiof;
 #define GPIOF (&gpiof)
-extern const gpio_dev gpiog;
+extern const gpio_dev_t gpiog;
 #define GPIOG (&gpiog)
 #endif
 
-extern const gpio_dev * const gpio_devs[3];
+extern const gpio_dev_t * const gpio_devs[3];
 
 /*
  * Portable routines
@@ -89,15 +89,15 @@ extern const gpio_dev * const gpio_devs[3];
 static inline void enableDebugPorts() { afio_cfg_debug_ports(AFIO_DEBUG_SW_ONLY); }
 static inline void disableDebugPorts() { afio_cfg_debug_ports(AFIO_DEBUG_NONE); }
 
-inline void gpio_init(const gpio_dev *dev) {
+inline void gpio_init(const gpio_dev_t *dev) {
     rcc_clk_enable(dev->clk_id);
     rcc_reset_dev(dev->clk_id);
 }
 
 void gpio_init_all(void);
 /* TODO flags argument version? */
-void gpio_set_mode(const gpio_dev *dev, uint8 bit, gpio_pin_mode mode);
-gpio_pin_mode gpio_get_mode(const gpio_dev *dev, uint8 bit);
+void gpio_set_mode(const gpio_dev_t *dev, uint8 bit, gpio_pin_mode mode);
+gpio_pin_mode gpio_get_mode(const gpio_dev_t *dev, uint8 bit);
 
 static inline void gpio_set_pin_mode(uint8 pin, gpio_pin_mode mode) {
 	gpio_set_mode(gpio_devs[pin/16], pin%16, mode);
@@ -106,7 +106,7 @@ static inline void gpio_set_pin_mode(uint8 pin, gpio_pin_mode mode) {
  * @brief Get a GPIO port's corresponding EXTI port configuration.
  * @param dev GPIO port whose exti_cfg to return.
  */
-static inline exti_cfg gpio_exti_port(gpio_dev *dev) {
+static inline exti_cfg gpio_exti_port(gpio_dev_t *dev) {
     return (exti_cfg)(EXTI_PA + (dev->clk_id - RCC_GPIOA));
 }
 
@@ -119,7 +119,7 @@ static inline exti_cfg gpio_exti_port(gpio_dev *dev) {
  * @param pin Pin on to set or reset
  * @param val If true, set the pin.  If false, reset the pin.
  */
-static inline void gpio_write_bit(const gpio_dev *dev, uint8 bit, uint8 val) {
+static inline void gpio_write_bit(const gpio_dev_t *dev, uint8 bit, uint8 val) {
     val = !val;          /* "set" bits are lower than "reset" bits  */
     dev->regs->BSRR = (1U << bit) << (16 * val);
 }
@@ -137,7 +137,7 @@ static inline void gpio_write_pin(uint8 pin, uint8 val) {
  * @param pin Pin on dev to test.
  * @return True if the pin is set, false otherwise.
  */
-static inline uint32 gpio_read_bit(const gpio_dev *dev, uint8 pin) {
+static inline uint32 gpio_read_bit(const gpio_dev_t *dev, uint8 pin) {
     return dev->regs->IDR & (1U << pin);
 }
 
@@ -150,7 +150,7 @@ static inline uint32 gpio_read_pin(uint8 pin) {
  * @param dev GPIO device.
  * @param pin Pin on dev to toggle.
  */
-static inline void gpio_toggle_bit(const gpio_dev *dev, uint8 bit) {
+static inline void gpio_toggle_bit(const gpio_dev_t *dev, uint8 bit) {
     dev->regs->ODR = dev->regs->ODR ^ (1U << bit);
 }
 

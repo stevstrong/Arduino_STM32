@@ -10,6 +10,7 @@
 #ifndef	W5100_H_INCLUDED
 #define	W5100_H_INCLUDED
 
+#include <libmaple/libmaple_types.h>
 #include <SPI.h>
 
 typedef uint8_t SOCKET;
