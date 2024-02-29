@@ -10,6 +10,8 @@
 #ifndef	W5500_H_INCLUDED
 #define	W5500_H_INCLUDED
 
+#include "w5100.h"
+
 /** Total RAM buffer is 16 kBytes for Transmitter and 16 kBytes for receiver for 1 Socket.
  *  The Total W5500 RAM buffer is 32 kBytes (16 + 16).
  *  If you use more Sockets then the RAM buffer must be split.

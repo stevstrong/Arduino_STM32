@@ -252,6 +252,7 @@ uint16_t DNSClient::BuildRequest(const char* aName)
 }
 
 
+static uint8_t header[DNS_HEADER_SIZE]; // Enough space to reuse for the DNS header
 uint16_t DNSClient::ProcessResponse(uint16_t aTimeout, IPAddress& aAddress)
 {
     uint32_t startTime = millis();
@@ -266,7 +267,6 @@ uint16_t DNSClient::ProcessResponse(uint16_t aTimeout, IPAddress& aAddress)
 
     // We've had a reply!
     // Read the UDP header
-    uint8_t header[DNS_HEADER_SIZE]; // Enough space to reuse for the DNS header
     // Check that it's a response from the right server and the right port
     if ( (iDNSServer != iUdp.remoteIP()) || 
         (iUdp.remotePort() != DNS_PORT) )
@@ -282,10 +282,11 @@ uint16_t DNSClient::ProcessResponse(uint16_t aTimeout, IPAddress& aAddress)
     }
     iUdp.read(header, DNS_HEADER_SIZE);
 
-    uint16_t header_flags = htons(*((uint16_t*)&header[2]));
+    uint16_t *ptr16 = (uint16_t*)&header[2];
+    uint16_t header_flags = htons(*ptr16);
     // Check that it's a response to this request
-    if ( ( iRequestId != (*((uint16_t*)&header[0])) ) ||
-        ((header_flags & QUERY_RESPONSE_MASK) != (uint16_t)RESPONSE_FLAG) )
+    ptr16 = (uint16_t*)&header[0];
+    if ((iRequestId != *ptr16) || ((header_flags & QUERY_RESPONSE_MASK) != (uint16_t)RESPONSE_FLAG))
     {
         // Mark the entire packet as read
         iUdp.flush();
@@ -293,7 +294,7 @@ uint16_t DNSClient::ProcessResponse(uint16_t aTimeout, IPAddress& aAddress)
     }
     // Check for any errors in the response (or in our request)
     // although we don't do anything to get round these
-    if ( (header_flags & TRUNCATION_FLAG) || (header_flags & RESP_MASK) )
+    if ((header_flags & TRUNCATION_FLAG) || (header_flags & RESP_MASK))
     {
         // Mark the entire packet as read
         iUdp.flush();
@@ -301,7 +302,8 @@ uint16_t DNSClient::ProcessResponse(uint16_t aTimeout, IPAddress& aAddress)
     }
 
     // And make sure we've got (at least) one answer
-    uint16_t answerCount = htons(*((uint16_t*)&header[6]));
+    ptr16 = (uint16_t*)&header[6];
+    uint16_t answerCount = htons(*ptr16);
     if (answerCount == 0 )
     {
         // Mark the entire packet as read
@@ -310,7 +312,8 @@ uint16_t DNSClient::ProcessResponse(uint16_t aTimeout, IPAddress& aAddress)
     }
 
     // Skip over any questions
-    for (uint16_t i =0; i < htons(*((uint16_t*)&header[4])); i++)
+    ptr16 = (uint16_t*)&header[4];
+    for (uint16_t i =0; i < htons(*ptr16); i++)
     {
         // Skip over the name
         uint8_t len;
