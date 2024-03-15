@@ -104,7 +104,9 @@ typedef unsigned int word;
 #define microsecondsToClockCycles(a) ( (a) * (F_CPU / 1000000L) )
 
 // pin related macros
-#define digitalPinToPort(pin)        ( gpio_devs[(pin)/16] )
+#define digitalPinToPortIndex(pin)   ( (pin)/16 )
+#define digitalPinToPort(pin)        ( gpio_devs[digitalPinToPortIndex(pin)] )
+#define digitalPinToBit(pin)         ( (pin) % 16 )
 #define digitalPinToBitMask(pin)     ( 1<<((pin)&(15)) )
 #define digitalPinToInterrupt(pin)   (pin)
 #define NOT_AN_INTERRUPT -1
