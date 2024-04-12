@@ -13,7 +13,7 @@
   01 July 2015 - Added a Flac decoder patch.
  */
 
-//#include <my_SPI.h>
+//#include <my_SPI->h>
 #include <VS1003_STM.h>
 
 #if defined(USEFLAC)
@@ -107,38 +107,34 @@ static PGM_P const register_names[] =
 };
 
 /****************************************************************************/
-
 // inline void DMA1_CH3_Event() {
 //   dma1_ch3_Active = 0;
 //   dma_disable(DMA1, DMA_CH3);
 // }
 
 /****************************************************************************/
-
 uint16_t VS1003::read_register(uint8_t _reg) const
 {
   uint16_t result;
   control_mode_on();
-  my_SPI.write(VS_READ_COMMAND); // Read operation
-  my_SPI.write(_reg); // Which register
-  result = my_SPI.transfer16(0xFFFF);
+  my_SPI->write(VS_READ_COMMAND); // Read operation
+  my_SPI->write(_reg); // Which register
+  result = my_SPI->transfer16(0xFFFF);
   control_mode_off();
   return result;
 }
 
 /****************************************************************************/
-
 void VS1003::write_register(uint8_t _reg,uint16_t _value) const
 {
   control_mode_on();
-  my_SPI.transfer(VS_WRITE_COMMAND); // Write operation
-  my_SPI.transfer(_reg); // Which register
-  my_SPI.write16(_value); // Send 16 byte
+  my_SPI->transfer(VS_WRITE_COMMAND); // Write operation
+  my_SPI->transfer(_reg); // Which register
+  my_SPI->write16(_value); // Send 16 byte
   control_mode_off();
 }
 
 /****************************************************************************/
-
 void VS1003::sdi_send_buffer(const uint8_t* data, size_t len)
 {
   while (len)
@@ -149,13 +145,12 @@ void VS1003::sdi_send_buffer(const uint8_t* data, size_t len)
     len -= chunk_length;
     // DO NOT optimize these lines !!! There must be a 1us delay between bytes
     while (chunk_length--)
-      my_SPI.write(*data++);
+      my_SPI->write(*data++);
     data_mode_off();
   }
 }
 
 /****************************************************************************/
-
 void VS1003::sdi_send_zeroes(size_t len)
 {
   while (len)
@@ -165,23 +160,14 @@ void VS1003::sdi_send_zeroes(size_t len)
     size_t chunk_length = min(len,vs1003_chunk_size);
     len -= chunk_length;
     while (chunk_length--)
-      my_SPI.transfer(0);
+      my_SPI->transfer(0);
     data_mode_off();
   }
 }
 
 /****************************************************************************/
-
-VS1003::VS1003( uint8_t _cs_pin, uint8_t _dcs_pin, uint8_t _dreq_pin, uint8_t _reset_pin, SPIClass &_spiChan):
-  cs_pin(_cs_pin), dcs_pin(_dcs_pin), dreq_pin(_dreq_pin), reset_pin(_reset_pin), my_SPI(_spiChan)
+void VS1003::begin(uint8_t initSPI)
 {
-}
-
-/****************************************************************************/
-
-void VS1003::begin(void)
-{
-
   // Keep the chip in reset until we are ready
   pinMode(reset_pin,OUTPUT);
   digitalWrite(reset_pin,LOW);
@@ -195,19 +181,19 @@ void VS1003::begin(void)
   // DREQ is an input
   pinMode(dreq_pin,INPUT);
 
-  
   // Boot VS1003
   //printf(("Booting VS1003...\r\n"));
 
   delay(1);
 
-  // my_SPI.begin();
-  // my_SPI.setBitOrder(MSBFIRST);
-  // my_SPI.setDataMode(SPI_MODE0);
+  // my_SPI->begin();
+  // my_SPI->setBitOrder(MSBFIRST);
+  // my_SPI->setDataMode(SPI_MODE0);
   // // init SPI slow mode
-  // my_SPI.setClockDivider(SPI_CLOCK_DIV64); // Slow!
- 
-  my_SPI.beginTransaction(SPISettings(200000, MSBFIRST, SPI_MODE0));
+  // my_SPI->setClockDivider(SPI_CLOCK_DIV64); // Slow!
+  if (initSPI) {
+    my_SPI->beginTransaction(SPISettings(200000));
+  };
   
   // release from reset
   digitalWrite(reset_pin,HIGH);
@@ -228,7 +214,9 @@ void VS1003::begin(void)
 
   write_register(SCI_AUDATA,44101); // 44.1kHz stereo
 
-  write_register(SCI_VOL,0x2020); // VOL
+  // write_register(SCI_VOL,0x2020); // VOL
+  // write_register(SCI_VOL,0x0000); // VOL
+  setVolume(100);
   
   // soft reset
   write_register(SCI_MODE, (1<<SM_SDINEW) | (1<<SM_RESET));
@@ -244,7 +232,7 @@ void VS1003::begin(void)
 
   // Now you can set high speed SPI clock
   // 72 MHz / 16 = 4.5 MHz max is practically allowed by VS1003 SPI interface.
-  my_SPI.setFrequency(2e6); 
+  my_SPI->setFrequency(25e5); 
 
   //printf(("VS1003 Set\r\n"));
   //printDetails();
@@ -253,48 +241,47 @@ void VS1003::begin(void)
 }
 
 /****************************************************************************/
-
-void VS1003::setVolume(uint8_t vol) const
+void VS1003::setVolume(uint8_t vol)
 {
-  uint16_t value = vol;
-  value <<= 8;
-  value |= vol;
-
-  write_register(SCI_VOL,value); // VOL
+  // Set volume.  Both left and right.
+  // Input value is 0..100.  100 is the loudest.
+  // Clicking reduced by using 0xf8 to 0x00 as limits.
+  if (vol != curvol) {
+    curvol = vol;
+    uint16_t value = map(vol, 0, 100, 0xF8, 0x00); // 0..100% to one channel
+    value = (value << 8) | value;
+    write_register(SCI_VOL, value);                // Volume left and right
+  }
 }
 
 /****************************************************************************/
-
 void VS1003::startSong(void)
 {
   sdi_send_zeroes(10);
 }
 
 /****************************************************************************/
-
 void VS1003::playChunk(const uint8_t* data, size_t len)
 {
   sdi_send_buffer(data,len);
 }
 
 /****************************************************************************/
-
 void VS1003::stopSong(void)
 {
   sdi_send_zeroes(2048);
 }
 
 /****************************************************************************/
-
 void VS1003::print_byte_register(uint8_t reg) const
 {
-  const char *name = reinterpret_cast<const char*>(pgm_read_word( register_names + reg ));
-  char extra_tab = strlen_P(name) < 5 ? '\t' : 0;
-  //printf(("%02x %S\t%c = 0x%02x\r\n"),reg,name,extra_tab,read_register(reg));
+  (void)reg; // unused
+  // const char *name = reinterpret_cast<const char*>(pgm_read_word( register_names + reg ));
+  // char extra_tab = strlen_P(name) < 5 ? '\t' : 0;
+  // printf(("%02x %S\t%c = 0x%02x\r\n"),reg,name,extra_tab,read_register(reg));
 }
 
 /****************************************************************************/
-
 void VS1003::printDetails(void) const
 {
   //printf(("VS1003 Configuration:\r\n"));
@@ -318,7 +305,6 @@ void VS1003::modeSwitch(void)
 	delay(100);
 }
 /****************************************************************************/
-
 void VS1003::loadUserCode(const uint16_t* buf, size_t len) const
 {
   while (len)
