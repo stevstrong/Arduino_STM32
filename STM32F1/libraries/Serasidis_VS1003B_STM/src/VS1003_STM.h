@@ -38,9 +38,10 @@ private:
   uint8_t dcs_pin; /**< Pin where DCS line is connected */
   uint8_t dreq_pin; /**< Pin where DREQ line is connected */
   uint8_t reset_pin; /**< Pin where RESET line is connected */
+  uint8_t curvol; // Current volume setting 0..100%
   uint8_t my_SPCR; /**< Value of the SPCR register how we like it. */
   uint8_t my_SPSR; /**< Value of the SPSR register how we like it. */
-  SPIClass &my_SPI;
+  SPIClass * my_SPI;
 
   inline void await_data_request(void) const { while (!digitalRead(dreq_pin)); }
 
@@ -89,14 +90,16 @@ public:
    *
    * Only sets pin values.  Doesn't do touch the chip.  Be sure to call begin()!
    */
-  VS1003( uint8_t _cs_pin, uint8_t _dcs_pin, uint8_t _dreq_pin, uint8_t _reset_pin, SPIClass &_spi);
+  VS1003(uint8_t _cs_pin, uint8_t _dcs_pin, uint8_t _dreq_pin, uint8_t _reset_pin, SPIClass * _spi = &SPI) :
+    cs_pin(_cs_pin), dcs_pin(_dcs_pin), dreq_pin(_dreq_pin), reset_pin(_reset_pin), my_SPI(_spi) {}
+
 
   /**
    * Begin operation
    *
    * Sets pins correctly, and prepares SPI bus.
    */
-  void begin(void);
+  void begin(uint8_t initSPI = 1);
 
   /**
    * Prepare to start playing
@@ -139,7 +142,9 @@ public:
    *
    * @param vol Volume level from 0-255, lower is louder.
    */
-  void setVolume(uint8_t vol) const;
+  void setVolume(uint8_t vol);
+  void volumeUp(uint8_t amount) { setVolume(curvol + amount); };
+  void volumeDown(uint8_t amount) { setVolume(curvol - amount); };
 
   inline bool dataRequested(void) const {  return digitalRead(dreq_pin); };
 
