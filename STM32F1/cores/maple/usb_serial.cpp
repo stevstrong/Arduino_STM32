@@ -37,7 +37,6 @@
 #include <libmaple/usb/usb.h>
 #include <libmaple/iwdg.h>
 #include <libmaple/bkp.h>
-#include <libmaple/ring_buffer.h>
 #include "wirish.h"
 
 
