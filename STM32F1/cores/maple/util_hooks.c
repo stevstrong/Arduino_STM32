@@ -79,5 +79,6 @@ const usart_dev_t * __lm_enable_error_usart() {
     gpio_set_pin_mode(ERROR_TX_PIN, GPIO_AF_OUTPUT_PP);
     usart_init(ERROR_USART);
     usart_set_baud_rate(ERROR_USART, ERROR_USART_BAUD);
+    usart_enable(ERROR_USART);
     return ERROR_USART;
 }
