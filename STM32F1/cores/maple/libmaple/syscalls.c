@@ -51,16 +51,15 @@ extern char _lm_heap_end;
 #define CONFIG_HEAP_END                 ((void *)&_lm_heap_end)
 #endif
 
+static void * pbreak = NULL; /* current program break */
 /*
  * _sbrk -- Increment the program break.
  *
  * Get incr bytes more RAM (for use by the heap).  malloc() and
  * friends call this function behind the scenes.
  */
-void *_sbrk(int incr) {
-    static void * pbreak = NULL; /* current program break */
-    void * ret;
-
+void *_sbrk(int incr)
+{
     if (pbreak == NULL) {
         pbreak = CONFIG_HEAP_START;
     }
@@ -71,7 +70,7 @@ void *_sbrk(int incr) {
         return (void *)-1;
     }
 
-    ret = pbreak;
+    void * ret = pbreak;
     pbreak += incr;
     return ret;
 }

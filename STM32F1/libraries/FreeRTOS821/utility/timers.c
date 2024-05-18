@@ -517,13 +517,11 @@ TickType_t xNextExpireTime;
 	return xNextExpireTime;
 }
 /*-----------------------------------------------------------*/
+PRIVILEGED_DATA static TickType_t xLastTime = ( TickType_t ) 0U; /*lint !e956 Variable is only accessible to one task. */
 
 static TickType_t prvSampleTimeNow( BaseType_t * const pxTimerListsWereSwitched )
 {
-TickType_t xTimeNow;
-PRIVILEGED_DATA static TickType_t xLastTime = ( TickType_t ) 0U; /*lint !e956 Variable is only accessible to one task. */
-
-	xTimeNow = xTaskGetTickCount();
+TickType_t xTimeNow = xTaskGetTickCount();
 
 	if( xTimeNow < xLastTime )
 	{

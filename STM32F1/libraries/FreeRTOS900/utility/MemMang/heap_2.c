@@ -145,11 +145,11 @@ size_t xBlockSize;																	\
 	pxIterator->pxNextFreeBlock = pxBlockToInsert;									\
 }
 /*-----------------------------------------------------------*/
+static BaseType_t xHeapHasBeenInitialised = pdFALSE;
 
 void *pvPortMalloc( size_t xWantedSize )
 {
 BlockLink_t *pxBlock, *pxPreviousBlock, *pxNewBlockLink;
-static BaseType_t xHeapHasBeenInitialised = pdFALSE;
 void *pvReturn = NULL;
 
 	vTaskSuspendAll();

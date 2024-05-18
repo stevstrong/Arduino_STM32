@@ -401,11 +401,11 @@ portTickType xNextExpireTime;
 	return xNextExpireTime;
 }
 /*-----------------------------------------------------------*/
+static portTickType xLastTime = ( portTickType ) 0U;
 
 static portTickType prvSampleTimeNow( portBASE_TYPE *pxTimerListsWereSwitched )
 {
 portTickType xTimeNow;
-static portTickType xLastTime = ( portTickType ) 0U;
 
 	xTimeNow = xTaskGetTickCount();
 	

@@ -150,6 +150,7 @@ static void addBytes (byte len, const byte* data) {
 // 58  Renewal (T1) Time Value
 // 61  Client-identifier
 // 255 End
+static byte cookie[] = { 99, 130, 83, 99, 53, 1 };
 
 static void send_dhcp_message (void) {
 
@@ -178,7 +179,6 @@ static void send_dhcp_message (void) {
     // options defined as option, length, value
     bufPtr = gPB + UDP_DATA_P + sizeof( DHCPdata );
     // DHCP magic cookie, followed by message type
-    static byte cookie[] = { 99, 130, 83, 99, 53, 1 };
     addBytes(sizeof cookie, cookie);
     // addToBuf(53);  // DHCP_STATE_SELECTING, DHCP_STATE_REQUESTING
     // addToBuf(1);   // Length
