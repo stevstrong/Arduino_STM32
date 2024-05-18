@@ -265,6 +265,12 @@ public:
      */
     void write(const void * buffer, uint32_t length);
 
+    // Some libraries (like recent Adafruit graphics libraries) require
+    // the write function be availabe under the name transfer, so here it is:
+    inline void transfer(const void * buffer, uint32_t length) {
+        write(buffer, length);
+    }
+ 
     /**
      * @brief Transmit a byte, then return the next unread byte.
      *
