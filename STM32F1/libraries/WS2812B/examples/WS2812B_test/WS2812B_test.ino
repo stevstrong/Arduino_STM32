@@ -1,12 +1,13 @@
 #include <WS2812B.h>
 
-#define NUM_LEDS 30
+#define NUM_LEDS 16
 /*
  * Note. Library uses SPI1
  * Connect the WS2812B data input to MOSI on your board.
  * 
  */
-WS2812B strip = WS2812B(NUM_LEDS);
+// SPIClass SPI_2(2);
+// WS2812B strip(NUM_LEDS, &SPI_2);
 // Note. Gamma is not really supported in the library, its only included as some functions used in this example require Gamma
 uint8_t LEDGamma[] = {
     0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
@@ -25,24 +26,47 @@ uint8_t LEDGamma[] = {
   144,146,148,150,152,154,156,158,160,162,164,167,169,171,173,175,
   177,180,182,184,186,189,191,193,196,198,200,203,205,208,210,213,
 215,218,220,223,225,228,231,233,236,239,241,244,247,249,252,255 };
+WS2812B strip(NUM_LEDS);
 
-void setup() 
+const uint8_t lum = 255;
+const uint8_t red = 10;
+const uint8_t green = 10;
+const uint8_t blue = 0;
+void setLEDS()
 {
+  strip.setPixelColor(1, strip.Color(red,0,0));
+  strip.setPixelColor(3, strip.Color(red,0,0));
+  strip.setPixelColor(4, strip.Color(0,green,0));
+  strip.setPixelColor(6, strip.Color(0,green,0));
+  strip.setPixelColor(9, strip.Color(0,green,0));
+  strip.setPixelColor(11, strip.Color(0,green,0));
+  strip.setPixelColor(12, strip.Color(red,0,0));
+  strip.setPixelColor(14, strip.Color(red,0,0));
+  strip.show();
+}
+
+
+void setup()
+{
+  while (!Serial); delay(10);
+  Serial.println("WS2812B Test started.");
   strip.begin();// Sets up the SPI
   strip.show();// Clears the strip, as by default the strip data is set to all LED's off.
  // strip.setBrightness(8);
 }
 
+#define WAIT_TIME 100
 void loop() 
-{ 
-  colorWipe(strip.Color(0, 255, 0), 20); // Green
-  colorWipe(strip.Color(255, 0, 0), 20); // Red
-  colorWipe(strip.Color(0, 0, 255), 20); // Blue
-  rainbow(10);
+{
+#if 0
+  colorWipe(strip.Color(0, 255, 0), WAIT_TIME); // Green
+  colorWipe(strip.Color(255, 0, 0), WAIT_TIME); // Red
+  colorWipe(strip.Color(0, 0, 255), WAIT_TIME); // Blue
+  rainbow(20);
   rainbowCycle(10);
-  theaterChase(strip.Color(255, 0, 0), 20); // Red
-  theaterChase(strip.Color(0, 255, 0), 20); // Green
-  theaterChase(strip.Color(0, 0, 255), 20); // Blue
+  theaterChase(strip.Color(255, 0, 0), WAIT_TIME); // Red
+  theaterChase(strip.Color(0, 255, 0), WAIT_TIME); // Green
+  theaterChase(strip.Color(0, 0, 255), WAIT_TIME); // Blue
   theaterChaseRainbow(10);
   whiteOverRainbow(20,75,5);  
   pulseWhite(5); 
@@ -75,8 +99,6 @@ void rainbow(uint8_t wait) {
     delay(wait);
   }
 }
-
-
 
 // Slightly different, this makes the rainbow equally distributed throughout
 void rainbowCycle(uint8_t wait) 
@@ -300,4 +322,5 @@ uint8_t green(uint32_t c) {
 }
 uint8_t blue(uint32_t c) {
   return (c);
+#endif
 }

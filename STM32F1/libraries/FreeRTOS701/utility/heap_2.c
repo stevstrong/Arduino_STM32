@@ -150,11 +150,11 @@ xBlockLink *pxFirstFreeBlock;														\
 	pxFirstFreeBlock->pxNextFreeBlock = &xEnd;										\
 }
 /*-----------------------------------------------------------*/
+static portBASE_TYPE xHeapHasBeenInitialised = pdFALSE;
 
 void *pvPortMalloc( size_t xWantedSize )
 {
 xBlockLink *pxBlock, *pxPreviousBlock, *pxNewBlockLink;
-static portBASE_TYPE xHeapHasBeenInitialised = pdFALSE;
 void *pvReturn = NULL;
 
 	vTaskSuspendAll();

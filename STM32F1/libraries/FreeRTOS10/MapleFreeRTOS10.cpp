@@ -28,6 +28,8 @@
 
 extern "C" {
 
+static StaticTask_t xIdleTaskTCB;
+static StackType_t uxIdleTaskStack[ configMINIMAL_STACK_SIZE ];
 //-----------------------------------------------------------------------------
 /* configUSE_STATIC_ALLOCATION is set to 1, so the application must provide an
  * implementation of vApplicationGetIdleTaskMemory() to provide the memory that is
@@ -40,8 +42,6 @@ void vApplicationGetIdleTaskMemory( StaticTask_t ** ppxIdleTaskTCBBuffer,
 /* If the buffers to be provided to the Idle task are declared inside this
  * function then they must be declared static - otherwise they will be allocated on
  * the stack and so not exists after this function exits. */
-    static StaticTask_t xIdleTaskTCB;
-    static StackType_t uxIdleTaskStack[ configMINIMAL_STACK_SIZE ];
 
     /* Pass out a pointer to the StaticTask_t structure in which the Idle task's
      * state will be stored. */
@@ -87,6 +87,7 @@ void vApplicationStackOverflowHook( TaskHandle_t pxTask,
 
 #if 0
 StackType_t uxTimerTaskStack[ configTIMER_TASK_STACK_DEPTH ];
+static StaticTask_t xTimerTaskTCB;
 //-----------------------------------------------------------------------------
 void vApplicationGetTimerTaskMemory( StaticTask_t ** ppxTimerTaskTCBBuffer,
                                      StackType_t ** ppxTimerTaskStackBuffer,
@@ -95,7 +96,6 @@ void vApplicationGetTimerTaskMemory( StaticTask_t ** ppxTimerTaskTCBBuffer,
     /* If the buffers to be provided to the Timer task are declared inside this
      * function then they must be declared static - otherwise they will be allocated on
      * the stack and so not exists after this function exits. */
-    static StaticTask_t xTimerTaskTCB;
 
     /* Pass out a pointer to the StaticTask_t structure in which the Timer
      * task's state will be stored. */

@@ -520,11 +520,10 @@ void String::setCharAt(unsigned int loc, char c)
 	if (loc < len) buffer[loc] = c;
 }
 
+static char dummy_writable_char = 0;
 char & String::operator[](unsigned int index)
 {
-	static char dummy_writable_char;
 	if (index >= len || !buffer) {
-		dummy_writable_char = 0;
 		return dummy_writable_char;
 	}
 	return buffer[index];

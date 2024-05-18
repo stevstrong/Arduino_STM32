@@ -33,10 +33,9 @@ void setup()
     lcd.textInvert(0);
 }
 
+static byte counter = 0;
 void loop()
 {
-    static byte counter = 0;
-    //
     counter++;
     if (counter > 128)
     {

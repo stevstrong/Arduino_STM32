@@ -93,13 +93,13 @@ task.h is included from an application file. */
 /* Allocate the memory for the heap. */
 static uint8_t ucHeap[ configTOTAL_HEAP_SIZE ];
 static size_t xNextFreeByte = ( size_t ) 0;
+static uint8_t *pucAlignedHeap = NULL;
 
 /*-----------------------------------------------------------*/
 
 void *pvPortMalloc( size_t xWantedSize )
 {
 void *pvReturn = NULL;
-static uint8_t *pucAlignedHeap = NULL;
 
 	/* Ensure that blocks are always aligned to the required number of bytes. */
 	#if portBYTE_ALIGNMENT != 1

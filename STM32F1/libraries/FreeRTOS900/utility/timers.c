@@ -656,13 +656,11 @@ TickType_t xNextExpireTime;
 	return xNextExpireTime;
 }
 /*-----------------------------------------------------------*/
+PRIVILEGED_DATA static TickType_t xLastTime = ( TickType_t ) 0U; /*lint !e956 Variable is only accessible to one task. */
 
 static TickType_t prvSampleTimeNow( BaseType_t * const pxTimerListsWereSwitched )
 {
-TickType_t xTimeNow;
-PRIVILEGED_DATA static TickType_t xLastTime = ( TickType_t ) 0U; /*lint !e956 Variable is only accessible to one task. */
-
-	xTimeNow = xTaskGetTickCount();
+TickType_t xTimeNow = xTaskGetTickCount();
 
 	if( xTimeNow < xLastTime )
 	{
@@ -926,6 +924,8 @@ BaseType_t xResult;
 	pxOverflowTimerList = pxTemp;
 }
 /*-----------------------------------------------------------*/
+static StaticQueue_t xStaticTimerQueue;
+static uint8_t ucStaticTimerQueueStorage[ configTIMER_QUEUE_LENGTH * sizeof( DaemonTaskMessage_t ) ];
 
 static void prvCheckForValidListAndQueue( void )
 {
@@ -945,8 +945,6 @@ static void prvCheckForValidListAndQueue( void )
 			{
 				/* The timer queue is allocated statically in case
 				configSUPPORT_DYNAMIC_ALLOCATION is 0. */
-				static StaticQueue_t xStaticTimerQueue;
-				static uint8_t ucStaticTimerQueueStorage[ configTIMER_QUEUE_LENGTH * sizeof( DaemonTaskMessage_t ) ];
 
 				xTimerQueue = xQueueCreateStatic( ( UBaseType_t ) configTIMER_QUEUE_LENGTH, sizeof( DaemonTaskMessage_t ), &( ucStaticTimerQueueStorage[ 0 ] ), &xStaticTimerQueue );
 			}
