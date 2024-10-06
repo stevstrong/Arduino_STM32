@@ -588,7 +588,7 @@ typedef uint32_t timer_info_t;
 extern timer_info_t const timer_map[];
 
 #define PinTimerDevice(pin) ((pin>PB15)?NULL:(timer_dev_t*)(timer_map[pin]&0xFFFFFFF8))
-#define PinTimerChannel(pin) ((pin>PB15)?0:(timer_map[pin]&0x07))
+#define PinTimerChannel(pin) (timer_channel_t)((pin>PB15)?0:(timer_map[pin]&0x07))
 
 /*
  * Note: Don't require timer_channel_t arguments! We want to be able to say
