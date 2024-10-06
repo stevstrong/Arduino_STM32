@@ -113,7 +113,7 @@ extern ring_buffer_t usbTxRB;
 
 #define USB_CDCACM_HOOK_RX 0x1
 #define USB_CDCACM_HOOK_IFACE_SETUP 0x2
-#define USB_CDCACM_LINE_CODING_HOOK 0x2
+#define USB_CDCACM_LINE_CODING_HOOK 0x4
 
 extern voidFuncPtr dataHook;
 extern voidFuncPtr ifaceHook;

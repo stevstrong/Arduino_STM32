@@ -131,8 +131,8 @@ void usb_cdcacm_set_hooks(int hook, voidFuncPtr hook_func)
 {
 	if (hook & USB_CDCACM_HOOK_RX)
 		dataHook = hook_func;
-	if (hook & USB_CDCACM_HOOK_IFACE_SETUP)
+	else if (hook & USB_CDCACM_HOOK_IFACE_SETUP)
 		ifaceHook = hook_func;
-	if (hook & USB_CDCACM_LINE_CODING_HOOK)
+	else if (hook & USB_CDCACM_LINE_CODING_HOOK)
 		lineCodingHook = hook_func;
 }
