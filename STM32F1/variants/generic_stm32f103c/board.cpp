@@ -49,7 +49,7 @@ void boardInit(void)
 }
 
 extern const uint8 boardPWMPins[BOARD_NR_PWM_PINS] __FLASH__ = {
-        PA0, PA1, PA2, PA3, PA6, PA7, PA8, PA9, PA10, PA11, PB0, PB1, PB6, PB7, PB8, PB9
+    PA0, PA1, PA2, PA3, PA6, PA7, PA8, PA9, PA10, PA11, PB0, PB1, PB6, PB7, PB8, PB9
 };
 
 extern const uint8 boardADCPins[BOARD_NR_ADC_PINS] __FLASH__ = {
@@ -62,7 +62,7 @@ extern const uint8 boardADCPins[BOARD_NR_ADC_PINS] __FLASH__ = {
 
 // NOte. These definitions are not really used for generic boards, they only relate to boards modified to behave like Maple boards
 extern const uint8 boardUsedPins[BOARD_NR_USED_PINS] __FLASH__ = {
-     USB_DP, USB_DM
+    USB_DP, USB_DM
 };
 
 
