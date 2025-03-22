@@ -159,8 +159,10 @@ void VS1003::sdi_send_zeroes(size_t len)
     data_mode_on();
     size_t chunk_length = min(len,vs1003_chunk_size);
     len -= chunk_length;
-    while (chunk_length--)
-      my_SPI->transfer(0);
+    // DO NOT optimize these lines !!! There must be a 1us delay between bytes
+    do {
+      my_SPI->write(0);
+    } while (--chunk_length);
     data_mode_off();
   }
 }
